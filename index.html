@@ -1,0 +1,2235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyZap ⚡ — Python Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #080C14;
+  --surface:  #0D1421;
+  --card:     #111827;
+  --border:   #1E2D45;
+  --accent:   #C8F135;
+  --accent2:  #38BDF8;
+  --accent3:  #F97316;
+  --gold:     #FBBF24;
+  --red:      #F87171;
+  --green:    #4ADE80;
+  --text:     #F1F5F9;
+  --muted:    #64748B;
+  --code-bg:  #0A0F1A;
+  --kw:       #38BDF8;
+  --str:      #FBBF24;
+  --num:      #4ADE80;
+  --punc:     #F472B6;
+  --cmt:      #4B5563;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  overflow: hidden;
+}
+
+/* ── BACKGROUND GRID ──────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(200,241,53,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,241,53,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── LAYOUT ───────────────────────────────────────────────────── */
+#app {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  overflow: hidden;
+}
+
+/* ── LOGIN PAGE ───────────────────────────────────────────────── */
+#login-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0;
+}
+#login-screen::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(200,241,53,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,241,53,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 340px;
+  position: relative;
+  z-index: 1;
+}
+.login-brand {
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.login-bolt { font-size: 36px; }
+.login-sub {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: -12px;
+}
+.login-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+  align-self: flex-start;
+}
+.login-input {
+  width: 100%;
+  background: var(--code-bg);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  outline: none;
+  text-align: center;
+  letter-spacing: 4px;
+  transition: border-color 0.15s;
+}
+.login-input:focus { border-color: var(--accent); }
+.login-btn {
+  width: 100%;
+  padding: 13px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: background 0.15s;
+}
+.login-btn:hover { background: #d4f53f; }
+.login-error {
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 600;
+  min-height: 16px;
+  text-align: center;
+}
+.login-credit {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  opacity: 0.5;
+  margin-top: 8px;
+}
+
+/* ── HEADER — compact ─────────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0 4px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.brand-name {
+  font-size: clamp(16px, 2vw, 24px);
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.brand-bolt {
+  font-size: clamp(14px, 1.8vw, 22px);
+  line-height: 1;
+}
+.brand-sub {
+  font-size: clamp(7px, 0.8vw, 9px);
+  color: var(--muted);
+  font-weight: 400;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-left: 2px;
+  align-self: center;
+}
+
+/* Proverb */
+.proverb {
+  flex: 1;
+  text-align: center;
+  font-size: clamp(8px, 0.9vw, 11px);
+  color: var(--accent2);
+  font-style: italic;
+  font-family: 'Syne', sans-serif;
+  opacity: 0.8;
+  padding: 0 10px;
+  line-height: 1.3;
+}
+
+/* Score */
+.score-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.score-pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 10px;
+  text-align: center;
+  min-width: 60px;
+}
+.score-label {
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+.score-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(12px, 1.4vw, 16px);
+  font-weight: 800;
+  color: var(--gold);
+  line-height: 1.1;
+}
+.streak-badge {
+  font-size: 8px;
+  color: var(--green);
+  font-weight: 700;
+  letter-spacing: 1px;
+  min-height: 11px;
+}
+.credit {
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  opacity: 0.5;
+  line-height: 1.4;
+}
+
+/* ── MAIN CONTENT ─────────────────────────────────────────────── */
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6vh;
+  padding: 0.5vh 0 0.3vh;
+  overflow: hidden;
+  min-height: 0;
+  flex: 1;
+}
+
+/* ── SIDEBAR ──────────────────────────────────────────────────── */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.panel-title {
+  background: var(--card);
+  padding: 8px 14px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.panel-body {
+  padding: 12px;
+}
+
+/* Toggle buttons */
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tog {
+  padding: 4px 9px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.3px;
+}
+.tog:hover { border-color: var(--accent); color: var(--accent); }
+.tog.active {
+  border-color: transparent;
+  color: #000;
+  font-weight: 700;
+}
+
+/* dtype colours */
+.tog.dt-String.active  { background: #7C3AED; color: #fff; border-color: #7C3AED; }
+.tog.dt-List.active    { background: #065F46; color: #fff; border-color: #065F46; }
+.tog.dt-Tuple.active   { background: #92400E; color: #fff; border-color: #92400E; }
+.tog.dt-Dict.active    { background: #BE185D; color: #fff; border-color: #BE185D; }
+.tog.dt-Mixed.active   { background: #1D4ED8; color: #fff; border-color: #1D4ED8; }
+/* qtype colours */
+.tog.qt-Indexing.active   { background: #0E7490; color: #fff; border-color: #0E7490; }
+.tog.qt-Slicing.active    { background: #5B21B6; color: #fff; border-color: #5B21B6; }
+.tog.qt-Functions.active  { background: #B45309; color: #fff; border-color: #B45309; }
+.tog.qt-Membership.active { background: #0F766E; color: #fff; border-color: #0F766E; }
+.tog.qt-Comparison.active { background: #7C2D12; color: #fff; border-color: #7C2D12; }
+.tog.qt-Mixed.active      { background: #1D4ED8; color: #fff; border-color: #1D4ED8; }
+
+/* Keyboard hints panel */
+.key-list { display: flex; flex-direction: column; gap: 8px; }
+.key-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.key-action { color: var(--muted); }
+.key-badge {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 2px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* ── QUESTION AREA ────────────────────────────────────────────── */
+
+/* q-card grows to fill all free space in main */
+.q-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.q-card-header {
+  background: var(--code-bg);
+  padding: 0.5vh 1.2vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.q-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(11px, 1.3vw, 17px);
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.dot-row { display: flex; gap: 6px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; }
+.dot-r { background: #F87171; }
+.dot-y { background: #FBBF24; }
+.dot-g { background: #4ADE80; }
+
+.q-prompt {
+  font-size: clamp(11px, 1.3vw, 16px);
+  font-weight: 700;
+  color: var(--accent2);
+  padding: 0.6vh 1.2vw 0.4vh;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+/* code-wrap grows inside q-card — takes all the free vertical space */
+.code-wrap {
+  display: flex;
+  align-items: stretch;
+  background: var(--code-bg);
+  margin: 0 0.8vw 0.6vh;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+.gutter {
+  background: #080C14;
+  border-right: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(14px, 1.9vw, 26px);
+  color: var(--cmt);
+  line-height: 1.8;
+  text-align: right;
+  min-width: 36px;
+  padding: 0 0.5vw;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.code-lines {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(14px, 1.9vw, 26px);
+  line-height: 1.8;
+  flex: 1;
+  padding: 0 1.4vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-x: auto;
+}
+.code-line {
+  white-space: pre;
+  display: block;
+}
+.gutter-num {
+  display: block;
+}
+.code-lines::-webkit-scrollbar { height: 4px; }
+.code-lines::-webkit-scrollbar-track { background: transparent; }
+.code-lines::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* Syntax highlight spans */
+.kw   { color: var(--kw); }
+.str  { color: var(--str); }
+.num  { color: var(--num); }
+.punc { color: var(--punc); }
+.cmt  { color: var(--cmt); }
+.plain{ color: var(--text); }
+
+/* ── ANSWER AREA ──────────────────────────────────────────────── */
+.ans-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  flex-shrink: 0;
+  min-height: 0;
+}
+
+.ans-card {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.5vh 1vw;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3vh;
+}
+.ans-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+}
+.ans-input {
+  background: var(--code-bg);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6vh 1vw;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(13px, 1.8vw, 22px);
+  font-weight: 700;
+  color: var(--text);
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.ans-input:focus { border-color: var(--accent); }
+.ans-hint {
+  font-size: 10px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ── FEEDBACK ─────────────────────────────────────────────────── */
+.feedback {
+  padding: 0.5vh 1vw;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(12px, 1.5vw, 18px);
+  font-weight: 700;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+.feedback.correct  { background: #052E16; border: 1px solid #166534; color: var(--green); }
+.feedback.wrong    { background: #1C0707; border: 1px solid #7F1D1D; color: var(--red); }
+.feedback.revealed { background: #1C1407; border: 1px solid #78350F; color: var(--gold); }
+.feedback.empty    { background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-size: 12px; font-family: 'Syne', sans-serif; font-weight: 400; letter-spacing: 0; }
+
+/* ── BUTTONS ──────────────────────────────────────────────────── */
+.btn-row {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.btn {
+  padding: 0.6vh 1.2vw;
+  border-radius: 7px;
+  border: none;
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(11px, 1.2vw, 13px);
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn:active { transform: scale(0.97); }
+
+.btn-check  { background: var(--accent); color: #000; }
+.btn-check:hover  { background: #d4f53f; }
+.btn-reveal { background: var(--accent3); color: #fff; }
+.btn-reveal:hover { background: #ea7219; }
+.btn-next   { background: var(--accent2); color: #000; }
+.btn-next:hover   { background: #62cafc; }
+.btn-reset  { background: transparent; border: 1px solid var(--border); color: var(--muted); margin-left: auto; }
+.btn-reset:hover  { border-color: var(--red); color: var(--red); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* footer removed */
+
+/* ── ANIMATIONS ───────────────────────────────────────────────── */
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.q-card { animation: fadeSlide 0.25s ease; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.streak-badge { animation: pulse 2s ease infinite; }
+
+/* ── TV MODE (large screens) ──────────────────────────────────── */
+@media (min-width: 1600px) {
+  .brand-name { font-size: 56px; }
+  .code-lines { font-size: 24px; }
+  .gutter { font-size: 24px; }
+  .ans-input { font-size: 26px; }
+  .feedback { font-size: 24px; }
+}
+
+/* ── RESPONSIVE (laptop small) ────────────────────────────────── */
+/* ── SETTINGS BAR — always visible ───────────────────────────── */
+.settings-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 4px 0 3px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.settings-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.settings-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.settings-sub {
+  padding-top: 3px;
+  border-top: 1px solid var(--border);
+  margin-top: 2px;
+}
+.chk-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  transition: all 0.15s;
+  user-select: none;
+}
+.chk-label:hover { border-color: var(--accent); color: var(--accent); }
+.chk-label input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; }
+/* Difficulty colours */
+.tog.df-Basic.active       { background: #065F46; color: #fff; border-color: #065F46; }
+.tog.df-Intermediate.active{ background: #92400E; color: #fff; border-color: #92400E; }
+.tog.df-Advanced.active    { background: #7C1D1D; color: #fff; border-color: #7C1D1D; }
+.tog.df-Mixed.active       { background: #1D4ED8; color: #fff; border-color: #1D4ED8; }
+/* New qtype colours */
+.tog.qt-SliceIdx.active     { background: #0E4C7A; color: #fff; border-color: #0E4C7A; }
+.tog.qt-Expressions.active  { background: #4C1D95; color: #fff; border-color: #4C1D95; }
+.tog.qt-TypeFunctions.active{ background: #7C3AED; color: #fff; border-color: #7C3AED; }
+
+@media (max-width: 900px) {
+  main { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  html, body { overflow: auto; }
+  #app { height: auto; overflow: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div style="display:flex;align-items:baseline;gap:8px;">
+      <span class="login-brand">PyZap</span>
+      <span class="login-bolt">⚡</span>
+    </div>
+    <div class="login-sub">Python Quiz</div>
+    <div style="width:100%">
+      <div class="login-label">Password</div>
+    </div>
+    <input class="login-input" id="login-pw" type="password"
+           placeholder="••••••" autocomplete="off" maxlength="20">
+    <div class="login-error" id="login-err"></div>
+    <button class="login-btn" id="login-btn">Login</button>
+    <div class="login-credit">Developed by Leo Anto Richard</div>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <span class="brand-name">PyZap</span>
+      <span class="brand-bolt">⚡</span>
+      <span class="brand-sub">Python Quiz</span>
+    </div>
+    <div class="proverb" id="proverb"></div>
+    <div class="score-box">
+      <div class="score-pill">
+        <div class="score-label">Score</div>
+        <div class="score-value" id="score">0 / 0</div>
+        <div class="streak-badge" id="streak"></div>
+      </div>
+      <div class="credit">Developed by<br>Leo Anto Richard</div>
+    </div>
+  </header>
+
+  <!-- SETTINGS BAR — always visible -->
+  <div class="settings-bar" id="settings-bar">
+
+    <!-- Row 1: Data Type + Question Type -->
+    <div class="settings-row" id="row-main">
+      <span class="settings-label">Data Type</span>
+      <div class="btn-group" id="dtype-group">
+        <button class="tog dt-String active" data-dtype="String">String</button>
+        <button class="tog dt-List"   data-dtype="List">List</button>
+        <button class="tog dt-Tuple"  data-dtype="Tuple">Tuple</button>
+        <button class="tog dt-Dict"   data-dtype="Dictionary">Dictionary</button>
+        <button class="tog dt-Mixed"  data-dtype="Mixed">Mixed</button>
+      </div>
+      <div class="settings-divider"></div>
+      <span class="settings-label">Question Type</span>
+      <div class="btn-group" id="qtype-group">
+        <button class="tog qt-Indexing active"  data-qtype="Indexing">Indexing</button>
+        <button class="tog qt-Slicing"           data-qtype="Slicing">Slicing</button>
+        <button class="tog qt-SliceIdx"          data-qtype="SliceIdx">Slice+Index</button>
+        <button class="tog qt-Functions"         data-qtype="Functions">Functions</button>
+        <button class="tog qt-Membership"        data-qtype="Membership">Membership</button>
+        <button class="tog qt-Comparison"        data-qtype="Comparison">Comparison</button>
+        <button class="tog qt-Expressions"       data-qtype="Expressions">Expressions</button>
+        <button class="tog qt-TypeFunctions"     data-qtype="TypeFunctions">Type Functions</button>
+        <button class="tog qt-Mixed"             data-qtype="Mixed">Mixed</button>
+      </div>
+    </div>
+
+    <!-- Row 2: Indexing sub-options -->
+    <div class="settings-row settings-sub" id="row-indexing" style="display:none">
+      <span class="settings-label">Indexing Mode</span>
+      <label class="chk-label"><input type="checkbox" id="chk-single" checked> Single</label>
+      <label class="chk-label"><input type="checkbox" id="chk-nested"> Nested</label>
+    </div>
+
+    <!-- Row 3: Difficulty (Expressions + TypeFunctions) -->
+    <div class="settings-row settings-sub" id="row-difficulty" style="display:none">
+      <span class="settings-label">Difficulty</span>
+      <div class="btn-group" id="diff-group">
+        <button class="tog df-Basic active"   data-diff="Basic">Basic</button>
+        <button class="tog df-Intermediate"   data-diff="Intermediate">Intermediate</button>
+        <button class="tog df-Advanced"       data-diff="Advanced">Advanced</button>
+        <button class="tog df-Mixed"          data-diff="Mixed">Mixed</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- QUESTION AREA -->
+
+      <!-- Question card -->
+      <div class="q-card" id="q-card">
+        <div class="q-card-header">
+          <div class="dot-row">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+          </div>
+          <div class="q-num" id="q-num">Question 1</div>
+        </div>
+        <div class="q-prompt">Predict the output?</div>
+        <div class="code-wrap">
+          <div class="gutter" id="gutter">1<br>2</div>
+          <div class="code-lines" id="code-display"></div>
+        </div>
+      </div>
+
+      <!-- Answer -->
+      <div class="ans-row">
+        <div class="ans-card">
+          <div class="ans-label">Your Answer</div>
+          <input class="ans-input" id="ans-input" type="text"
+                 placeholder="Type your answer here..."
+                 autocomplete="off" spellcheck="false">
+          <div class="ans-hint">Strings accepted with or without quotes</div>
+        </div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="feedback empty" id="feedback">
+        Press Space to reveal · Enter to check · Space again for next question
+      </div>
+
+      <!-- Buttons -->
+      <div class="btn-row">
+        <button class="btn btn-check"  id="btn-check">Check Answer</button>
+        <button class="btn btn-reveal" id="btn-reveal">Reveal Answer</button>
+        <button class="btn btn-next"   id="btn-next">Next Question</button>
+        <button class="btn btn-reset"  id="btn-reset">Reset Score</button>
+      </div>
+
+    </main>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  PROVERBS
+// ═══════════════════════════════════════════════════════════════
+const PROVERBS = [
+  "Code is like poetry — every line matters.",
+  "First, solve the problem. Then, write the code.",
+  "Talk is cheap. Show me the code.",
+  "Every expert was once a beginner.",
+  "Debugging is being the detective in a crime where you are the criminal.",
+  "Code never lies; comments sometimes do.",
+  "The only way to learn programming is to program.",
+  "Simplicity is the soul of efficiency.",
+  "Error messages are your best teachers.",
+  "A loop a day keeps the boredom away.",
+  "Logic will get you from A to Z; imagination will get you everywhere.",
+  "Practice makes a programmer perfect.",
+  "Good code reads like a good story.",
+  "Indentation is not optional — it's Python's law.",
+  "Every line of code you write is a step toward mastery.",
+  "In Python, readability counts.",
+  "Dream big, code bigger.",
+  "Errors are proof that you're trying.",
+  "To understand recursion, you must first understand recursion.",
+  "Clean code is a love letter to your future self.",
+  "Think twice, code once.",
+  "Master the basics — the advanced will follow.",
+  "Code is the closest thing humans have to a superpower.",
+  "A dictionary lookup is faster than a loop — remember that.",
+  "Python was made for humans, not just machines.",
+  "There is no shortcut to any place worth going.",
+  "Learning to code is learning to think.",
+  "Break the problem into pieces — that's what functions are for.",
+  "A list stores your possibilities; a loop explores them.",
+  "Syntax errors build character.",
+  "Keep going — the algorithm of life favors persistence.",
+  "Every great program started as a single line.",
+  "Strings are sequences — treat them like treasure.",
+  "A tuple promises to never change. Be like a tuple.",
+  "Nested lists are just lists with ambition.",
+  "Dictionaries are the mind maps of programming.",
+  "Index from zero — because the first step is always free.",
+  "Negative indices are wisdom — they count from the end.",
+  "Slicing is the art of extracting exactly what you need.",
+  "Functions are the building blocks of brilliant programs.",
+  "An empty list is not a failure — it's a blank canvas.",
+  "Sorting is about finding order in chaos.",
+  "In the middle of difficulty lies opportunity — and a try-except block.",
+  "Know your data types — they define your possibilities.",
+  "The sky is not the limit — your imagination is.",
+  "One day of serious study beats seven days of casual scrolling.",
+  "Even the longest list starts with a single element.",
+  "len() measures strings, but ambition has no length.",
+  "split() divides; join() unites — just like in life.",
+  "replace() the doubt with confidence.",
+  "strip() away the unnecessary, keep the essential.",
+  "Python doesn't judge — it just evaluates.",
+  "True or False: studying Python is worth it. Always True.",
+  "If you can think it, you can code it.",
+  "Every great coder was once a confused student.",
+  "Fail fast, learn faster.",
+  "Be the algorithm that never gives up.",
+  "CBSE Class 12 Computer Science — your gateway to the digital future!",
+  "The terminal is your canvas, the keyboard is your brush.",
+  "Type carefully — the computer always does exactly what you say.",
+  "Variables are the memory of your program — use them wisely.",
+  "Iteration beats hesitation.",
+  "Comment your code like you'll forget everything tomorrow.",
+  "The answer is already in the interpreter — just ask it.",
+  "Believe in your if-else until the else becomes an if.",
+  "Even the longest list starts with a single element.",
+  "count() your blessings — Python's way.",
+  "startswith() determination, endswith() success.",
+  "Strive for progress, not perfection.",
+  "The secret of getting ahead is getting started.",
+  "Your IDE is your workshop — keep it tidy.",
+  "The colon (:) in Python is the gateway to possibility.",
+  "pop() the last element — let go of what you don't need.",
+  "Append today, access tomorrow.",
+  "Think like a computer but program like a human.",
+  "A great developer thinks like a user.",
+  "Curiosity is the engine of achievement.",
+  "Find your passion — Python helps you build it.",
+  "Logic is the ladder; Python is the rocket.",
+  "Every bug fixed makes you a better programmer.",
+  "The best programs are written for people, not just machines.",
+  "One function at a time builds a great program.",
+  "isalpha() your thoughts, isdigit() your plans.",
+  "sorted() today means a better tomorrow.",
+  "max() your effort, min() your excuses.",
+  "sum() of small efforts = extraordinary results.",
+  "reverse() your doubts and index() your strengths.",
+  "You don't have to be great to start, but you have to start to be great.",
+  "Data is the new oil — learn to refine it.",
+  "Good questions lead to great code.",
+  "Programming is the art of telling a computer what to do.",
+  "The best time to learn Python was yesterday. The next best time is now.",
+  "Each question you answer makes the next one easier.",
+  "PyZap — where Python practice meets perfection.",
+  "Your future self will thank you for studying today.",
+  "Class 12 boards are won in the practice room, not the exam hall.",
+];
+
+// ═══════════════════════════════════════════════════════════════
+//  DATA BANKS
+// ═══════════════════════════════════════════════════════════════
+const STRINGS_MEDIUM = [
+  "python","banana","orange","monkey","planet","garden","mirror",
+  "bridge","castle","jungle","camera","laptop","forest","butter",
+  "silver","golden","winter","summer","spring","autumn","flower",
+  "pillow","bottle","basket","candle","pencil","rabbit","turtle",
+  "falcon","parrot","lizard","walrus","badger","jaguar","toucan",
+  "enigma","harbor","island","kernel","magnet","nectar","oyster",
+  "portal","quartz","riddle","timber","velvet","wisdom","zenith",
+  "cosmos","nebula","bamboo","cactus","donkey","ferret","goblin",
+  "syntax","indent","module","import","return","lambda","global",
+  "anchor","beacon","cipher","defect","engine","factor","gadget",
+  "hammer","impact","jigsaw","knight","lagoon","mentor","noodle",
+  "offset","pebble","radius","saddle","tunnel","vertex","walnut",
+  "canyon","desert","esteem","famine","galaxy","herald","insect",
+  "karate","locket","museum","napkin","palace","safari","target",
+];
+const STRINGS_PHRASES = [
+  "Hello World","Data Science","Machine Learning","foo bar baz",
+  "spam and eggs","I love Python","Keep it simple","while loop runs",
+  "for loop range","hello there","good morning","learn coding",
+  "fun with python","Open Source Code","import this now",
+  "print and learn","logic and loops","class and object",
+];
+const STRINGS_TRICKY = [
+  "racecar","level","deified","civic","radar","refer",
+  "abcdefghij","zyxwvutsrq","aabbccddee","xoxoxoxo",
+  "PythonPython","HelloHello","under_score","camelCase",
+  "ALLCAPS","alllower","MiXeDcAsE","mississippi","beautiful",
+  "algorithm","recursion","aibohphobia","tattarrattat","rotator",
+  "abababab","xyxyxyxy","abcABCabc","one1two2three3",
+];
+const STRINGS_ALPHA = ["hello","world","python","abcdef","coding","simple",
+  "learn","school","cbse","grade","logic","loops","array","happy","brave"];
+const STRINGS_DIGIT = ["12345","987654","007","1000","246810","1234567890","999","2024"];
+const STRINGS_ALNUM = ["abc123","python3","class12","test99","code42","web2","java8"];
+const STRINGS_UPPER = ["HELLO","PYTHON","CBSE","INDIA","SCHOOL","MANGO","WORLD","CLASS"];
+
+const LISTS_FLAT = [
+  [1,2,3,4,5],[10,20,30,40,50,60],[100,200,300,400,500],
+  [1,3,5,7,9,11,13],[2,4,6,8,10,12,14,16],
+  [99,88,77,66,55,44,33],[5,4,3,2,1,0],
+  [1,2,2,3,3,3,4],[10,-5,3,-1,8,-2,0],
+  [7,14,21,28,35,42],[50,40,30,20,10],
+  ["a","b","c","d","e"],
+  ["apple","banana","cherry","date","elderberry"],
+  ["python","java","cpp","ruby","go","rust"],
+  ["red","green","blue","yellow","purple","orange"],
+  ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+  ["cat","dog","bird","fish","rabbit","turtle"],
+  ["alpha","beta","gamma","delta","epsilon","zeta"],
+  ["one","two","three","four","five","six","seven"],
+  ["India","China","Japan","France","Canada","Brazil"],
+  ["mango","apple","guava","papaya","litchi"],
+  ["cricket","hockey","football","tennis","badminton"],
+  ["sun","moon","star","planet","comet","galaxy"],
+  ["north","south","east","west"],
+  ["spring","summer","autumn","winter"],
+];
+const LISTS_NESTED = [
+  ["India","Incredible","Bharat"],
+  ["Hello","World","Python"],
+  ["Delhi","Mumbai","Chennai","Kolkata"],
+  [10,[20,30],40,[50,60]],
+  [[1,2],[3,4],[5,6]],
+  [1,[2,[3,4]],5],
+  ["a",["b","c"],"d",["e","f"]],
+  ["CBSE","Board","Class","Twelve"],
+  [100,[200,300],400],
+  [["apple","mango"],["banana","cherry"]],
+  ["red",["green","blue"],"yellow"],
+  [1,2,[3,4,5],6,7],
+  ["first",["second","third"],"fourth"],
+  [[10,20,30],[40,50,60],[70,80,90]],
+  ["Python",["is","great"],"language"],
+];
+const DICTS = [
+  {name:"Alice",age:16,grade:"A"},
+  {subject:"Python",marks:95},
+  {city:"Delhi",country:"India",code:110001},
+  {a:1,b:2,c:3,d:4},
+  {fruit:"mango",color:"yellow",price:50},
+  {x:10,y:20,z:30},
+  {school:"CBSE","class":12,year:2025},
+  {lang:"Python",version:3},
+  {p:100,q:200,r:300,s:400},
+  {brand:"Apple",model:"iPhone",year:2024},
+  {name:"Raj",age:17,city:"Mumbai"},
+  {team:"India",score:350,wickets:5},
+  {product:"laptop",price:45000,stock:10},
+  {student:"Priya","class":12,marks:98},
+  {sport:"cricket",players:11,overs:50},
+  {day:"Monday",month:"Jan",year:2025},
+  {first:1,second:2,third:3,fourth:4,fifth:5},
+  {jan:31,feb:28,mar:31,apr:30},
+  {vowels:5,consonants:21,total:26},
+  {zeros:0,ones:1,binary:2},
+];
+
+// ═══════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════
+function rnd(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function rndInt(a,b) { return Math.floor(Math.random()*(b-a))+a; }
+function chance(p) { return Math.random()<p; }
+
+function pyRepr(v) {
+  if (v===null||v===undefined) return "None";
+  if (typeof v==="boolean") return v?"True":"False";
+  if (typeof v==="string") return "'"+v+"'";
+  if (typeof v==="number") return String(v);
+  if (Array.isArray(v)) {
+    const inner = v.map(pyRepr).join(", ");
+    return "["+inner+"]";
+  }
+  if (typeof v==="object") {
+    const pairs = Object.entries(v).map(([k,val])=>pyRepr(k)+": "+pyRepr(val)).join(", ");
+    return "{"+pairs+"}";
+  }
+  return String(v);
+}
+
+function pyReprTuple(arr) {
+  if (arr.length===0) return "()";
+  if (arr.length===1) return "("+pyRepr(arr[0])+",)";
+  return "("+arr.map(pyRepr).join(", ")+")";
+}
+
+function safeIndex(data,idx) {
+  if(idx<0) idx=data.length+idx;
+  return data[idx];
+}
+
+function pickString(kind) {
+  if(kind==="alpha") return rnd(STRINGS_ALPHA);
+  if(kind==="digit") return rnd(STRINGS_DIGIT);
+  if(kind==="alnum") return rnd(STRINGS_ALNUM);
+  if(kind==="upper") return rnd(STRINGS_UPPER);
+  return rnd(chance(0.3)?STRINGS_PHRASES:chance(0.5)?STRINGS_MEDIUM:STRINGS_TRICKY);
+}
+function pickList() { return JSON.parse(JSON.stringify(rnd(LISTS_FLAT))); }
+function pickNested() { return JSON.parse(JSON.stringify(rnd(LISTS_NESTED))); }
+function pickTuple() { return JSON.parse(JSON.stringify(rnd(LISTS_FLAT))); }
+function pickDict() { return JSON.parse(JSON.stringify(rnd(DICTS))); }
+
+function answersMatch(user, expected, isStr) {
+  user = user.trim(); expected = String(expected).trim();
+  if(user===expected) return true;
+  if(isStr) {
+    for(const q of ["'",'"']) {
+      if(expected.startsWith(q)&&expected.endsWith(q)&&expected.length>=2)
+        if(user===expected.slice(1,-1)) return true;
+      if(user.startsWith(q)&&user.endsWith(q)&&user.length>=2)
+        if(user.slice(1,-1)===expected) return true;
+    }
+  }
+  return user.replace(/\s/g,"")===expected.replace(/\s/g,"");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  QUESTION GENERATORS
+// ═══════════════════════════════════════════════════════════════
+
+// ── Python slice helper ──
+function pySlice(data,start,stop,step) {
+  let arr = typeof data==="string"?data.split(""):data;
+  let len = arr.length;
+  step = step||1;
+  if(step===0) return [];
+  let s, e;
+  if(step>0) {
+    s = start==null?0:start<0?Math.max(0,len+start):Math.min(start,len);
+    e = stop==null?len:stop<0?Math.max(0,len+stop):Math.min(stop,len);
+  } else {
+    s = start==null?len-1:start<0?Math.max(-1,len+start):Math.min(start,len-1);
+    e = stop==null?-(len+1):stop<0?Math.max(-(len+1),len+stop):Math.min(stop,len-1);
+  }
+  let result=[];
+  if(step>0){for(let i=s;i<e;i+=step) result.push(arr[i]);}
+  else{for(let i=s;i>e;i+=step) result.push(arr[i]);}
+  return typeof data==="string"?result.join(""):result;
+}
+
+// ── NESTED TUPLES ─────────────────────────────────────────────
+const TUPLES_NESTED = [
+  [10,[20,30],40],
+  [[1,2],[3,4],[5,6]],
+  [100,[200,300],400],
+  [[10,20,30],[40,50,60],[70,80,90]],
+  ["a",["b","c"],"d"],
+  [1,[2,3,4],5,6],
+  [[5,10],[15,20],[25,30]],
+  ["hello",["world","python"],"code"],
+  [[1,1],[2,2],[3,3],[4,4]],
+  [0,[1,2],3,[4,5]],
+];
+function pickTupleNested(){ return JSON.parse(JSON.stringify(rnd(TUPLES_NESTED))); }
+
+// ── ITEM REPR (mirrors Python _item_repr) ──────────────────────
+function itemRepr(v) {
+  if(v===null||v===undefined) return "None";
+  if(typeof v==="boolean") return v?"True":"False";
+  if(typeof v==="string") return "'"+v+"'";
+  return String(v);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  genIndexSlice  (mirrors Python gen_index_slice exactly)
+// ═══════════════════════════════════════════════════════════════
+function genIndexSlice(dtype, cat, opts) {
+  const io = opts||{};
+  const allowSingle = io.indexMode!=="nested";
+  const allowNested = io.indexMode!=="single";
+  // Force nested data when nested mode
+  const forceNested = io.indexMode==="nested";
+  const mixNested   = io.indexMode==="both";
+
+  let data, dataRepr;
+  if(dtype==="String") {
+    data = pickString();
+    dataRepr = "'"+data+"'";
+  } else if(dtype==="List") {
+    data = (forceNested || (mixNested && chance(0.5))) ? pickNested() : pickList();
+    dataRepr = pyRepr(data);
+  } else {
+    data = (forceNested || (mixNested && chance(0.5))) ? pickTupleNested() : pickTuple();
+    dataRepr = pyReprTuple(data);
+  }
+  let n = data.length || 1;
+  if(n < 2){ data=[1,2,3,4,5]; n=5; dataRepr=pyRepr(data); }
+  let up = chance(0.85);
+
+  function mkResult(lines, ansRepr, expected, isStr){
+    return {lines, answer:ansRepr, expected:String(expected), isStr, up};
+  }
+
+  if(cat==="Indexing") {
+    // NESTED MODE: force x[i][j] style questions
+    if(forceNested && (dtype==="List"||dtype==="Tuple")) {
+      // Always use nested data for forced nested mode
+      data = dtype==="List" ? pickNested() : pickTupleNested();
+      dataRepr = dtype==="List" ? pyRepr(data) : pyReprTuple(data);
+      n = data.length||1;
+      // Find a sub-list element to index into
+      for(let attempt=0; attempt<30; attempt++) {
+        let idx1 = rndInt(0, n);
+        let elem1 = data[idx1];
+        if(Array.isArray(elem1) && elem1.length>=2) {
+          let n2 = elem1.length;
+          let idx2 = chance(0.4) ? -rndInt(1,n2+1) : rndInt(0,n2);
+          let ans = safeIndex(elem1, idx2);
+          let expr = "x["+idx1+"]["+idx2+"]";
+          let ar = pyRepr(ans);
+          let expected = (typeof ans==="string"&&up) ? ans : ar;
+          let line1 = "x = "+dataRepr;
+          let line2 = up ? "print("+expr+")" : ">>> "+expr;
+          return mkResult([line1,line2], ar, expected, typeof ans==="string");
+        }
+      }
+      throw new Error("retry nested");
+    }
+    // BOTH MODE: mix of single and x[i][j]
+    if(mixNested && (dtype==="List"||dtype==="Tuple") && chance(0.5)) {
+      data = dtype==="List" ? pickNested() : pickTupleNested();
+      dataRepr = dtype==="List" ? pyRepr(data) : pyReprTuple(data);
+      n = data.length||1;
+      for(let attempt=0; attempt<20; attempt++) {
+        let idx1 = rndInt(0, n);
+        let elem1 = data[idx1];
+        if(Array.isArray(elem1) && elem1.length>=2) {
+          let n2 = elem1.length;
+          let idx2 = chance(0.4) ? -rndInt(1,n2+1) : rndInt(0,n2);
+          let ans = safeIndex(elem1, idx2);
+          let expr = "x["+idx1+"]["+idx2+"]";
+          let ar = pyRepr(ans);
+          let expected = (typeof ans==="string"&&up) ? ans : ar;
+          let line1 = "x = "+dataRepr;
+          let line2 = up ? "print("+expr+")" : ">>> "+expr;
+          return mkResult([line1,line2], ar, expected, typeof ans==="string");
+        }
+      }
+    }
+    // Board style: x[i][j]+x[k][l] (single mode, list of strings)
+    if(allowSingle && dtype==="List" && chance(0.15) && n>=2 && data.every(e=>typeof e==="string")) {
+      let i=rndInt(0,n), k=rndInt(0,n);
+      let ei=data[i], ek=data[k];
+      if(ei&&ek&&ei.length>=1&&ek.length>=1) {
+        let j=rndInt(0,ei.length), l=-rndInt(1,ek.length+1);
+        let ans=ei[j]+safeIndex(ek,l);
+        let expr="x["+i+"]["+j+"] + x["+k+"]["+l+"]";
+        let line1="x = "+dataRepr;
+        let line2=up?"print("+expr+")":">>> "+expr;
+        return mkResult([line1,line2],"'"+ans+"'",up?ans:"'"+ans+"'",true);
+      }
+    }
+    // Simple single indexing
+    let useNeg = chance(0.40);
+    let idx = useNeg ? -rndInt(1,n+1) : rndInt(0,n);
+    let ans = safeIndex(data, idx);
+    let expr = "x["+idx+"]";
+    let ar = pyRepr(ans);
+    let expected = (typeof ans==="string"&&up&&ans.length>0) ? ans : ar;
+    let line1 = "x = "+dataRepr;
+    let line2 = up ? "print("+expr+")" : ">>> "+expr;
+    return mkResult([line1,line2], ar, expected, typeof ans==="string");
+
+  } else {
+    // Slicing
+    let outside = chance(0.12);
+    let incStep = chance(0.50);
+    let start, stop, step=null;
+    if(outside) {
+      start = rnd([null, -(n+rndInt(1,4)), n+rndInt(1,4)]);
+      stop  = rnd([null, -(n+rndInt(1,4)), n+rndInt(1,4)]);
+    } else {
+      start = chance(0.35)?null:(chance(0.4)?-rndInt(1,n+1):rndInt(0,n));
+      stop  = chance(0.35)?null:(chance(0.4)?-rndInt(1,n+1):rndInt(0,n+1));
+    }
+    if(incStep) step = rnd([-3,-2,2,3]);
+    let sliced = pySlice(data, start, stop, step);
+    let s = start==null?"":String(start);
+    let e = stop==null?"":String(stop);
+    let sliceExpr = step!=null ? "x["+s+":"+e+":"+step+"]" : "x["+s+":"+e+"]";
+    let expr = sliceExpr, ans = sliced;
+    // 25% chance chain index
+    if(sliced.length>=2 && chance(0.25)) {
+      let ns2=sliced.length;
+      let idx2 = rnd([0,-1,rndInt(0,ns2)]);
+      ans = safeIndex(sliced, idx2);
+      expr = sliceExpr+"["+idx2+"]";
+    }
+    let ar;
+    if(typeof ans==="string") ar = "'"+ans+"'";
+    else if(typeof ans==="number"||typeof ans==="boolean") ar = pyRepr(ans);
+    else if(Array.isArray(ans)) ar = dtype==="Tuple" ? pyReprTuple(ans) : pyRepr(ans);
+    else ar = pyRepr(ans);
+    let expected = (typeof ans==="string"&&up) ? ans : ar;
+    let line1 = "x = "+dataRepr;
+    let line2 = up ? "print("+expr+")" : ">>> "+expr;
+    return mkResult([line1,line2], ar, expected, typeof ans==="string");
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  genMembership  (mirrors Python gen_membership exactly)
+// ═══════════════════════════════════════════════════════════════
+function genMembership(dtype) {
+  let data, dataRepr, elem, op, expr;
+  if(dtype==="String") {
+    data = pickString();
+    dataRepr = "'"+data+"'";
+    // Pick substring actually in data, or a miss
+    let l = rndInt(1, Math.min(4, data.length+1));
+    let s = rndInt(0, Math.max(1, data.length-l+1));
+    let inElem = data.slice(s, s+l);
+    elem = chance(0.6) ? inElem : rnd(["zz","99","@","XY"]);
+    op = chance(0.5) ? "in" : "not in";
+    expr = "'"+elem+"' "+op+" x";
+  } else {
+    data = dtype==="List" ? pickList() : pickTuple();
+    dataRepr = dtype==="List" ? pyRepr(data) : pyReprTuple(data);
+    let flat = data.filter(i=>!Array.isArray(i));
+    if(!flat.length) flat = [1,2,3];
+    elem = chance(0.6) ? rnd(flat) : rnd([99999,"zzz",-999]);
+    op = chance(0.5) ? "in" : "not in";
+    expr = itemRepr(elem)+" "+op+" x";
+  }
+  let up = chance(0.85);
+  let ans = op==="in" ? data.includes?.(elem) ?? String(data).includes(elem)
+                       : !(data.includes?.(elem) ?? String(data).includes(elem));
+  // For strings use includes properly
+  if(dtype==="String") ans = op==="in" ? data.includes(elem) : !data.includes(elem);
+  let ar = ans ? "True" : "False";
+  let line1 = "x = "+dataRepr;
+  let line2 = up ? "print("+expr+")" : ">>> "+expr;
+  return {lines:[line1,line2], answer:ar, expected:ar, isStr:false, up};
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  genComparison  (mirrors Python gen_comparison exactly)
+// ═══════════════════════════════════════════════════════════════
+function genComparison(dtype) {
+  let expr, ans, line1;
+  if(dtype==="String") {
+    const pairs = [
+      ["hello","hello"],["Hello","hello"],["abc","abd"],
+      ["python","python"],["Python","python"],["CBSE","cbse"],
+      ["apple","mango"],["banana","banana"],["xyz","abc"],
+      ["hello","HELLO"],["abc","ABC"],["cat","cat"],
+      ["",""],["a","b"],["z","a"],
+    ];
+    const ops = ["==","!=","<",">","<=",">="];
+    let [a,b] = rnd(pairs);
+    let op = rnd(ops);
+    ans = op==="=="?a===b:op==="!="?a!==b:op==="<"?a<b:op===">"?a>b:op==="<="?a<=b:a>=b;
+    expr = "'"+a+"' "+op+" '"+b+"'";
+    line1 = "# string comparison";
+  } else {
+    const ops = ["==","!="];
+    let op = rnd(ops);
+    let a = pickList().slice(0,4);
+    let b = chance(0.5) ? [...a] : pickList().slice(0,4);
+    let aR = dtype==="List" ? pyRepr(a) : pyReprTuple(a);
+    let bR = dtype==="List" ? pyRepr(b) : pyReprTuple(b);
+    ans = op==="==" ? JSON.stringify(a)===JSON.stringify(b) : JSON.stringify(a)!==JSON.stringify(b);
+    expr = aR+" "+op+" "+bR;
+    line1 = "# sequence comparison";
+  }
+  let up = chance(0.85);
+  let ar = ans ? "True" : "False";
+  let line2 = up ? "print("+expr+")" : ">>> "+expr;
+  return {lines:[line1,line2], answer:ar, expected:ar, isStr:false, up};
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  genStringFunction  (mirrors Python gen_string_function exactly)
+// ═══════════════════════════════════════════════════════════════
+function genStringFunction() {
+  const makers = [
+    // len
+    ()=>{ let s=pickString(); return [s,"len(x)",s.length,false]; },
+    // capitalize
+    ()=>{ let s=rnd(STRINGS_MEDIUM.concat(STRINGS_PHRASES));
+          return [s,"x.capitalize()",s.charAt(0).toUpperCase()+s.slice(1).toLowerCase(),true]; },
+    // title
+    ()=>{ let s=rnd(["hello world python","learn code now","data science fun","open source code"]);
+          return [s,"x.title()",s.split(" ").map(w=>w[0].toUpperCase()+w.slice(1)).join(" "),true]; },
+    // lower
+    ()=>{ let s=rnd(STRINGS_UPPER); return [s,"x.lower()",s.toLowerCase(),true]; },
+    // upper
+    ()=>{ let s=rnd(STRINGS_ALPHA); return [s,"x.upper()",s.toUpperCase(),true]; },
+    // count
+    ()=>{ const opts=[["banana","a"],["programming","m"],["mississippi","s"],
+            ["hello world","l"],["python","p"],["aabbccaa","a"],
+            ["abcabc","bc"],["hello","l"],["banana","n"]];
+          let [s,ch]=rnd(opts);
+          let cnt=0; let i=s.indexOf(ch);
+          while(i!==-1){cnt++;i=s.indexOf(ch,i+ch.length);}
+          return [s,"x.count('"+ch+"')",cnt,false]; },
+    // find
+    ()=>{ let s=pickString();
+          let chars=[...new Set(s.split(""))].slice(0,5).concat(["z","q","9","@"]);
+          let ch=rnd(chars);
+          return [s,"x.find('"+ch+"')",s.indexOf(ch),false]; },
+    // index
+    ()=>{ let s=rnd(STRINGS_MEDIUM);
+          let ch=rnd([...new Set(s.split(""))]);
+          return [s,"x.index('"+ch+"')",s.indexOf(ch),false]; },
+    // endswith
+    ()=>{ const opts=[["hello","lo"],["python","on"],["programming","ing"],
+            ["world","rld"],["banana","na"],["cbse","se"],
+            ["hello","xx"],["python","py"],["india","xx"]];
+          let [s,suf]=rnd(opts);
+          return [s,"x.endswith('"+suf+"')",s.endsWith(suf),false]; },
+    // startswith
+    ()=>{ const opts=[["hello","he"],["python","py"],["programming","pro"],
+            ["world","wo"],["banana","ban"],["india","in"],
+            ["hello","xx"],["python","on"],["cbse","cb"]];
+          let [s,pre]=rnd(opts);
+          return [s,"x.startswith('"+pre+"')",s.startsWith(pre),false]; },
+    // isalnum
+    ()=>{ let s=rnd(["abc123","hello world","python3","cbse12","hello!","test99"]);
+          return [s,"x.isalnum()",/^[a-zA-Z0-9]+$/.test(s),false]; },
+    // isalpha
+    ()=>{ let s=rnd(["hello","world","Hello","python","abc","hello world","abc123"]);
+          return [s,"x.isalpha()",/^[a-zA-Z]+$/.test(s),false]; },
+    // isdigit
+    ()=>{ let s=rnd(["12345","007","3.14","hello","100","abc123","0","999"]);
+          return [s,"x.isdigit()",/^\d+$/.test(s),false]; },
+    // islower
+    ()=>{ let s=rnd(["hello","Hello","HELLO","python","Python","abc def","hello world"]);
+          return [s,"x.islower()",s===s.toLowerCase()&&/[a-z]/.test(s),false]; },
+    // isupper
+    ()=>{ let s=rnd(["HELLO","Hello","hello","PYTHON","Python","ABC DEF","CBSE"]);
+          return [s,"x.isupper()",s===s.toUpperCase()&&/[A-Z]/.test(s),false]; },
+    // isspace
+    ()=>{ let s=rnd([" ","   ","hello"," a ","  "]);
+          return [s,"x.isspace()",/^\s+$/.test(s),false]; },
+    // lstrip
+    ()=>{ let s=rnd(["  hello","   world"," python","  code  ","   abc"]);
+          return [s,"x.lstrip()",s.trimStart(),true]; },
+    // rstrip
+    ()=>{ let s=rnd(["hello  ","world   ","python ","code  ","abc   "]);
+          return [s,"x.rstrip()",s.trimEnd(),true]; },
+    // strip
+    ()=>{ let s=rnd(["  hello  ","  world  "," python ","  code  "," abc "]);
+          return [s,"x.strip()",s.trim(),true]; },
+    // replace
+    ()=>{ const opts=[["hello","l","x"],["banana","a","o"],["mississippi","ss","XX"],
+            ["aabbcc","bb",""],["hello world","o","0"],["python","py","PY"],
+            ["programming","m","M"],["abcabc","bc","BC"],["hi hi hi","hi","hello"],
+            ["1+2+3","+","-"],["foo bar","bar","baz"]];
+          let [s,old,nw]=rnd(opts);
+          return [s,"x.replace('"+old+"', '"+nw+"')",s.split(old).join(nw),true]; },
+    // split
+    ()=>{ const opts=[["a,b,c",","],["hello world python"," "],["one-two-three","-"],
+            ["a:b:c:d",":"],["Programming","m"],["abc123abc","123"],
+            ["sun,moon,star",","],["red green blue"," "],["x-y-z","-"]];
+          let [s,sep]=rnd(opts);
+          return [s,"x.split('"+sep+"')",s.split(sep),false]; },
+    // join
+    ()=>{ const opts=[["*",["a","b","c"]],["-",["hello","world"]],
+            [", ",["one","two","three"]],["",["P","y","t","h","o","n"]],
+            ["#",["Mon","Tue","Wed"]],[".",["www","google","com"]],
+            ["/",["home","user","docs"]],["|",["A","B","C","D"]]];
+          let [sep,lst]=rnd(opts);
+          return [null,"'"+sep+"'.join("+pyRepr(lst)+")",lst.join(sep),true]; },
+    // partition
+    ()=>{ const opts=[["hello world"," "],["foo:bar:baz",":"],["aXbXc","X"],
+            ["python3.9","."],["name=value","="],["key#val","#"]];
+          let [s,sep]=rnd(opts);
+          let idx=s.indexOf(sep);
+          let t=[s.slice(0,idx),sep,s.slice(idx+sep.length)];
+          return [s,"x.partition('"+sep+"')",t,false]; },
+  ];
+  for(let i=0;i<40;i++){
+    try{
+      let [s,expr,ans,isStr]=rnd(makers)();
+      let up=chance(0.85);
+      let ar;
+      if(Array.isArray(ans)) ar=pyRepr(ans);
+      else if(typeof ans==="boolean") ar=ans?"True":"False";
+      else if(isStr) ar="'"+ans+"'";
+      else ar=String(ans);
+      let expected = isStr&&up ? String(ans) : ar;
+      let line1 = s!=null ? "x = '"+s+"'" : "# join";
+      let line2 = up ? "print("+expr+")" : ">>> "+expr;
+      return {lines:[line1,line2], answer:ar, expected:expected,
+              isStr:isStr||typeof ans==="string", up};
+    }catch(e){}
+  }
+  return genIndexSlice("String","Indexing");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  genListFunction  (mirrors Python gen_list_function exactly)
+// ═══════════════════════════════════════════════════════════════
+function genListFunction() {
+  const makers = [
+    // len
+    ()=>{ let lst=pickList(); return [lst,"len(x)",lst.length,false,false]; },
+    // count
+    ()=>{ const opts=[[1,2,2,3,2],[1,2,3,2,1],["a","b","a","a"],[3,3,3,3],[5,5,1,2,5]];
+          let lst=rnd(opts); let elem=rnd(lst);
+          return [lst,"x.count("+itemRepr(elem)+")",lst.filter(x=>x===elem).length,false,false]; },
+    // index
+    ()=>{ let lst=pickList(); let elem=rnd(lst);
+          return [lst,"x.index("+itemRepr(elem)+")",lst.indexOf(elem),false,false]; },
+    // pop last
+    ()=>{ let lst=pickList().slice(0,5);
+          return [lst,"x.pop()",lst[lst.length-1],false,false]; },
+    // pop idx
+    ()=>{ let lst=pickList().slice(0,5); let idx=rndInt(0,lst.length);
+          return [lst,"x.pop("+idx+")",lst[idx],false,false]; },
+    // min
+    ()=>{ let lst=rnd([[3,1,4],[10,5,2],[99,1,50],[7,14,2],[100,50,25]]);
+          return [lst,"min(x)",Math.min(...lst),false,false]; },
+    // max
+    ()=>{ let lst=rnd([[3,1,4],[10,5,2],[99,1,50],[7,14,2],[100,50,25]]);
+          return [lst,"max(x)",Math.max(...lst),false,false]; },
+    // sum
+    ()=>{ let lst=rnd([[1,2,3],[10,20,30],[5,5,5,5],[100,200,300]]);
+          return [lst,"sum(x)",lst.reduce((a,b)=>a+b,0),false,false]; },
+    // sorted
+    ()=>{ let lst=rnd([[3,1,4,1,5],[10,5,2],[5,3,1,4,2],[7,2,9,1]]);
+          return [lst,"sorted(x)",[...lst].sort((a,b)=>a-b),false,false]; },
+    // sorted reverse
+    ()=>{ let lst=rnd([[3,1,4,1,5],[10,5,2],[5,3,1,4]]);
+          return [lst,"sorted(x,reverse=True)",[...lst].sort((a,b)=>b-a),false,false]; },
+    // list from string
+    ()=>{ let s=rnd(["abc","xyz","hello"]).slice(0,3);
+          return [null,"list('"+s+"')",s.split(""),false,false]; },
+    // append — mutating, show print(x)
+    ()=>{ let lst=pickList().slice(0,4); let elem=rnd([99,"new",0,"z"]);
+          return [lst,"x.append("+itemRepr(elem)+")",[...lst,elem],false,true]; },
+    // extend
+    ()=>{ let lst=pickList().slice(0,3); let ext=rnd([[10,20],[0,0],["a","b"]]);
+          return [lst,"x.extend("+pyRepr(ext)+")",[...lst,...ext],false,true]; },
+    // insert
+    ()=>{ let lst=pickList().slice(0,4); let idx=rndInt(0,lst.length); let elem=rnd([99,"z",0]);
+          let r=[...lst]; r.splice(idx,0,elem);
+          return [lst,"x.insert("+idx+","+itemRepr(elem)+")",r,false,true]; },
+    // remove
+    ()=>{ let lst=pickList().slice(0,5); let elem=rnd(lst);
+          let r=[...lst]; r.splice(r.indexOf(elem),1);
+          return [lst,"x.remove("+itemRepr(elem)+")",r,false,true]; },
+    // reverse
+    ()=>{ let lst=pickList().slice(0,5);
+          return [lst,"x.reverse()",[...lst].reverse(),false,true]; },
+    // sort
+    ()=>{ let lst=rnd([[3,1,4,1,5],[10,5,2,8],[3,2,1,4,5]]);
+          return [lst,"x.sort()",[...lst].sort((a,b)=>a-b),false,true]; },
+  ];
+  for(let i=0;i<40;i++){
+    try{
+      let [lst,expr,ans,isStr,mutating]=rnd(makers)();
+      let up=chance(0.85);
+      let ar=pyRepr(ans);
+      let line1 = lst!=null ? "x = "+pyRepr(lst) : "# list";
+      if(mutating){
+        return {lines:[line1,expr,"print(x)"], answer:ar, expected:ar, isStr:false, up:true};
+      }
+      if(typeof ans==="number"||typeof ans==="boolean") ar=String(ans);
+      let expected=ar;
+      let line2=up?"print("+expr+")":">>> "+expr;
+      return {lines:[line1,line2], answer:ar, expected:expected, isStr:false, up};
+    }catch(e){}
+  }
+  return genIndexSlice("List","Indexing");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  genTupleFunction  (mirrors Python gen_tuple_function exactly)
+// ═══════════════════════════════════════════════════════════════
+function genTupleFunction() {
+  const makers = [
+    ()=>{ let t=pickTuple(); return [t,"len(x)",t.length,false]; },
+    ()=>{ let t=rnd([[3,1,4],[10,5,2],[99,1,50],[7,14,2]]);
+          return [t,"max(x)",Math.max(...t),false]; },
+    ()=>{ let t=rnd([[3,1,4],[10,5,2],[99,1,50],[7,14,2]]);
+          return [t,"min(x)",Math.min(...t),false]; },
+    ()=>{ let t=rnd([[1,2,3],[10,20,30],[5,5,5,5],[100,200,300]]);
+          return [t,"sum(x)",t.reduce((a,b)=>a+b,0),false]; },
+    ()=>{ let t=rnd([[3,1,4,1,5],[10,5,2],[5,3,1,4,2]]);
+          return [t,"sorted(x)",[...t].sort((a,b)=>a-b),false]; },
+    ()=>{ const opts=[[1,2,2,3,2],[1,2,3,2,1],[3,3,3,3]];
+          let t=rnd(opts); let elem=rnd(t);
+          return [t,"x.count("+itemRepr(elem)+")",t.filter(x=>x===elem).length,false]; },
+    ()=>{ let t=pickTuple(); let elem=rnd(t);
+          return [t,"x.index("+itemRepr(elem)+")",t.indexOf(elem),false]; },
+    // tuple from list
+    ()=>{ let lst=rnd([[1,2,3],["a","b","c"],[10,20]]);
+          return [null,"tuple("+pyRepr(lst)+")",lst,false]; },
+  ];
+  for(let i=0;i<30;i++){
+    try{
+      let [t,expr,ans,isStr]=rnd(makers)();
+      let up=chance(0.85);
+      let ar;
+      if(Array.isArray(ans)) ar=pyReprTuple(ans);
+      else ar=String(ans);
+      let expected=ar;
+      let line1 = t!=null ? "x = "+pyReprTuple(t) : "# tuple";
+      let line2 = up?"print("+expr+")":">>> "+expr;
+      if(!up) expected=ar;
+      return {lines:[line1,line2], answer:ar, expected:expected, isStr:false, up};
+    }catch(e){}
+  }
+  return genIndexSlice("Tuple","Indexing");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  genDictQuestion  (mirrors Python gen_dict_question exactly)
+// ═══════════════════════════════════════════════════════════════
+function genDictQuestion() {
+  const d = pickDict();
+  const keys = Object.keys(d);
+  const vals = Object.values(d);
+  const up = chance(0.85);
+  const line1 = "x = "+pyRepr(d);
+
+  const makers = [
+    // direct access (weighted 3x)
+    ()=>{ let k=rnd(keys); let ans=d[k];
+          return {expr:"x['"+k+"']",ans,isStr:typeof ans==="string"}; },
+    ()=>{ let k=rnd(keys); let ans=d[k];
+          return {expr:"x['"+k+"']",ans,isStr:typeof ans==="string"}; },
+    ()=>{ let k=rnd(keys); let ans=d[k];
+          return {expr:"x['"+k+"']",ans,isStr:typeof ans==="string"}; },
+    // keys raw
+    ()=>{ let ar="dict_keys(["+keys.map(k=>itemRepr(k)).join(", ")+"])";
+          return {expr:"x.keys()",ans:ar,isStr:false,raw:true}; },
+    // list(keys)
+    ()=>{ return {expr:"list(x.keys())",ans:keys,isStr:false}; },
+    // values raw
+    ()=>{ let ar="dict_values(["+vals.map(v=>itemRepr(v)).join(", ")+"])";
+          return {expr:"x.values()",ans:ar,isStr:false,raw:true}; },
+    // list(values)
+    ()=>{ return {expr:"list(x.values())",ans:vals,isStr:false}; },
+    // items raw
+    ()=>{ let ar="dict_items(["+Object.entries(d).map(([k,v])=>"('"+k+"', "+itemRepr(v)+")").join(", ")+"])";
+          return {expr:"x.items()",ans:ar,isStr:false,raw:true}; },
+    // list(items)
+    ()=>{ return {expr:"list(x.items())",ans:Object.entries(d).map(([k,v])=>[k,v]),isStr:false}; },
+    // get found
+    ()=>{ let k=rnd(keys); return {expr:"x.get('"+k+"')",ans:d[k],isStr:typeof d[k]==="string"}; },
+    // get missing → None
+    ()=>{ return {expr:"x.get('missing_key')",ans:null,isStr:false}; },
+    // get with default
+    ()=>{ let defv=rnd([0,-1,"N/A",false]);
+          return {expr:"x.get('missing_key', "+itemRepr(defv)+")",ans:defv,isStr:typeof defv==="string"}; },
+    // get existing with default shown
+    ()=>{ let k=rnd(keys); return {expr:"x.get('"+k+"', 0)",ans:d[k],isStr:typeof d[k]==="string"}; },
+    // len
+    ()=>{ return {expr:"len(x)",ans:keys.length,isStr:false}; },
+    // in
+    ()=>{ let k=rnd([...keys,"zzzz","missing"]); let op=chance(0.5)?"in":"not in";
+          let ans=op==="in"?(k in d):!(k in d);
+          return {expr:"'"+k+"' "+op+" x",ans,isStr:false}; },
+    // not in
+    ()=>{ let k=rnd([...keys,"zzzz","missing"]);
+          return {expr:"'"+k+"' not in x",ans:!(k in d),isStr:false}; },
+    // pop
+    ()=>{ let k=rnd(keys); return {expr:"x.pop('"+k+"')",ans:d[k],isStr:typeof d[k]==="string"}; },
+    // pop with default
+    ()=>{ return {expr:"x.pop('no_key', 0)",ans:0,isStr:false}; },
+    // max of string keys
+    ()=>{ if(!keys.every(k=>typeof k==="string")) throw new Error("skip");
+          let ans=keys.reduce((a,b)=>a>b?a:b);
+          return {expr:"max(x)",ans,isStr:true}; },
+    // min of string keys
+    ()=>{ if(!keys.every(k=>typeof k==="string")) throw new Error("skip");
+          let ans=keys.reduce((a,b)=>a<b?a:b);
+          return {expr:"min(x)",ans,isStr:true}; },
+    // sorted keys
+    ()=>{ return {expr:"sorted(x)",ans:[...keys].sort(),isStr:false}; },
+    // setdefault existing
+    ()=>{ let k=rnd(keys); return {expr:"x.setdefault('"+k+"', 0)",ans:d[k],isStr:typeof d[k]==="string"}; },
+    // setdefault new
+    ()=>{ return {expr:"x.setdefault('brand_new', 99)",ans:99,isStr:false}; },
+    // copy == original
+    ()=>{ return {expr:"x.copy() == x",ans:true,isStr:false}; },
+    // sum of numeric values
+    ()=>{ let nvals=vals.filter(v=>typeof v==="number"&&typeof v!=="boolean");
+          if(nvals.length<2) throw new Error("skip");
+          return {expr:"sum(x.values())",ans:nvals.reduce((a,b)=>a+b,0),isStr:false}; },
+    // popitem — last key-value
+    ()=>{ let lastK=keys[keys.length-1]; let lastV=d[lastK];
+          return {expr:"x.popitem()",ans:[lastK,lastV],isStr:false}; },
+    // update then len — multi-line
+    ()=>{ return {multiLine:[line1,"x.update({'new_key': 99})","print(len(x))"],
+                  ans:keys.length+1,isStr:false}; },
+    // clear then len — multi-line
+    ()=>{ return {multiLine:[line1,"x.clear()","print(len(x))"],ans:0,isStr:false}; },
+    // modify then read — multi-line
+    ()=>{ let k=rnd(keys); let nv=99;
+          return {multiLine:[line1,"x['"+k+"'] = "+nv,"print(x['"+k+"'])"],ans:nv,isStr:false}; },
+  ];
+
+  for(let i=0;i<40;i++){
+    try{
+      let mk=rnd(makers)();
+      if(mk.multiLine){
+        let ar=Array.isArray(mk.ans)?pyRepr(mk.ans):String(mk.ans);
+        return {lines:mk.multiLine, answer:ar, expected:ar, isStr:false, up:true};
+      }
+      let ar;
+      if(mk.raw) ar=String(mk.ans);
+      else if(mk.ans===null) ar="None";
+      else if(mk.ans===true) ar="True";
+      else if(mk.ans===false) ar="False";
+      else if(Array.isArray(mk.ans)) ar=pyRepr(mk.ans);
+      else if(mk.isStr) ar="'"+mk.ans+"'";
+      else ar=String(mk.ans);
+      let expected = mk.isStr&&up ? String(mk.ans) : ar;
+      let line2 = up ? "print("+mk.expr+")" : ">>> "+mk.expr;
+      return {lines:[line1,line2], answer:ar, expected:String(expected), isStr:mk.isStr, up};
+    }catch(e){}
+  }
+  return {lines:[line1,"print(len(x))"], answer:String(keys.length),
+          expected:String(keys.length), isStr:false, up:true};
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  generateQuestion
+// ═══════════════════════════════════════════════════════════════
+function generateQuestion(dtype, qtype, opts) {
+  // opts: { indexMode, difficulty }
+  const io = opts||{};
+
+  // Expressions and TypeFunctions ignore dtype
+  if(qtype==="Expressions")    return genExpression(io.difficulty||"Mixed");
+  if(qtype==="TypeFunctions")  return genTypeFunction(io.difficulty||"Mixed");
+
+  const actualDtype = dtype==="Mixed"?rnd(["String","List","Tuple","Dictionary"]):dtype;
+
+  if(qtype==="SliceIdx") {
+    // Slice+Index on any sequence
+    const d = actualDtype==="Dictionary"?rnd(["String","List","Tuple"]):actualDtype;
+    return genSliceIndex(d);
+  }
+
+  const catMap = {
+    "Indexing":  ["Indexing"],
+    "Slicing":   ["Slicing"],
+    "Functions": ["Function"],
+    "Membership":["Membership"],
+    "Comparison":["Comparison"],
+    "Mixed":     ["Indexing","Slicing","Function","Membership","Comparison",
+                  "SliceIdx","Expressions","TypeFunctions"],
+  };
+  let cats = actualDtype==="Dictionary"?["Dict"]:catMap[qtype]||["Indexing"];
+  let cat = rnd(cats);
+
+  for(let i=0;i<25;i++){
+    try{
+      if(cat==="SliceIdx")      return genSliceIndex(actualDtype==="Dictionary"?"List":actualDtype);
+      if(cat==="Expressions")   return genExpression(io.difficulty||"Mixed");
+      if(cat==="TypeFunctions") return genTypeFunction(io.difficulty||"Mixed");
+      if(actualDtype==="Dictionary") return genDictQuestion();
+      if(cat==="Indexing")  return genIndexSlice(actualDtype, "Indexing", io);
+      if(cat==="Slicing")   return genIndexSlice(actualDtype, "Slicing", io);
+      if(cat==="Membership")return genMembership(actualDtype);
+      if(cat==="Comparison")return genComparison(actualDtype);
+      if(cat==="Function"){
+        if(actualDtype==="String") return genStringFunction();
+        if(actualDtype==="List")   return genListFunction();
+        return genTupleFunction();
+      }
+    }catch(e){}
+  }
+  return genIndexSlice("String","Indexing",{});
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  genSliceIndex — Slice then index chained (all sequences)
+// ═══════════════════════════════════════════════════════════════
+function genSliceIndex(dtype) {
+  let data, dataRepr;
+  if(dtype==="String") {
+    data=pickString(); dataRepr="'"+data+"'";
+  } else if(dtype==="List") {
+    data=pickList(); dataRepr=pyRepr(data);
+  } else {
+    data=pickTuple(); dataRepr=pyReprTuple(data);
+  }
+  let n=data.length||1;
+  if(n<3){data=[1,2,3,4,5,6];n=6;dataRepr=pyRepr(data);}
+  let up=chance(0.85);
+
+  // Always: slice then index the result
+  let start=chance(0.4)?null:(chance(0.5)?-rndInt(1,n+1):rndInt(0,n));
+  let stop=chance(0.4)?null:(chance(0.5)?-rndInt(1,n+1):rndInt(0,n+1));
+  let step=chance(0.5)?rnd([-3,-2,2,3]):null;
+  let sliced=pySlice(data,start,stop,step);
+  // Ensure slice has elements
+  if(!sliced.length){start=0;stop=Math.min(4,n);step=null;sliced=pySlice(data,0,stop,null);}
+  let s=start==null?"":String(start);
+  let e=stop==null?"":String(stop);
+  let sliceExpr=step!=null?"x["+s+":"+e+":"+step+"]":"x["+s+":"+e+"]";
+  // Pick index on result
+  let ns=sliced.length;
+  let idx2=chance(0.5)?0:chance(0.5)?-1:rndInt(0,ns);
+  let ans=safeIndex(sliced,idx2);
+  let expr=sliceExpr+"["+idx2+"]";
+  let ar;
+  if(typeof ans==="string") ar="'"+ans+"'";
+  else ar=pyRepr(ans);
+  let expected=(typeof ans==="string"&&up)?ans:ar;
+  let line1="x = "+dataRepr;
+  let line2=up?"print("+expr+")":">>> "+expr;
+  return {lines:[line1,line2],answer:ar,expected:String(expected),isStr:typeof ans==="string",up};
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  genExpression — Boolean, arithmetic, ternary expressions
+// ═══════════════════════════════════════════════════════════════
+function genExpression(difficulty) {
+  const diff = difficulty==="Mixed"?rnd(["Basic","Intermediate","Advanced"]):difficulty;
+  const up=true; // always print()
+
+  const basic = [
+    // and / or with booleans
+    ()=>{ let a=rnd([true,false]),b=rnd([true,false]),op=rnd(["and","or"]);
+          let ans=op==="and"?a&&b:a||b;
+          return ["print("+pyRepr(a)+" "+op+" "+pyRepr(b)+")", ans]; },
+    // and / or with numbers (truthy)
+    ()=>{ let a=rnd([0,1,2,5,10,-1]),b=rnd([0,1,3,7,10,-2]),op=rnd(["and","or"]);
+          let ans=op==="and"?(a?b:a):(a?a:b);
+          return ["print("+a+" "+op+" "+b+")", ans]; },
+    // not
+    ()=>{ let v=rnd([true,false,0,1,5,-1]);
+          return ["print(not "+pyRepr(v)+")", !v]; },
+    // not with expression
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),op=rnd(["==","!=",">"]);
+          let cmp=op==="=="?a===b:op==="!="?a!==b:a>b;
+          return ["print(not ("+a+" "+op+" "+b+"))", !cmp]; },
+    // simple arithmetic
+    ()=>{ let a=rndInt(1,20),b=rndInt(1,10),op=rnd(["+","-","*","%","//","**"]);
+          let ans=op==="+"?a+b:op==="-"?a-b:op==="*"?a*b:op==="%"?a%b:
+                  op==="//"?Math.floor(a/b):Math.pow(a,b);
+          return ["print("+a+" "+op+" "+b+")", ans]; },
+    // comparison simple
+    ()=>{ let a=rndInt(1,15),b=rndInt(1,15),op=rnd(["==","!=","<",">","<=",">="]);
+          let ans=op==="=="?a===b:op==="!="?a!==b:op==="<"?a<b:op===">"?a>b:op==="<="?a<=b:a>=b;
+          return ["print("+a+" "+op+" "+b+")", ans]; },
+    // bool() of basic values
+    ()=>{ let v=rnd([0,1,-1,0.0,""," ","hello",[]]);
+          let bv=Boolean(v); let repr=Array.isArray(v)?"[]":pyRepr(v);
+          return ["print(bool("+repr+"))", bv]; },
+  ];
+
+  const intermediate = [
+    // combined and/or with comparisons
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),c=rndInt(1,10),d=rndInt(1,10);
+          let op1=rnd(["and","or"]);
+          let l=a>b, r=c<d;
+          let ans=op1==="and"?l&&r:l||r;
+          return ["print("+a+" > "+b+" "+op1+" "+c+" < "+d+")", ans]; },
+    // arithmetic with precedence
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,5),c=rndInt(1,5);
+          let ans=a+b*c;
+          return ["print("+a+" + "+b+" * "+c+")", ans]; },
+    ()=>{ let a=rndInt(2,10),b=rndInt(2,5),c=rndInt(1,4);
+          let ans=Math.floor(a/b)+c*2;
+          return ["print("+a+" // "+b+" + "+c+" * 2)", ans]; },
+    // mixed bool and comparison
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10);
+          let op=rnd(["and","or"]);
+          let ans=op==="and"?(a>0?b>0:false):(a>0||b>0);
+          return ["print("+a+" > 0 "+op+" "+b+" > 0)", ans]; },
+    // chained comparison
+    ()=>{ let a=rndInt(1,5),b=rndInt(1,8),c=rndInt(3,10);
+          let ans=a<b&&b<c;
+          return ["print("+a+" < "+b+" < "+c+")", ans]; },
+    // not with compound
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),op=rnd(["and","or"]);
+          let l=a>b,r=a===b;
+          let inner=op==="and"?l&&r:l||r;
+          return ["print(not("+a+" > "+b+" "+op+" "+a+" == "+b+"))", !inner]; },
+    // modulo and floor div
+    ()=>{ let a=rndInt(10,50),b=rndInt(2,9);
+          return ["print("+a+" % "+b+")", a%b]; },
+    // power
+    ()=>{ let a=rndInt(2,5),b=rndInt(2,4);
+          return ["print("+a+" ** "+b+")", Math.pow(a,b)]; },
+  ];
+
+  const advanced = [
+    // ternary expression
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10);
+          let cond=a>b,t=rndInt(10,50),f=rndInt(50,100);
+          let ans=cond?t:f;
+          return ["print("+t+" if "+a+" > "+b+" else "+f+")", ans]; },
+    ()=>{ let x=rndInt(1,10);
+          let ans=x%2===0?"even":"odd";
+          return ["print('even' if "+x+" % 2 == 0 else 'odd')", ans]; },
+    // nested arithmetic
+    ()=>{ let a=rndInt(2,8),b=rndInt(2,5),c=rndInt(1,4);
+          let ans=Math.floor(Math.pow(a,2)/b)+c;
+          return ["print("+a+"**2 // "+b+" + "+c+")", ans]; },
+    // complex boolean
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),c=rndInt(1,10);
+          let ans=(a>b)||(b<c)&&(a!==c);
+          return ["print("+a+" > "+b+" or "+b+" < "+c+" and "+a+" != "+c+")", ans]; },
+    // chained with not
+    ()=>{ let a=rndInt(1,5),b=rndInt(3,8),c=rndInt(6,12);
+          let inner=a<b&&b<c;
+          return ["print(not("+a+" < "+b+" < "+c+"))", !inner]; },
+    // truthy string/list
+    ()=>{ let v=rnd(["",  "hello","0","False"," "]);
+          let ans=Boolean(v);
+          return ["print(bool('"+v+"'))", ans]; },
+    // multiple ops
+    ()=>{ let a=rndInt(1,5),b=rndInt(1,5),c=rndInt(1,5),d=rndInt(1,5);
+          let ans=(a+b)*(c-d);
+          return ["print(("+a+"+"+b+")*("+c+"-"+d+"))", ans]; },
+    // walrus-style value test
+    ()=>{ let x=rndInt(0,5),y=rndInt(0,5);
+          let ans=x>0&&y>0;
+          return ["print("+x+" > 0 and "+y+" > 0)", ans]; },
+  ];
+
+  const pool = diff==="Basic"?basic:diff==="Intermediate"?intermediate:advanced;
+  for(let i=0;i<30;i++){
+    try{
+      let [exprLine, ans]=rnd(pool)();
+      let ar;
+      if(typeof ans==="boolean") ar=ans?"True":"False";
+      else if(typeof ans==="string") ar="'"+ans+"'";
+      else ar=String(ans);
+      let expected=typeof ans==="string"?ans:ar;
+      return {lines:["# "+diff.toLowerCase()+" expression", exprLine],
+              answer:ar, expected:String(expected), isStr:typeof ans==="string", up:true};
+    }catch(e){}
+  }
+  // fallback
+  return {lines:["# expression","print(True and False)"],answer:"False",expected:"False",isStr:false,up:true};
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  genTypeFunction — int, float, str, chr, ord, bool, type, abs, round
+// ═══════════════════════════════════════════════════════════════
+function genTypeFunction(difficulty) {
+  const diff = difficulty==="Mixed"?rnd(["Basic","Intermediate","Advanced"]):difficulty;
+
+  const basic = [
+    ()=>{ let v=rnd([7.5,3.9,0.1,2.7,9.99,1.1]); return ["int("+v+")",Math.trunc(v),false]; },
+    ()=>{ let v=rnd(["42","7","100","0","999"]); return ["int('"+v+"')",parseInt(v),false]; },
+    ()=>{ let v=rnd([5,3,10,7,0,-1]); return ["float("+v+")",parseFloat(v+".0"),false]; },
+    ()=>{ let v=rnd(["3.14","2.5","0.0","1.0"]); return ["float('"+v+"')",parseFloat(v),false]; },
+    ()=>{ let v=rnd([100,42,7,0,-5,999]); return ["str("+v+")",String(v),true]; },
+    ()=>{ let v=rnd([true,false,0,1]); return ["bool("+pyRepr(v)+")",Boolean(v),false]; },
+    ()=>{ let v=rnd([65,66,97,98,48,49,90,122]); return ["chr("+v+")",String.fromCharCode(v),true]; },
+    ()=>{ let v=rnd(["A","B","a","b","0","Z","z"]); return ["ord('"+v+"')",v.charCodeAt(0),false]; },
+    ()=>{ let v=rnd([7,3,0,-5,100]); return ["abs("+v+")",Math.abs(v),false]; },
+    ()=>{ let v=rnd([-7,-3,-100,-0.5]); return ["abs("+v+")",Math.abs(v),false]; },
+  ];
+
+  const intermediate = [
+    ()=>{ let v=rnd([3.14,2.718,9.99,1.41]); let d=rnd([1,2]);
+          return ["round("+v+", "+d+")",parseFloat(v.toFixed(d)),false]; },
+    ()=>{ let v=rnd([42,7,100,0,-5]); return ["type("+v+")","<class 'int'>",false,true]; },
+    ()=>{ let v=rnd([3.14,2.5,0.0]); return ["type("+v+")","<class 'float'>",false,true]; },
+    ()=>{ let v=rnd(["hello","world","py"]); return ["type('"+v+"')","<class 'str'>",false,true]; },
+    ()=>{ let v=rnd([true,false]); return ["type("+pyRepr(v)+")","<class 'bool'>",false,true]; },
+    ()=>{ return ["type([1,2,3])","<class 'list'>",false,true]; },
+    ()=>{ return ["type((1,2,3))","<class 'tuple'>",false,true]; },
+    ()=>{ let v=rnd([7.9,3.1,5.5,2.2]); return ["int(float('"+v+"'))",Math.trunc(parseFloat(v)),false]; },
+    ()=>{ let v=rnd([42,-7,100,0]); return ["str(abs("+v+"))",String(Math.abs(v)),true]; },
+    ()=>{ let i=rnd([65,66,97,98,90]); return ["ord(chr("+i+"))",i,false]; },
+  ];
+
+  const advanced = [
+    ()=>{ let v=rnd([7.9,3.1,5.5]); return ["int(str("+v+")[0])",parseInt(String(v)[0]),false]; },
+    ()=>{ let s=rnd(["42","007","100"]); return ["float(int('"+s+"'))",parseFloat(parseInt(s)+".0"),false]; },
+    ()=>{ let a=rnd([65,72,80,90,97]); let b=rnd([1,2,3,4,5]);
+          return ["chr("+a+"+"+b+")",String.fromCharCode(a+b),true]; },
+    ()=>{ let v=rnd(["0","","None","False"," "]);
+          let ans=v.length>0&&v!=="0"&&v!=="False"&&v!=="None";
+          return ["bool('"+v+"')",ans,false]; },
+    ()=>{ let v=rnd([3.7,2.4,9.6,1.1]);
+          return ["round("+v+") == int("+v+")", Math.round(v)===Math.trunc(v), false]; },
+    ()=>{ let a=rnd([1,2,3]),b=rnd([4,5,6]);
+          return ["str("+a+") + str("+b+")",String(a)+String(b),true]; },
+    ()=>{ let v=rnd([100,200,255,48,65]);
+          return ["chr("+v+"-32)",String.fromCharCode(v-32),true]; },
+    ()=>{ let v=rnd(["Hello","World","Python"]);
+          return ["ord('"+v+"'[0])",v.charCodeAt(0),false]; },
+    ()=>{ let v=rnd([7.5,3.2,8.9]); return ["round("+v+")",Math.round(v),false]; },
+    ()=>{ let a=rndInt(10,99),b=rndInt(1,9);
+          return ["int(str("+a+")["+b%2+"])",parseInt(String(a)[b%2]),false]; },
+  ];
+
+  const pool = diff==="Basic"?basic:diff==="Intermediate"?intermediate:advanced;
+  for(let i=0;i<30;i++){
+    try{
+      let result=rnd(pool)();
+      let [expr,ans,isStr,rawAns]=result;
+      let ar;
+      if(rawAns) ar=String(ans);           // type() output — no quotes
+      else if(isStr) ar="'"+ans+"'";
+      else if(typeof ans==="boolean") ar=ans?"True":"False";
+      else if(typeof ans==="number") ar=Number.isInteger(ans)?String(ans):
+             (String(ans).includes(".")?String(ans):ans+".0");
+      else ar=String(ans);
+      let expected=isStr?String(ans):ar;
+      let up=chance(0.85);
+      let line2=up?"print("+expr+")":">>> "+expr;
+      return {lines:["# "+diff.toLowerCase()+" — type functions",line2],
+              answer:ar,expected:String(expected),isStr:isStr,up};
+    }catch(e){}
+  }
+  return {lines:["# type function","print(int(7.5))"],answer:"7",expected:"7",isStr:false,up:true};
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SYNTAX HIGHLIGHTING
+// ═══════════════════════════════════════════════════════════════
+function highlight(line, lineIdx, total) {
+  if(!line) return '';
+  const esc = s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+  if(line.startsWith("#")) return '<span class="cmt">'+esc(line)+'</span>';
+
+  // Assignment line
+  if(lineIdx===0 && line.includes("=") && !line.startsWith(">>>")) {
+    const eq = line.indexOf("=");
+    const lhs = line.slice(0,eq).trimEnd();
+    const rhs = line.slice(eq+1).trim();
+    let rhsHtml;
+    if(rhs.startsWith("'")||rhs.startsWith('"')) rhsHtml='<span class="str">'+esc(rhs)+'</span>';
+    else if(rhs.startsWith("{")) rhsHtml='<span class="str">'+esc(rhs)+'</span>';
+    else if(rhs.startsWith("[")||rhs.startsWith("(")) rhsHtml='<span class="num">'+esc(rhs)+'</span>';
+    else rhsHtml='<span class="plain">'+esc(rhs)+'</span>';
+    return '<span class="plain">'+esc(lhs)+'</span><span class="kw"> = </span>'+rhsHtml;
+  }
+
+  // Middle mutation lines
+  if(lineIdx>0 && lineIdx<total-1) {
+    return '<span class="plain">'+esc(line)+'</span>';
+  }
+
+  // Last line: print or >>>
+  if(line.startsWith(">>>")) {
+    return '<span class="cmt">&gt;&gt;&gt; </span><span class="plain">'+esc(line.slice(4))+'</span>';
+  }
+  if(line.startsWith("print(") && line.endsWith(")")) {
+    const inner = line.slice(6,-1);
+    return '<span class="kw">print</span><span class="punc">(</span><span class="plain">'+esc(inner)+'</span><span class="punc">)</span>';
+  }
+  return '<span class="plain">'+esc(line)+'</span>';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════
+let state = {
+  score:0, total:0, streak:0, bestStreak:0, wrong:0,
+  checked:false, qcount:0, q:null,
+  dtype:"String", qtype:"Indexing",
+  indexMode:"single",   // "single", "nested", "both"
+  difficulty:"Mixed"
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════════════
+function renderQuestion() {
+  const q = state.q;
+  const lines = q.lines;
+
+  // Gutter — one div per line
+  document.getElementById("gutter").innerHTML =
+    lines.map((_,i)=>`<div class="gutter-num">${i+1}</div>`).join("");
+
+  // Code — one div per line
+  document.getElementById("code-display").innerHTML =
+    lines.map((l,i)=>`<div class="code-line">${highlight(l,i,lines.length)}</div>`).join("");
+
+  // Q number
+  document.getElementById("q-num").textContent = "Question "+state.qcount;
+
+  // Re-animate card
+  const card = document.getElementById("q-card");
+  card.style.animation="none";
+  void card.offsetHeight;
+  card.style.animation="fadeSlide 0.25s ease";
+}
+
+function renderScore() {
+  document.getElementById("score").textContent = state.score+" / "+state.total;
+  document.getElementById("streak").textContent =
+    state.streak>=2?state.streak+" in a row ⚡":"";
+  document.getElementById("stat-total").textContent   = state.total;
+  document.getElementById("stat-correct").textContent = state.score;
+  document.getElementById("stat-wrong").textContent   = state.wrong;
+  document.getElementById("stat-streak").textContent  = state.bestStreak;
+}
+
+function setFeedback(text, cls) {
+  const fb = document.getElementById("feedback");
+  fb.textContent = text;
+  fb.className = "feedback "+cls;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ACTIONS
+// ═══════════════════════════════════════════════════════════════
+function newQuestion() {
+  state.q = generateQuestion(state.dtype, state.qtype,
+             {indexMode:state.indexMode, difficulty:state.difficulty});
+  state.checked = false;
+  state.qcount++;
+  document.getElementById("ans-input").value = "";
+  document.getElementById("btn-check").disabled = false;
+  setFeedback("Press Space to reveal · Enter to check · Space again for next question","empty");
+  renderQuestion();
+}
+
+function checkAnswer() {
+  if(state.checked||!state.q) return;
+  const user = document.getElementById("ans-input").value;
+  if(!user.trim()) return;
+  const ok = answersMatch(user, state.q.expected, state.q.isStr);
+  state.total++;
+  if(ok) {
+    state.score++; state.streak++;
+    state.bestStreak = Math.max(state.bestStreak, state.streak);
+    const tail = state.streak>=2?" · "+state.streak+" in a row! ⚡":"";
+    setFeedback("✓  Correct!"+tail, "correct");
+  } else {
+    state.streak=0; state.wrong++;
+    setFeedback("✗  Incorrect.   Expected:  "+state.q.expected, "wrong");
+  }
+  state.checked=true;
+  document.getElementById("btn-check").disabled=true;
+  renderScore();
+}
+
+function revealAnswer() {
+  if(!state.q) return;
+  setFeedback("◎  Answer:   "+state.q.expected, "revealed");
+  state.checked=true;
+  document.getElementById("btn-check").disabled=true;
+}
+
+function resetScore() {
+  state.score=0; state.total=0; state.streak=0; state.wrong=0; state.bestStreak=0;
+  renderScore();
+  newQuestion();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SPACEBAR — reveal if not checked, next if checked
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener("keydown", e=>{
+  if(e.code==="Space") {
+    e.preventDefault();
+    if(!state.checked) revealAnswer();
+    else newQuestion();
+  }
+  if(e.code==="Enter") {
+    checkAnswer();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  BUTTONS
+// ═══════════════════════════════════════════════════════════════
+document.getElementById("btn-check").addEventListener("click", checkAnswer);
+document.getElementById("btn-reveal").addEventListener("click", revealAnswer);
+document.getElementById("btn-next").addEventListener("click", newQuestion);
+document.getElementById("btn-reset").addEventListener("click", resetScore);
+
+// ═══════════════════════════════════════════════════════════════
+//  SETTINGS TOGGLES
+// ═══════════════════════════════════════════════════════════════
+function updateSubRows() {
+  const isIdx   = state.qtype==="Indexing";
+  const isExpr  = state.qtype==="Expressions"||state.qtype==="TypeFunctions";
+  document.getElementById("row-indexing").style.display  = isIdx  ? "flex" : "none";
+  document.getElementById("row-difficulty").style.display = isExpr ? "flex" : "none";
+}
+
+// Data Type
+document.querySelectorAll("#dtype-group .tog").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll("#dtype-group .tog").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    state.dtype = btn.dataset.dtype;
+    // Dictionary only supports Functions
+    const qtGroup = document.getElementById("qtype-group");
+    if(state.dtype==="Dictionary") {
+      qtGroup.querySelectorAll(".tog").forEach(b=>{
+        b.style.display = b.dataset.qtype==="Functions"?"":"none";
+      });
+      state.qtype="Functions";
+      qtGroup.querySelector('[data-qtype="Functions"]').classList.add("active");
+    } else {
+      qtGroup.querySelectorAll(".tog").forEach(b=>b.style.display="");
+    }
+    updateSubRows();
+    newQuestion();
+  });
+});
+
+// Question Type
+document.querySelectorAll("#qtype-group .tog").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll("#qtype-group .tog").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    state.qtype = btn.dataset.qtype;
+    updateSubRows();
+    newQuestion();
+  });
+});
+
+// Indexing checkboxes — single / nested
+function updateIndexMode() {
+  const s = document.getElementById("chk-single").checked;
+  const n = document.getElementById("chk-nested").checked;
+  // At least one must be checked
+  if(!s&&!n){ document.getElementById("chk-single").checked=true; }
+  state.indexMode = s&&n?"both":n?"nested":"single";
+  newQuestion();
+}
+document.getElementById("chk-single").addEventListener("change", updateIndexMode);
+document.getElementById("chk-nested").addEventListener("change", updateIndexMode);
+
+// Difficulty
+document.querySelectorAll("#diff-group .tog").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll("#diff-group .tog").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    state.difficulty = btn.dataset.diff;
+    newQuestion();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  PROVERB — rotate every 3 minutes
+// ═══════════════════════════════════════════════════════════════
+let usedProverbs = [];
+function nextProverb() {
+  if(usedProverbs.length>=PROVERBS.length) usedProverbs=[];
+  let p;
+  do{ p=rnd(PROVERBS); }while(usedProverbs.includes(p));
+  usedProverbs.push(p);
+  document.getElementById("proverb").textContent = '"'+p+'"';
+}
+nextProverb();
+setInterval(nextProverb, 180000);
+
+// ═══════════════════════════════════════════════════════════════
+//  LOGIN
+// ═══════════════════════════════════════════════════════════════
+(function(){
+  const screen = document.getElementById("login-screen");
+  const pw     = document.getElementById("login-pw");
+  const btn    = document.getElementById("login-btn");
+  const err    = document.getElementById("login-err");
+  const PASS   = "bithia";
+
+  function tryLogin() {
+    if(pw.value === PASS) {
+      screen.style.transition = "opacity 0.4s";
+      screen.style.opacity = "0";
+      setTimeout(()=>screen.style.display="none", 400);
+    } else {
+      err.textContent = "Incorrect password. Try again.";
+      pw.value = "";
+      pw.focus();
+      screen.style.animation = "none";
+      // shake effect
+      pw.style.borderColor = "var(--red)";
+      setTimeout(()=>pw.style.borderColor="", 800);
+    }
+  }
+
+  btn.addEventListener("click", tryLogin);
+  pw.addEventListener("keydown", e=>{ if(e.key==="Enter") tryLogin(); });
+  // Focus password field on load
+  setTimeout(()=>pw.focus(), 100);
+})();
+
+// ═══════════════════════════════════════════════════════════════
+//  START
+// ═══════════════════════════════════════════════════════════════
+newQuestion();
+</script>
+</body>
+</html>
