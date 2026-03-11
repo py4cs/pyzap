@@ -4,11 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PyZap ⚡ — Python Quiz</title>
-<link href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500;700&family=JetBrains+Mono:wght@400;700;800&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700;800&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ── RESET & BASE ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
   --bg:       #080C14;
   --surface:  #0D1421;
@@ -29,15 +28,13 @@
   --punc:     #F472B6;
   --cmt:      #4B5563;
 }
-
 html, body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Syne', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   overflow: hidden;
 }
-
 /* ── BACKGROUND GRID ──────────────────────────────────────────── */
 body::before {
   content: '';
@@ -50,7 +47,6 @@ body::before {
   pointer-events: none;
   z-index: 0;
 }
-
 /* ── LOGIN ───────────────────────────────────────────────────── */
 #login-screen {
   position: fixed;
@@ -136,6 +132,78 @@ body::before {
 .login-error  { color: var(--red); font-size: 12px; font-weight: 600; min-height: 16px; text-align: center; }
 .login-credit { font-family: 'Syne', sans-serif; font-size: 11px; color: var(--muted); letter-spacing: 1.5px; opacity: 0.7; font-style: italic; }
 
+/* ── LOGOUT + ROLE BADGE ─── */
+/* ── USER PILL (role + logout combined) ─────────────────────── */
+#user-pill {
+  display: none !important;
+  align-items: center;
+  gap: 0;
+  border-radius: 9px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#role-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+}
+#role-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+#role-badge.teacher {
+  background: rgba(200,241,53,0.08);
+  color: var(--accent);
+}
+#role-badge.teacher::before { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+#role-badge.student {
+  background: rgba(96,165,250,0.08);
+  color: #60A5FA;
+}
+#role-badge.student::before { background: #60A5FA; box-shadow: 0 0 6px #60A5FA; }
+#logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+#logout-btn:hover { background: rgba(239,68,68,0.1); color: var(--red); }
+#user-pill.visible { display: flex !important; }
+@media (max-width: 479px) {
+  #role-badge { font-size: 9px; padding: 5px 7px; letter-spacing: 1px; }
+  #logout-btn { font-size: 9px; padding: 5px 7px; }
+}
+@media (max-width: 479px) {
+  .login-card { padding: 32px 20px; width: calc(100vw - 32px); border-radius: 14px; gap: 14px; }
+  .login-brand { font-size: 36px; }
+  .login-bolt  { font-size: 32px; }
+  .login-input { font-size: 18px; padding: 10px 14px; }
+}
 /* ── LAYOUT ─────────────────────────────────────────────────── */
 #app {
   position: relative;
@@ -148,7 +216,6 @@ body::before {
   padding: 0 20px;
   overflow: hidden;
 }
-
 /* ── HEADER ─────────────────────────────────────────────────── */
 header {
   flex-shrink: 0;
@@ -183,10 +250,11 @@ header {
 .proverb {
   flex: 1;
   text-align: center;
-  font-size: clamp(11px, 1.1vw, 14px);
-  color: var(--accent2);
+  font-family: 'DM Mono', monospace;
+  font-size: clamp(11px, 1.0vw, 13px);
+  color: var(--gold);
   font-style: italic;
-  opacity: 1;
+  opacity: 0.9;
   padding: 0 10px;
   line-height: 1.3;
 }
@@ -202,8 +270,7 @@ header {
 .score-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
 .score-value { font-family: 'JetBrains Mono', monospace; font-size: clamp(15px, 1.6vw, 20px); font-weight: 800; color: var(--gold); line-height: 1.1; }
 .streak-badge { font-size: 10px; color: var(--green); font-weight: 700; letter-spacing: 1px; min-height: 13px; animation: pulse 2s ease infinite; }
-.credit { font-size: 11px; color: var(--accent2); letter-spacing: 0.5px; white-space: nowrap; opacity: 0.9; line-height: 1.4; font-weight: 600; }
-
+.credit { font-size: 11px; color: var(--accent); letter-spacing: 0.5px; white-space: nowrap; opacity: 1; line-height: 1.4; font-weight: 700; font-family: 'DM Sans', sans-serif; }
 /* ── SETTINGS BAR ───────────────────────────────────────────── */
 .settings-bar {
   flex-shrink: 0;
@@ -250,8 +317,8 @@ header {
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--muted);
-  font-family: 'Syne', sans-serif;
-  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
@@ -270,7 +337,7 @@ header {
 .tog.qt-Membership.active  { background: #0F766E; border-color: #0F766E; }
 .tog.qt-Comparison.active  { background: #7C2D12; border-color: #7C2D12; }
 .tog.qt-Expressions.active { background: #4C1D95; border-color: #4C1D95; }
-.tog.qt-TypeFunctions.active{ background: #7C3AED; border-color: #7C3AED; }
+.tog.qt-BuiltinMath.active{ background: #7C3AED; border-color: #7C3AED; }
 .tog.qt-Mixed.active       { background: #1D4ED8; border-color: #1D4ED8; }
 .tog.df-Basic.active       { background: #065F46; border-color: #065F46; }
 .tog.df-Intermediate.active{ background: #92400E; border-color: #92400E; }
@@ -285,7 +352,6 @@ header {
 }
 .chk-label:hover { border-color: var(--accent); color: var(--accent); }
 .chk-label input[type=checkbox], .chk-label input[type=radio] { accent-color: var(--accent); width: 13px; height: 13px; }
-
 /* ── MAIN ────────────────────────────────────────────────────── */
 main {
   flex: 1;
@@ -296,7 +362,6 @@ main {
   padding: 6px 0 4px;
   overflow: hidden;
 }
-
 /* ── QUESTION CARD ───────────────────────────────────────────── */
 .q-card {
   flex: 1;
@@ -332,13 +397,13 @@ main {
 .dot-g { background: #4ADE80; }
 .q-prompt {
   flex-shrink: 0;
-  font-size: 20px;
-  font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--accent2);
-  padding: 10px 14px 6px;
-  letter-spacing: 0.3px;
+  padding: 8px 14px 5px;
+  letter-spacing: 0.2px;
 }
-
 /* ── CODE BLOCK ──────────────────────────────────────────────── */
 /* Key fix: NO flex centering — code sits at top with padding    */
 /* This kills the blank space above/below on tall screens        */
@@ -359,9 +424,11 @@ main {
   padding: 16px 12px 16px 10px;
   background: #080C14;
   border-right: 1px solid var(--border);
-  font-family: 'Fira Mono', 'Courier New', monospace;
-  font-size: clamp(18px, 2.2vw, 26px);
+  font-family: 'Source Code Pro', monospace;
+  font-size: clamp(26px, 2.8vw, 34px);
   color: var(--cmt);
+  font-variant-ligatures: none;
+  font-feature-settings: 'liga' 0, 'calt' 0, 'dlig' 0;
   line-height: 1.8;
   text-align: right;
   min-width: 40px;
@@ -371,26 +438,24 @@ main {
 .code-lines {
   flex: 1;
   padding: 16px 20px;
-  font-family: 'Fira Mono', 'Courier New', monospace;
-  font-size: clamp(18px, 2.2vw, 26px);
-  line-height: 1.8;
+  font-family: 'Source Code Pro', monospace;
+  font-size: clamp(26px, 2.8vw, 34px);
+  line-height: 1.9;
   overflow-x: auto;
   font-variant-ligatures: none;
-  font-feature-settings: 'liga' 0, 'calt' 0;
+  font-feature-settings: 'liga' 0, 'calt' 0, 'dlig' 0;
 }
 .code-line { display: block; white-space: pre; }
 .code-lines::-webkit-scrollbar { height: 3px; }
 .code-lines::-webkit-scrollbar-track { background: transparent; }
 .code-lines::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
 /* Syntax colours */
-.kw   { color: var(--kw);    font-family:inherit; }
-.str  { color: var(--str);   font-family:inherit; }
-.num  { color: var(--num);   font-family:inherit; }
-.punc { color: var(--accent); font-weight:800; font-family:inherit; }
-.cmt  { color: var(--cmt);   font-family:inherit; }
-.plain{ color: var(--text);  font-family:inherit; }
-
+.kw   { color: var(--kw);    font-family:inherit; font-variant-ligatures:none; }
+.str  { color: var(--str);   font-family:inherit; font-variant-ligatures:none; }
+.num  { color: var(--num);   font-family:inherit; font-variant-ligatures:none; }
+.punc { color: var(--accent); font-weight:800; font-family:inherit; font-variant-ligatures:none; }
+.cmt  { color: var(--cmt);   font-family:inherit; font-variant-ligatures:none; }
+.plain{ color: var(--text);  font-family:inherit; font-variant-ligatures:none; }
 /* ── ANSWER ROW ─────────────────────────────────────────────── */
 .ans-row { flex-shrink: 0; display: flex; gap: 10px; align-items: stretch; }
 .ans-card {
@@ -419,7 +484,6 @@ main {
 }
 .ans-input:focus { border-color: var(--accent); }
 .ans-input::placeholder { font-size: 12px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
-
 /* ── FEEDBACK ───────────────────────────────────────────────── */
 .feedback {
   flex-shrink: 0;
@@ -438,14 +502,13 @@ main {
 .feedback.wrong    { background: #1C0707; border: 1px solid #7F1D1D; color: var(--red); }
 .feedback.revealed { background: #1C1407; border: 1px solid #78350F; color: var(--gold); }
 .feedback.empty    { display: none; }
-
 /* ── ACTION BUTTONS ─────────────────────────────────────────── */
 .btn-row { flex-shrink: 0; display: flex; gap: 8px; align-items: stretch; }
 .btn {
   padding: 11px 20px;
   border-radius: 8px;
   border: none;
-  font-family: 'Syne', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -456,7 +519,7 @@ main {
 .btn:active { transform: scale(0.97); }
 .btn-check  { background: var(--accent); color: #000; }
 .btn-check:hover  { background: #d4f53f; }
-.btn-reveal { background: #0E7490; color: #fff; }
+.btn-reveal { background: #0E7490; color: #fff; display: none; }
 .btn-reveal:hover { background: #0C6478; }
 .btn-next   { background: #059669; color: #fff; }
 .btn-next:hover   { background: #047857; }
@@ -468,7 +531,6 @@ main {
 .stat-row { display: flex; gap: 16px; flex-shrink: 0; }
 .stat-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
 .stat-val { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--text); }
-
 /* ── ANIMATIONS ─────────────────────────────────────────────── */
 @keyframes fadeSlide {
   from { opacity: 0; transform: translateY(5px); }
@@ -478,7 +540,6 @@ main {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
-
 /* ── QUESTION TYPE INLINE LAYOUT ────────────────────────────── */
 .sgroup-qtype { flex: 1; }
 .qtype-inline {
@@ -507,129 +568,179 @@ main {
   color: var(--muted);
   white-space: nowrap;
 }
-
 /* ── MISC ───────────────────────────────────────────────────── */
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .panel-title { background: var(--card); padding: 6px 12px; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
 .panel-body { padding: 10px; }
-
-@media (max-width: 1023px) {
-  html, body { overflow-x: hidden; overflow-y: auto; height: auto; }
-  #app { height: auto; min-height: 100svh; overflow: visible; padding: 0 14px 16px; }
-  header { flex-wrap: nowrap; padding: 8px 0 7px; gap: 8px; }
-  .proverb { display: none; }
-  .credit  { display: none; }
-  main { flex: none; height: auto; overflow: visible; gap: 10px; padding: 8px 0 4px; }
-  .q-card { flex: none; height: auto; min-height: 0; }
-  .q-card-header { padding: 8px 12px; }
-  .q-prompt { font-size: 14px; padding: 8px 12px 5px; }
-  .code-wrap { flex: none; height: auto; min-height: 80px; margin: 4px 8px 10px; }
-  .ans-card { padding: 8px 12px 10px; }
-  .ans-label { font-size: 10px; }
-  .ans-input { font-size: 16px; padding: 10px 12px; }
-  .ans-input::placeholder { font-size: 13px; }
-  .feedback { font-size: 13px; padding: 10px 14px; min-height: 38px; }
-  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .btn { padding: 14px 10px; font-size: 13px; text-align: center; }
-  .btn-reset { margin-left: 0; }
-  .settings-bar { gap: 8px; padding: 8px 0 6px; }
-  .settings-row { gap: 8px; }
-  .sgroup { padding: 7px 10px 9px; }
-  .sgroup-label { font-size: 10px; margin-bottom: 4px; }
-  .tog { font-size: 12px; padding: 6px 11px; }
-  .chk-label { font-size: 12px; padding: 6px 11px; }
-  .qtype-inline { gap: 6px; }
-  .inline-label { font-size: 10px; }
+/* =================================================================
+   RESPONSIVE — built as a 20yr responsive dev would:
+   Use viewport-aware fluid scaling as baseline,
+   then override at each breakpoint with precise values.
+   All sizes in px verified at each breakpoint.
+   ================================================================= */
+/* ── FLUID BASE (works at any size, refined below) ────────────── */
+:root {
+  --fs-code: clamp(20px, 4vw, 28px);
+  --fs-prompt: clamp(15px, 3vw, 20px);
+  --fs-btn: clamp(12px, 2.5vw, 14px);
+  --fs-tog: clamp(11px, 2.2vw, 13px);
+  --fs-input: clamp(15px, 3vw, 18px);
 }
-@media (max-width: 479px) {
-  #app { padding: 0 10px 12px; }
-  header { padding: 7px 0; gap: 6px; }
-  .brand-name { font-size: 18px; }
-  .brand-bolt { font-size: 16px; }
-  .brand-sub  { font-size: 9px; max-width: 130px; }
-  .score-pill { padding: 4px 10px; min-width: 58px; }
-  .score-label { font-size: 9px; }
-  .score-value { font-size: 14px; }
-  .tog { font-size: 11px; padding: 5px 9px; }
-  .chk-label { font-size: 11px; padding: 5px 9px; }
-  .sgroup { padding: 6px 8px 8px; }
-  .gutter { font-size: 15px; padding: 12px 8px; line-height: 1.75; min-width: 30px; }
-  .code-lines { font-size: 15px; padding: 12px 12px; line-height: 1.75; }
-  .q-prompt { font-size: 13px; }
-  .ans-input { font-size: 16px; padding: 11px 12px; }
-  .btn-row { grid-template-columns: 1fr 1fr; gap: 7px; }
-  .btn { padding: 13px 8px; font-size: 12px; }
+/* ── PHONE PORTRAIT  320–479px ─────────────────────────────────── */
+@media screen and (max-width: 479px) {
+  :root { --fs-code:26px; --fs-prompt:11px; --fs-btn:13px; --fs-tog:10px; --fs-input:16px; }
+  html, body { height:auto; overflow-x:hidden; overflow-y:auto; }
+  #app { height:auto; min-height:100svh; overflow:visible; padding:0 12px 20px; flex-direction:column; }
+  header { padding:10px 0 8px; gap:8px; flex-wrap:nowrap; }
+  .proverb { display:none; }
+  .credit { font-size:10px; letter-spacing:0; }
+  .brand-name { font-size:22px; }
+  .brand-bolt { font-size:20px; }
+  .score-pill { padding:5px 10px; min-width:60px; }
+  .score-value { font-size:16px; }
+  .score-label { font-size:9px; }
+  .streak-badge { font-size:10px; }
+  .settings-bar { padding:8px 0 6px; gap:8px; }
+  .settings-row { gap:7px; flex-wrap:wrap; }
+  .sgroup { padding:7px 9px 9px; border-radius:8px; }
+  .sgroup-label { font-size:9px; letter-spacing:1px; }
+  .tog { font-size:var(--fs-tog); padding:7px 11px; border-radius:6px; }
+  .chk-label { font-size:var(--fs-tog); padding:7px 11px; }
+  main { flex:none; height:auto; overflow:visible; gap:10px; padding:8px 0 6px; }
+  .q-card { flex:none; height:auto; min-height:0; }
+  .q-card-header { padding:9px 12px; }
+  .q-num { font-size:11px; }
+  .q-prompt { font-size:var(--fs-prompt); padding:10px 12px 6px; }
+  .code-wrap { flex:none; height:auto; min-height:90px; margin:4px 8px 10px; }
+  .gutter { font-size:var(--fs-code); padding:14px 10px; line-height:1.85; min-width:32px; }
+  .code-lines { font-size:var(--fs-code); padding:14px 14px; line-height:1.85; }
+  .ans-card { padding:8px 12px 10px; }
+  .ans-label { font-size:9px; }
+  .ans-input { font-size:var(--fs-input); padding:12px 12px; }
+  .ans-input::placeholder { font-size:12px; }
+  .feedback { font-size:13px; padding:10px 12px; min-height:40px; }
+  .btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .btn { padding:14px 8px; font-size:var(--fs-btn); text-align:center; border-radius:8px; }
+  .btn-reset { margin-left:0; }
+  .stat-row { gap:12px; }
+  .stat-item { font-size:11px; }
 }
-@media (min-width: 480px) and (max-width: 767px) {
-  .brand-name { font-size: 22px; }
-  .brand-sub  { font-size: 9px; }
-  .gutter { font-size: 16px; line-height: 1.8; }
-  .code-lines { font-size: 16px; line-height: 1.8; }
-  .btn-row { grid-template-columns: 1fr 1fr 1fr 1fr; }
-  .btn { padding: 13px 10px; font-size: 13px; }
+/* ── PHONE LANDSCAPE + SMALL TABLET  480–767px ─────────────────── */
+@media screen and (min-width:480px) and (max-width:767px) {
+  :root { --fs-code:26px; --fs-prompt:11px; --fs-btn:13px; --fs-tog:10px; --fs-input:17px; }
+  html, body { height:auto; overflow-x:hidden; overflow-y:auto; }
+  #app { height:auto; min-height:100svh; overflow:visible; padding:0 16px 20px; }
+  header { padding:10px 0; gap:10px; }
+  .proverb { display:none; }
+  .brand-name { font-size:24px; }
+  .brand-bolt { font-size:22px; }
+  .score-value { font-size:17px; }
+  .settings-bar { padding:8px 0; gap:8px; }
+  .sgroup { padding:7px 10px 9px; }
+  .tog { font-size:var(--fs-tog); padding:7px 12px; }
+  .chk-label { font-size:var(--fs-tog); padding:7px 12px; }
+  main { flex:none; height:auto; overflow:visible; gap:10px; padding:8px 0; }
+  .q-card { flex:none; height:auto; }
+  .q-prompt { font-size:var(--fs-prompt); padding:10px 14px 6px; }
+  .code-wrap { flex:none; height:auto; margin:4px 10px 10px; }
+  .gutter { font-size:var(--fs-code); padding:14px 11px; line-height:1.85; }
+  .code-lines { font-size:var(--fs-code); padding:14px 16px; line-height:1.85; }
+  .ans-input { font-size:var(--fs-input); padding:12px 14px; }
+  .feedback { font-size:14px; }
+  .btn-row { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; }
+  .btn { padding:14px 10px; font-size:var(--fs-btn); text-align:center; }
+  .btn-reset { margin-left:0; }
 }
-@media (min-width: 768px) and (max-width: 1023px) {
-  #app { padding: 0 20px 16px; }
-  .brand-name { font-size: 26px; }
-  .brand-bolt { font-size: 22px; }
-  .brand-sub  { font-size: 10px; max-width: 180px; }
-  .score-value { font-size: 17px; }
-  .tog { font-size: 13px; padding: 7px 13px; }
-  .chk-label { font-size: 13px; padding: 7px 13px; }
-  .gutter { font-size: 17px; line-height: 1.8; }
-  .code-lines { font-size: 17px; line-height: 1.8; }
-  .q-prompt { font-size: 15px; }
-  .ans-input { font-size: 18px; }
-  .btn-row { grid-template-columns: 1fr 1fr 1fr 1fr; }
-  .btn { padding: 14px 10px; font-size: 13px; }
+/* ── TABLET  768–1023px ─────────────────────────────────────────── */
+@media screen and (min-width:768px) and (max-width:1023px) {
+  :root { --fs-code:30px; --fs-prompt:12px; --fs-btn:14px; --fs-tog:11px; --fs-input:18px; }
+  html, body { height:auto; overflow-x:hidden; overflow-y:auto; }
+  #app { height:auto; min-height:100svh; overflow:visible; padding:0 22px 24px; }
+  header { padding:12px 0 10px; gap:12px; }
+  .proverb { font-size:12px; }
+  .credit { font-size:11px; }
+  .brand-name { font-size:28px; }
+  .brand-bolt { font-size:24px; }
+  .score-value { font-size:19px; }
+  .score-pill { padding:6px 14px; min-width:72px; }
+  .settings-bar { padding:10px 0 8px; gap:10px; }
+  .sgroup { padding:8px 12px 10px; border-radius:9px; }
+  .sgroup-label { font-size:10px; }
+  .tog { font-size:var(--fs-tog); padding:8px 14px; }
+  .chk-label { font-size:var(--fs-tog); padding:8px 14px; }
+  .chk-label input[type=checkbox], .chk-label input[type=radio] { width:14px; height:14px; }
+  main { flex:none; height:auto; overflow:visible; gap:12px; padding:10px 0 6px; }
+  .q-card { flex:none; height:auto; }
+  .q-card-header { padding:10px 14px; }
+  .q-num { font-size:12px; }
+  .q-prompt { font-size:var(--fs-prompt); padding:12px 16px 8px; }
+  .code-wrap { flex:none; height:auto; min-height:120px; margin:6px 12px 12px; }
+  .gutter { font-size:var(--fs-code); padding:16px 12px; line-height:1.9; min-width:38px; }
+  .code-lines { font-size:var(--fs-code); padding:16px 20px; line-height:1.9; }
+  .ans-card { padding:10px 14px 12px; }
+  .ans-label { font-size:10px; }
+  .ans-input { font-size:var(--fs-input); padding:13px 14px; }
+  .ans-input::placeholder { font-size:13px; }
+  .feedback { font-size:15px; padding:11px 16px; min-height:42px; }
+  .btn-row { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; }
+  .btn { padding:16px 12px; font-size:var(--fs-btn); text-align:center; border-radius:9px; }
+  .btn-reset { margin-left:0; }
+  .stat-row { gap:20px; }
+  .stat-item { font-size:12px; }
 }
-@media (min-width: 1024px) {
-  html, body { height: 100%; overflow: hidden; }
-  #app { height: 100vh; overflow: hidden; padding: 0 24px; }
-  main { flex: 1; min-height: 0; overflow: hidden; }
-  .q-card { flex: 1; min-height: 0; }
-  .code-wrap { flex: 1; min-height: 0; }
-  .gutter { font-size: clamp(14px, 1.7vh, 20px); line-height: 1.75; }
-  .code-lines { font-size: clamp(14px, 1.7vh, 20px); line-height: 1.75; }
-  .q-prompt { font-size: clamp(13px, 1.4vw, 16px); }
-  .ans-input { font-size: clamp(15px, 1.3vw, 18px); }
-  .btn-row { display: flex; gap: 8px; }
-  .btn { padding: 11px 20px; font-size: 13px; }
+/* ── LAPTOP  1024–1439px ────────────────────────────────────────── */
+@media screen and (min-width:1024px) {
+  :root { --fs-code:clamp(26px,3vh,36px); --fs-prompt:12px; }
+  html, body { height:100%; overflow:hidden; }
+  #app { height:100vh; overflow:hidden; padding:0 26px; }
+  main { flex:1; min-height:0; overflow:hidden; }
+  .q-card { flex:1; min-height:0; }
+  .code-wrap { flex:1; min-height:0; }
+  .gutter { font-size:var(--fs-code); line-height:1.8; }
+  .code-lines { font-size:var(--fs-code); line-height:1.8; }
+  .q-prompt { font-size:var(--fs-prompt); }
+  .ans-input { font-size:clamp(15px,1.3vw,19px); }
+  .feedback { font-size:clamp(12px,1.1vw,15px); }
+  .btn-row { display:flex; gap:8px; }
+  .btn { padding:11px 22px; font-size:13px; }
+  .tog { font-size:11px; padding:5px 12px; }
+  .chk-label { font-size:11px; padding:5px 12px; }
 }
-@media (min-width: 1440px) {
-  #app { max-width: 1600px; padding: 0 40px; }
-  .brand-name { font-size: 32px; }
-  .brand-bolt { font-size: 28px; }
-  .brand-sub  { font-size: 12px; }
-  .score-value { font-size: 22px; }
-  .score-pill { padding: 6px 18px; min-width: 80px; }
-  .tog { font-size: 15px; padding: 8px 16px; }
-  .chk-label { font-size: 15px; padding: 8px 16px; }
-  .sgroup-label { font-size: 12px; }
-  .gutter { font-size: clamp(16px, 1.8vh, 24px); }
-  .code-lines { font-size: clamp(16px, 1.8vh, 24px); }
-  .q-prompt { font-size: 18px; }
-  .q-num { font-size: 15px; }
-  .ans-input { font-size: 20px; padding: 11px 16px; }
-  .feedback { font-size: 17px; padding: 10px 18px; }
-  .btn { padding: 13px 26px; font-size: 15px; }
+/* ── LARGE DESKTOP  1440–1999px ─────────────────────────────────── */
+@media screen and (min-width:1440px) {
+  #app { max-width:1600px; padding:0 44px; }
+  .brand-name { font-size:32px; }
+  .brand-bolt { font-size:28px; }
+  .score-value { font-size:22px; }
+  .score-pill { padding:7px 20px; min-width:84px; }
+  .tog { font-size:11px; padding:5px 12px; }
+  .chk-label { font-size:11px; padding:5px 12px; }
+  .sgroup-label { font-size:11px; }
+  .gutter { font-size:clamp(28px,3.2vh,38px); }
+  .code-lines { font-size:clamp(28px,3.2vh,38px); }
+  .q-prompt { font-size:15px; }
+  .ans-input { font-size:21px; padding:11px 18px; }
+  .feedback { font-size:16px; padding:10px 18px; }
+  .btn { padding:13px 28px; font-size:15px; }
+  .q-num { font-size:13px; }
 }
-@media (min-width: 2000px) {
-  #app { max-width: 1800px; }
-  .brand-name { font-size: 38px; }
-  .score-value { font-size: 26px; }
-  .tog { font-size: 17px; padding: 10px 20px; }
-  .gutter { font-size: 26px; }
-  .code-lines { font-size: 26px; }
-  .q-prompt { font-size: 22px; }
-  .ans-input { font-size: 24px; padding: 14px 20px; }
-  .feedback { font-size: 20px; }
-  .btn { padding: 16px 32px; font-size: 18px; }
+/* ── 4K / ULTRA-WIDE  2000px+ ───────────────────────────────────── */
+@media screen and (min-width:2000px) {
+  #app { max-width:1900px; }
+  .brand-name { font-size:40px; }
+  .score-value { font-size:28px; }
+  .tog { font-size:11px; padding:5px 12px; }
+  .chk-label { font-size:11px; padding:5px 12px; }
+  .gutter { font-size:40px; }
+  .code-lines { font-size:40px; }
+  .q-prompt { font-size:16px; }
+  .ans-input { font-size:26px; padding:16px 22px; }
+  .feedback { font-size:21px; }
+  .btn { padding:18px 36px; font-size:19px; }
 }
 </style>
 </head>
 <body>
-
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
   <div class="login-card">
@@ -642,15 +753,13 @@ main {
       <div class="login-label">Password</div>
     </div>
     <input class="login-input" id="login-pw" type="password"
-           placeholder="••••••" autocomplete="off" maxlength="20">
+           placeholder="••••••" autocomplete="off" maxlength="30">
     <div class="login-error" id="login-err"></div>
     <button class="login-btn" id="login-btn">Login</button>
-    <div class="login-credit">Developed by Leo Anto Richard</div>
+    <div class="login-credit">vibe coded by Leo Anto Richard</div>
   </div>
 </div>
-
 <div id="app">
-
   <!-- HEADER -->
   <header>
     <div class="brand">
@@ -664,13 +773,15 @@ main {
         <div class="score-value" id="score">0 / 0</div>
         <div class="streak-badge" id="streak"></div>
       </div>
-      <div class="credit">Developed by<br>Leo Anto Richard</div>
+      <div id="user-pill">
+        <span id="role-badge"></span>
+        <button id="logout-btn">↪ Logout</button>
+      </div>
+
     </div>
   </header>
-
   <!-- SETTINGS BAR — always visible -->
   <div class="settings-bar" id="settings-bar">
-
     <!-- Row 1: Data Type -->
     <div class="settings-row" id="row-main">
       <div class="sgroup">
@@ -684,7 +795,6 @@ main {
         </div>
       </div>
     </div>
-
     <!-- Row 2: Question Type | Difficulty | Indexing Mode as own sgroup boxes -->
     <div class="settings-row" id="row-qtype">
       <div class="sgroup">
@@ -697,7 +807,7 @@ main {
           <button class="tog qt-Membership"        data-qtype="Membership">Membership</button>
           <button class="tog qt-Comparison"        data-qtype="Comparison">Comparison</button>
           <button class="tog qt-Expressions"       data-qtype="Expressions">Expressions</button>
-          <button class="tog qt-TypeFunctions"     data-qtype="TypeFunctions">Type Functions</button>
+          <button class="tog qt-BuiltinMath"     data-qtype="BuiltinMath">Functions (Built-in &amp; Modules)</button>
           <button class="tog qt-Mixed"             data-qtype="Mixed">Mixed</button>
         </div>
       </div>
@@ -716,14 +826,10 @@ main {
         </div>
       </div>
     </div>
-
   </div>
-
   <!-- MAIN -->
   <main>
-
     <!-- QUESTION AREA -->
-
       <!-- Question card -->
       <div class="q-card" id="q-card">
         <div class="q-card-header">
@@ -740,7 +846,6 @@ main {
           <div class="code-lines" id="code-display"></div>
         </div>
       </div>
-
       <!-- Answer -->
       <div class="ans-row">
         <div class="ans-card">
@@ -750,23 +855,19 @@ main {
                  autocomplete="off" spellcheck="false">
         </div>
       </div>
-
       <!-- Feedback -->
       <div class="feedback empty" id="feedback">
         </div>
-
       <!-- Buttons -->
       <div class="btn-row">
         <button class="btn btn-check"  id="btn-check">Check Answer</button>
         <button class="btn btn-reveal" id="btn-reveal">Reveal Answer</button>
         <button class="btn btn-next"   id="btn-next">Next Question</button>
         <button class="btn btn-reset"  id="btn-reset">Reset Score</button>
+
       </div>
-
     </main>
-
 </div>
-
 <script>
 // ═══════════════════════════════════════════════════════════════
 //  PROVERBS
@@ -869,7 +970,6 @@ const PROVERBS = [
   "Your future self will thank you for studying today.",
   "Class 12 boards are won in the practice room, not the exam hall.",
 ];
-
 // ═══════════════════════════════════════════════════════════════
 //  DATA BANKS
 // ═══════════════════════════════════════════════════════════════
@@ -966,7 +1066,6 @@ const STRINGS_ALPHA = [
 const STRINGS_DIGIT = ["12345","987654","007","1000","246810","1234567890","999","2024"];
 const STRINGS_ALNUM = ["abc123","python3","class12","test99","code42","web2","java8"];
 const STRINGS_UPPER = ["HELLO","PYTHON","CBSE","INDIA","SCHOOL","MANGO","WORLD","CLASS"];
-
 // Lists — moderate words (no single-letter items), mixed types with spaces
 const LISTS_FLAT = [
   // integers
@@ -1051,14 +1150,12 @@ const DICTS = [
   {vowels:5,consonants:21,total:26},
   {zeros:0,ones:1,binary:2},
 ];
-
 // ═══════════════════════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════════════════════
 function rnd(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
 function rndInt(a,b) { return Math.floor(Math.random()*(b-a))+a; }
 function chance(p) { return Math.random()<p; }
-
 function pyRepr(v) {
   if (v===null||v===undefined) return "None";
   if (typeof v==="boolean") return v?"True":"False";
@@ -1074,18 +1171,15 @@ function pyRepr(v) {
   }
   return String(v);
 }
-
 function pyReprTuple(arr) {
   if (arr.length===0) return "()";
   if (arr.length===1) return "("+pyRepr(arr[0])+",)";
   return "("+arr.map(pyRepr).join(", ")+")";
 }
-
 function safeIndex(data,idx) {
   if(idx<0) idx=data.length+idx;
   return data[idx];
 }
-
 function pickString(kind) {
   if(kind==="alpha") return rnd(STRINGS_ALPHA);
   if(kind==="digit") return rnd(STRINGS_DIGIT);
@@ -1097,7 +1191,6 @@ function pickList() { return JSON.parse(JSON.stringify(rnd(LISTS_FLAT))); }
 function pickNested() { return JSON.parse(JSON.stringify(rnd(LISTS_NESTED))); }
 function pickTuple() { return JSON.parse(JSON.stringify(rnd(LISTS_FLAT))); }
 function pickDict() { return JSON.parse(JSON.stringify(rnd(DICTS))); }
-
 function answersMatch(user, expected, isStr, up) {
   user = user.trim(); expected = String(expected).trim();
   if(user===expected) return true;
@@ -1120,11 +1213,9 @@ function answersMatch(user, expected, isStr, up) {
   }
   return false;
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  QUESTION GENERATORS
 // ═══════════════════════════════════════════════════════════════
-
 // ── Python slice helper ──
 function pySlice(data,start,stop,step) {
   let arr = typeof data==="string"?data.split(""):data;
@@ -1144,7 +1235,6 @@ function pySlice(data,start,stop,step) {
   else{for(let i=s;i>e;i+=step) result.push(arr[i]);}
   return typeof data==="string"?result.join(""):result;
 }
-
 // ── NESTED TUPLES ─────────────────────────────────────────────
 const TUPLES_NESTED = [
   [10,[20,30],40],
@@ -1159,7 +1249,6 @@ const TUPLES_NESTED = [
   [0,[1,2],3,[4,5]],
 ];
 function pickTupleNested(){ return JSON.parse(JSON.stringify(rnd(TUPLES_NESTED))); }
-
 // ── ITEM REPR (mirrors Python _item_repr) ──────────────────────
 function itemRepr(v) {
   if(v===null||v===undefined) return "None";
@@ -1167,7 +1256,6 @@ function itemRepr(v) {
   if(typeof v==="string") return "'"+v+"'";
   return String(v);
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  genIndexSlice  (mirrors Python gen_index_slice exactly)
 // ═══════════════════════════════════════════════════════════════
@@ -1178,7 +1266,6 @@ function genIndexSlice(dtype, cat, opts) {
   // Force nested data when nested mode
   const forceNested = io.indexMode==="nested";
   const mixNested   = io.indexMode==="both";
-
   let data, dataRepr;
   if(dtype==="String") {
     data = pickString();
@@ -1192,12 +1279,10 @@ function genIndexSlice(dtype, cat, opts) {
   }
   let n = data.length || 1;
   if(n < 2){ data=[1,2,3,4,5]; n=5; dataRepr=pyRepr(data); }
-  let up = chance(0.85);
-
+  let up = true;
   function mkResult(lines, ansRepr, expected, isStr){
     return {lines, answer:ansRepr, expected:String(expected), isStr, up};
   }
-
   if(cat==="Indexing") {
     // NESTED MODE: force x[i][j] style questions
     if(forceNested && (dtype==="List"||dtype==="Tuple")) {
@@ -1217,7 +1302,7 @@ function genIndexSlice(dtype, cat, opts) {
           let ar = pyRepr(ans);
           let expected = (typeof ans==="string"&&up) ? ans : ar;
           let line1 = "x = "+dataRepr;
-          let line2 = up ? "print("+expr+")" : ">>> "+expr;
+          let line2 = "print("+expr+")";
           return mkResult([line1,line2], ar, expected, typeof ans==="string");
         }
       }
@@ -1239,7 +1324,7 @@ function genIndexSlice(dtype, cat, opts) {
           let ar = pyRepr(ans);
           let expected = (typeof ans==="string"&&up) ? ans : ar;
           let line1 = "x = "+dataRepr;
-          let line2 = up ? "print("+expr+")" : ">>> "+expr;
+          let line2 = "print("+expr+")";
           return mkResult([line1,line2], ar, expected, typeof ans==="string");
         }
       }
@@ -1253,7 +1338,7 @@ function genIndexSlice(dtype, cat, opts) {
         let ans=ei[j]+safeIndex(ek,l);
         let expr="x["+i+"]["+j+"] + x["+k+"]["+l+"]";
         let line1="x = "+dataRepr;
-        let line2=up?"print("+expr+")":">>> "+expr;
+        let line2="print("+expr+")";
         return mkResult([line1,line2],"'"+ans+"'",up?ans:"'"+ans+"'",true);
       }
     }
@@ -1265,9 +1350,8 @@ function genIndexSlice(dtype, cat, opts) {
     let ar = pyRepr(ans);
     let expected = (typeof ans==="string"&&up&&ans.length>0) ? ans : ar;
     let line1 = "x = "+dataRepr;
-    let line2 = up ? "print("+expr+")" : ">>> "+expr;
+    let line2 = "print("+expr+")";
     return mkResult([line1,line2], ar, expected, typeof ans==="string");
-
   } else {
     // Slicing
     let outside = chance(0.12);
@@ -1300,11 +1384,10 @@ function genIndexSlice(dtype, cat, opts) {
     else ar = pyRepr(ans);
     let expected = (typeof ans==="string"&&up) ? ans : ar;
     let line1 = "x = "+dataRepr;
-    let line2 = up ? "print("+expr+")" : ">>> "+expr;
+    let line2 = "print("+expr+")";
     return mkResult([line1,line2], ar, expected, typeof ans==="string");
   }
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  genMembership  (mirrors Python gen_membership exactly)
 // ═══════════════════════════════════════════════════════════════
@@ -1329,98 +1412,206 @@ function genMembership(dtype) {
     op = chance(0.5) ? "in" : "not in";
     expr = itemRepr(elem)+" "+op+" x";
   }
-  let up = chance(0.85);
+  let up = true;
   let ans = op==="in" ? data.includes?.(elem) ?? String(data).includes(elem)
                        : !(data.includes?.(elem) ?? String(data).includes(elem));
   // For strings use includes properly
   if(dtype==="String") ans = op==="in" ? data.includes(elem) : !data.includes(elem);
   let ar = ans ? "True" : "False";
   let line1 = "x = "+dataRepr;
-  let line2 = up ? "print("+expr+")" : ">>> "+expr;
+  let line2 = "print("+expr+")";
   return {lines:[line1,line2], answer:ar, expected:ar, isStr:false, up};
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  genComparison  (mirrors Python gen_comparison exactly)
 // ═══════════════════════════════════════════════════════════════
-function genComparison(dtype) {
-  let ans, lines;
-  const ops_all = ["==","!=","<",">","<=",">="];
-  const ops_eq  = ["==","!="];
-  let up = chance(0.85);
-
-  if(dtype==="String") {
-    // Pick TWO strings from the same category so comparisons are meaningful
-    const strPools = [
-      // same-case words — all 6 ops make sense
-      ["apple","mango","banana","cherry","grape","lemon","peach","melon"],
-      ["cat","dog","ant","bee","cow","hen","pig","rat","fox","owl"],
-      ["red","blue","green","pink","gold","grey","cyan","lime"],
-      ["alpha","beta","gamma","delta","zeta","sigma","omega"],
-      ["India","China","Japan","France","Brazil","Canada","Russia"],
-      ["Monday","Tuesday","Friday","Sunday","Thursday","Saturday"],
-      // mixed-case — good for == and != (case-sensitive)
-      ["hello","Hello","HELLO"],["python","Python","PYTHON"],
-      ["cbse","CBSE","Cbse"],["apple","Apple","APPLE"],
-      // equal pairs — good for ==, <=, >=
-      ["hello","hello"],["mango","mango"],["India","India"],
-      ["cricket","cricket"],["Python","Python"],
-    ];
-    let pool = rnd(strPools);
-    let a = rnd(pool);
-    let b = rnd(pool);
-    let op = rnd(ops_all);
-    ans = op==="=="?a===b:op==="!="?a!==b:op==="<"?a<b:op===">"?a>b:op==="<="?a<=b:a>=b;
-    let expr = "x "+op+" y";
-    if(up) lines = ["x = '"+a+"'", "y = '"+b+"'", "print("+expr+")"];
-    else   lines = ["x = '"+a+"'", "y = '"+b+"'", ">>> "+expr];
-
-  } else if(dtype==="List") {
-    let op = rnd(ops_eq);
-    // Pick same-type list for meaningful comparison
-    let a = pickList();
-    let b;
-    const r = Math.random();
-    if(r < 0.35) {
-      b = JSON.parse(JSON.stringify(a));           // identical → == True
-    } else if(r < 0.65) {
-      b = JSON.parse(JSON.stringify(a));           // same but tweak last element
-      if(b.length>0) b[b.length-1] = typeof b[0]==="number" ? b[0]+1 : b[0]+"!";
-    } else {
-      // pick a list of same type (all-number or all-string)
-      let tries=0;
-      do { b=pickList(); tries++; } while(tries<10 && typeof a[0]!==typeof b[0]);
-    }
-    ans = op==="==" ? JSON.stringify(a)===JSON.stringify(b) : JSON.stringify(a)!==JSON.stringify(b);
-    let expr = "x "+op+" y";
-    if(up) lines = ["x = "+pyRepr(a), "y = "+pyRepr(b), "print("+expr+")"];
-    else   lines = ["x = "+pyRepr(a), "y = "+pyRepr(b), ">>> "+expr];
-
-  } else {
-    // Tuple — same logic as list
-    let op = rnd(ops_eq);
-    let a = pickList();
-    let b;
-    const r = Math.random();
-    if(r < 0.35) {
-      b = JSON.parse(JSON.stringify(a));
-    } else if(r < 0.65) {
-      b = JSON.parse(JSON.stringify(a));
-      if(b.length>0) b[b.length-1] = typeof b[0]==="number" ? b[0]+1 : b[0]+"!";
-    } else {
-      let tries=0;
-      do { b=pickList(); tries++; } while(tries<10 && typeof a[0]!==typeof b[0]);
-    }
-    ans = op==="==" ? JSON.stringify(a)===JSON.stringify(b) : JSON.stringify(a)!==JSON.stringify(b);
-    let expr = "x "+op+" y";
-    if(up) lines = ["x = "+pyReprTuple(a), "y = "+pyReprTuple(b), "print("+expr+")"];
-    else   lines = ["x = "+pyReprTuple(a), "y = "+pyReprTuple(b), ">>> "+expr];
+// ── Comparison cycle state (persists across calls) ──────────────
+const _cmpState = {
+  // String: cycle through slots 1-5, each cycle is a fresh shuffle of [1,2,3,4,5]
+  // slot weights: 1=15% 2=35% 3=20% 4=20% 5=10% → build weighted deck per cycle
+  strDeck: [], strPos: 0,
+  // List/Tuple: simple weighted deck
+  ltDeck: [], ltPos: 0,
+};
+function _buildStrDeck() {
+  // Build a 20-card deck: 3×slot1, 7×slot2, 4×slot3, 4×slot4, 2×slot5
+  let deck = [];
+  for(let i=0;i<3;i++) deck.push(1);
+  for(let i=0;i<7;i++) deck.push(2);
+  for(let i=0;i<4;i++) deck.push(3);
+  for(let i=0;i<4;i++) deck.push(4);
+  for(let i=0;i<2;i++) deck.push(5);
+  // Fisher-Yates shuffle
+  for(let i=deck.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [deck[i],deck[j]]=[deck[j],deck[i]];
   }
-
-  let ar = ans ? "True" : "False";
-  return {lines, answer:ar, expected:ar, isStr:false, up};
+  return deck;
 }
-
+function _buildLTDeck() {
+  // 20-card deck: 2×eq(==!=), 18×relational; 1 of those 18 is TypeError
+  let deck = [];
+  for(let i=0;i<2;i++) deck.push('eq');
+  for(let i=0;i<1;i++) deck.push('te');   // TypeError
+  for(let i=0;i<17;i++) deck.push('rel');
+  for(let i=deck.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [deck[i],deck[j]]=[deck[j],deck[i]];
+  }
+  return deck;
+}
+function _pickStrOp(slot) {
+  // slot 1,2,3: 15% eq, 85% rel  slot 4: 10% eq, 90% rel  slot 5: 100% rel
+  const eqOps  = ["==","!="];
+  const relOps = ["<",">","<=",">="];
+  const eqChance = slot===4 ? 0.10 : slot===5 ? 0 : 0.15;
+  return Math.random() < eqChance ? rnd(eqOps) : rnd(relOps);
+}
+function _cmpStr(a,b,op){
+  return op==="=="?a===b:op==="!="?a!==b:op==="<"?a<b:op===">"?a>b:op==="<="?a<=b:a>=b;
+}
+function genComparison(dtype) {
+  const ops_eq  = ["==","!="];
+  const ops_rel = ["<",">","<=",">="];
+  let ans, lines, isTypeError=false;
+  let up = true;
+  // ── STRING ───────────────────────────────────────────────────
+  if(dtype==="String") {
+    // Advance deck
+    if(_cmpState.strPos >= _cmpState.strDeck.length) {
+      _cmpState.strDeck = _buildStrDeck();
+      _cmpState.strPos  = 0;
+    }
+    const slot = _cmpState.strDeck[_cmpState.strPos++];
+    const op   = _pickStrOp(slot);
+    let a, b;
+    if(slot===1) {
+      // Same word — pick identical pair
+      const words = ["apple","mango","hello","python","India","Monday","cricket","banana","world","orange","grape","tiger","river","house","stone"];
+      const w = rnd(words);
+      a = w; b = w;
+    } else if(slot===2) {
+      // Different words — pure alpha, no digits, no special chars
+      const wordPool = [
+        ["apple","mango","banana","cherry","grape","lemon","peach","melon","orange","plum"],
+        ["cat","dog","ant","bee","cow","hen","pig","rat","fox","owl","bat","elk"],
+        ["red","blue","green","pink","gold","grey","cyan","lime","rose","jade"],
+        ["alpha","beta","gamma","delta","zeta","sigma","omega","theta","kappa"],
+        ["India","China","Japan","France","Brazil","Canada","Russia","Kenya","Spain"],
+        ["Monday","Tuesday","Friday","Sunday","Thursday","Saturday","Wednesday"],
+        ["python","coding","laptop","screen","class","board","pencil","paper"],
+      ];
+      const pool = rnd(wordPool);
+      do { a = rnd(pool); b = rnd(pool); } while(a===b);
+    } else if(slot===3) {
+      // Digits only — no spaces/special chars, 1-4 digit strings
+      const digitStrings = ["1","5","9","12","25","48","99","100","256","512","999",
+                             "1024","3456","7890","2048","4321","1111","9999","123","456","789","321"];
+      do { a = rnd(digitStrings); b = rnd(digitStrings); } while(op!=="==" && op!=="!=" && a===b);
+    } else if(slot===4) {
+      // Mixed letters+digits — alphanumeric only, no spaces/special
+      const mixedStrings = ["ab4","4bc","a1b","b2c","x9y","3xz","abc1","1abc","a12","12b",
+                             "py3","3py","cs4","4cs","m5n","5mn","z2z","2z2","a1","1a","b9","9b"];
+      do { a = rnd(mixedStrings); b = rnd(mixedStrings); } while(op!=="==" && op!=="!=" && a===b);
+    } else {
+      // slot 5 — near-identical, one has 1-2 extra chars, rel ops only
+      const bases = ["abc","def","ghi","cat","dog","ant","red","cup","hat","pin","run","sat"];
+      const base = rnd(bases);
+      const extras = ["a","b","c","d","e","s","t","x","z","ab","bc","st","xy"];
+      const ext = rnd(extras);
+      // randomly assign which is longer
+      if(Math.random()<0.5) { a = base; b = base+ext; }
+      else { a = base+ext; b = base; }
+    }
+    ans = _cmpStr(a, b, op);
+    let expr = "x "+op+" y";
+    lines = ["x = '"+a+"'", "y = '"+b+"'", "print("+expr+")"];
+    let ar = ans ? "True" : "False";
+    return {lines, answer:ar, expected:ar, isStr:false, up};
+  // ── LIST ─────────────────────────────────────────────────────
+  } else if(dtype==="List") {
+    if(_cmpState.ltPos >= _cmpState.ltDeck.length) {
+      _cmpState.ltDeck = _buildLTDeck();
+      _cmpState.ltPos  = 0;
+    }
+    const kind = _cmpState.ltDeck[_cmpState.ltPos++];
+    if(kind==="te") {
+      // TypeError — mixed types in list comparison
+      const numList   = [rndInt(1,9), rndInt(1,9), rndInt(1,9)];
+      const strValues = ["'a'","'b'","'c'","'x'","'y'","'z'"];
+      // Mix: [1,2] vs ['1',2] style — one element is string
+      let a = [...numList];
+      let b = [...numList];
+      const pos = rndInt(0, a.length);
+      b[pos] = rnd(["'a'","'b'","'x'"]);  // string in otherwise numeric list
+      const op = rnd(ops_rel);
+      let ar = "TypeError";
+      lines = ["x = "+pyRepr(a), "y = ["+b.join(",")+"]", "print(x "+op+" y)"];
+      return {lines, answer:ar, expected:ar, isStr:false, up};
+    }
+    const op = kind==="eq" ? rnd(ops_eq) : rnd(ops_rel);
+    let a = [rndInt(1,9),rndInt(1,9),rndInt(1,9)];
+    let b;
+    const r = Math.random();
+    if(r<0.30) { b = [...a]; }
+    else if(r<0.60) {
+      b = [...a];
+      b[b.length-1] = Math.max(1, b[b.length-1] + rnd([1,2,-1,-2]));
+    } else {
+      b = [rndInt(1,9),rndInt(1,9),rndInt(1,9)];
+    }
+    function cmpArr(x,y){
+      for(let i=0;i<Math.min(x.length,y.length);i++){
+        if(x[i]<y[i]) return -1; if(x[i]>y[i]) return 1;
+      }
+      return x.length-y.length;
+    }
+    const cmp = cmpArr(a,b);
+    ans = op==="=="?cmp===0:op==="!="?cmp!==0:op==="<"?cmp<0:op===">"?cmp>0:op==="<="?cmp<=0:cmp>=0;
+    let ar = ans?"True":"False";
+    lines = ["x = "+pyRepr(a), "y = "+pyRepr(b), "print(x "+op+" y)"];
+    return {lines, answer:ar, expected:ar, isStr:false, up};
+  // ── TUPLE ────────────────────────────────────────────────────
+  } else {
+    if(_cmpState.ltPos >= _cmpState.ltDeck.length) {
+      _cmpState.ltDeck = _buildLTDeck();
+      _cmpState.ltPos  = 0;
+    }
+    const kind = _cmpState.ltDeck[_cmpState.ltPos++];
+    if(kind==="te") {
+      let a = [rndInt(1,9), rndInt(1,9), rndInt(1,9)];
+      let b = [...a];
+      const pos = rndInt(0, a.length);
+      b[pos] = rnd(["'a'","'b'","'x'"]);
+      const op = rnd(ops_rel);
+      let ar = "TypeError";
+      lines = ["x = "+pyReprTuple(a), "y = ("+b.join(",")+")", "print(x "+op+" y)"];
+      return {lines, answer:ar, expected:ar, isStr:false, up};
+    }
+    const op = kind==="eq" ? rnd(ops_eq) : rnd(ops_rel);
+    let a = [rndInt(1,9),rndInt(1,9),rndInt(1,9)];
+    let b;
+    const r = Math.random();
+    if(r<0.30) { b = [...a]; }
+    else if(r<0.60) {
+      b = [...a];
+      b[b.length-1] = Math.max(1, b[b.length-1] + rnd([1,2,-1,-2]));
+    } else {
+      b = [rndInt(1,9),rndInt(1,9),rndInt(1,9)];
+    }
+    function cmpArr2(x,y){
+      for(let i=0;i<Math.min(x.length,y.length);i++){
+        if(x[i]<y[i]) return -1; if(x[i]>y[i]) return 1;
+      }
+      return x.length-y.length;
+    }
+    const cmpT = cmpArr2(a,b);
+    ans = op==="=="?cmpT===0:op==="!="?cmpT!==0:op==="<"?cmpT<0:op===">"?cmpT>0:op==="<="?cmpT<=0:cmpT>=0;
+    let ar = ans?"True":"False";
+    lines = ["x = "+pyReprTuple(a), "y = "+pyReprTuple(b), "print(x "+op+" y)"];
+    return {lines, answer:ar, expected:ar, isStr:false, up};
+  }
+}
 // ═══════════════════════════════════════════════════════════════
 //  genStringFunction  (mirrors Python gen_string_function exactly)
 // ═══════════════════════════════════════════════════════════════
@@ -1525,7 +1716,7 @@ function genStringFunction() {
   for(let i=0;i<40;i++){
     try{
       let [s,expr,ans,isStr]=rnd(makers)();
-      let up=chance(0.85);
+      let up = true;
       let ar;
       if(Array.isArray(ans)) ar=pyRepr(ans);
       else if(typeof ans==="boolean") ar=ans?"True":"False";
@@ -1533,14 +1724,13 @@ function genStringFunction() {
       else ar=String(ans);
       let expected = isStr&&up ? String(ans) : ar;
       let line1 = s!=null ? "x = '"+s+"'" : "x = 'hello'";
-      let line2 = up ? "print("+expr+")" : ">>> "+expr;
+      let line2 = "print("+expr+")";
       return {lines:[line1,line2], answer:ar, expected:expected,
               isStr:isStr||typeof ans==="string", up};
     }catch(e){}
   }
   return genIndexSlice("String","Indexing");
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  genListFunction  (mirrors Python gen_list_function exactly)
 // ═══════════════════════════════════════════════════════════════
@@ -1603,7 +1793,7 @@ function genListFunction() {
   for(let i=0;i<40;i++){
     try{
       let [lst,expr,ans,isStr,mutating]=rnd(makers)();
-      let up=chance(0.85);
+      let up = true;
       let ar=pyRepr(ans);
       let line1 = lst!=null ? "x = "+pyRepr(lst) : "x = [1, 2, 3]";
       if(mutating){
@@ -1611,13 +1801,12 @@ function genListFunction() {
       }
       if(typeof ans==="number"||typeof ans==="boolean") ar=String(ans);
       let expected=ar;
-      let line2=up?"print("+expr+")":">>> "+expr;
+      let line2="print("+expr+")";
       return {lines:[line1,line2], answer:ar, expected:expected, isStr:false, up};
     }catch(e){}
   }
   return genIndexSlice("List","Indexing");
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  genTupleFunction  (mirrors Python gen_tuple_function exactly)
 // ═══════════════════════════════════════════════════════════════
@@ -1644,20 +1833,19 @@ function genTupleFunction() {
   for(let i=0;i<30;i++){
     try{
       let [t,expr,ans,isStr]=rnd(makers)();
-      let up=chance(0.85);
+      let up = true;
       let ar;
       if(Array.isArray(ans)) ar=pyReprTuple(ans);
       else ar=String(ans);
       let expected=ar;
       let line1 = t!=null ? "x = "+pyReprTuple(t) : "x = (1, 2, 3)";
-      let line2 = up?"print("+expr+")":">>> "+expr;
+      let line2 = "print("+expr+")";
       if(!up) expected=ar;
       return {lines:[line1,line2], answer:ar, expected:expected, isStr:false, up};
     }catch(e){}
   }
   return genIndexSlice("Tuple","Indexing");
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  genDictQuestion  (mirrors Python gen_dict_question exactly)
 // ═══════════════════════════════════════════════════════════════
@@ -1667,7 +1855,6 @@ function genDictQuestion() {
   const vals = Object.values(d);
   const up = chance(0.85);
   const line1 = "x = "+pyRepr(d);
-
   const makers = [
     // direct access (weighted 3x)
     ()=>{ let k=rnd(keys); let ans=d[k];
@@ -1745,7 +1932,6 @@ function genDictQuestion() {
     ()=>{ let k=rnd(keys); let nv=99;
           return {multiLine:[line1,"x['"+k+"'] = "+nv,"print(x['"+k+"'])"],ans:nv,isStr:false}; },
   ];
-
   for(let i=0;i<40;i++){
     try{
       let mk=rnd(makers)();
@@ -1762,33 +1948,34 @@ function genDictQuestion() {
       else if(mk.isStr) ar="'"+mk.ans+"'";
       else ar=String(mk.ans);
       let expected = mk.isStr&&up ? String(mk.ans) : ar;
-      let line2 = up ? "print("+mk.expr+")" : ">>> "+mk.expr;
+      let line2 = "print("+mk.expr+")";
       return {lines:[line1,line2], answer:ar, expected:String(expected), isStr:mk.isStr, up};
     }catch(e){}
   }
   return {lines:[line1,"print(len(x))"], answer:String(keys.length),
           expected:String(keys.length), isStr:false, up:true};
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  generateQuestion
 // ═══════════════════════════════════════════════════════════════
 function generateQuestion(dtype, qtype, opts) {
   // opts: { indexMode, difficulty }
   const io = opts||{};
-
   // Expressions and TypeFunctions ignore dtype
-  if(qtype==="Expressions")    return genExpression(io.difficulty||"Mixed");
-  if(qtype==="TypeFunctions")  return genTypeFunction(io.difficulty||"Mixed");
-
+  // Resolve difficulty — if Both, alternate Basic/Intermediate each question
+  function resolveDiff(d) {
+    if(d!=="Both") return d||"Basic";
+    state.diffAlt = (state.diffAlt||0) + 1;
+    return state.diffAlt%2===0 ? "Intermediate" : "Basic";
+  }
+  if(qtype==="Expressions")    return genExpression(resolveDiff(io.difficulty));
+  if(qtype==="BuiltinMath")  return genTypeFunction(resolveDiff(io.difficulty));
   const actualDtype = dtype==="Mixed"?rnd(["String","List","Tuple","Dictionary"]):dtype;
-
   if(qtype==="SliceIdx") {
     // Slice+Index on any sequence
     const d = actualDtype==="Dictionary"?rnd(["String","List","Tuple"]):actualDtype;
     return genSliceIndex(d);
   }
-
   const catMap = {
     "Indexing":  ["Indexing"],
     "Slicing":   ["Slicing"],
@@ -1796,16 +1983,15 @@ function generateQuestion(dtype, qtype, opts) {
     "Membership":["Membership"],
     "Comparison":["Comparison"],
     "Mixed":     ["Indexing","Slicing","Function","Membership","Comparison",
-                  "SliceIdx","Expressions","TypeFunctions"],
+                  "SliceIdx","Expressions","BuiltinMath"],
   };
   let cats = actualDtype==="Dictionary"?["Dict"]:catMap[qtype]||["Indexing"];
   let cat = rnd(cats);
-
   for(let i=0;i<25;i++){
     try{
       if(cat==="SliceIdx")      return genSliceIndex(actualDtype==="Dictionary"?"List":actualDtype);
-      if(cat==="Expressions")   return genExpression(io.difficulty||"Mixed");
-      if(cat==="TypeFunctions") return genTypeFunction(io.difficulty||"Mixed");
+      if(cat==="Expressions")   return genExpression(resolveDiff(io.difficulty));
+      if(cat==="BuiltinMath") return genTypeFunction(io.difficulty||"Mixed");
       if(actualDtype==="Dictionary") return genDictQuestion();
       if(cat==="Indexing")  return genIndexSlice(actualDtype, "Indexing", io);
       if(cat==="Slicing")   return genIndexSlice(actualDtype, "Slicing", io);
@@ -1820,7 +2006,6 @@ function generateQuestion(dtype, qtype, opts) {
   }
   return genIndexSlice("String","Indexing",{});
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  genSliceIndex — Slice then index chained (all sequences)
 // ═══════════════════════════════════════════════════════════════
@@ -1835,8 +2020,7 @@ function genSliceIndex(dtype) {
   }
   let n=data.length||1;
   if(n<3){data=[1,2,3,4,5,6];n=6;dataRepr=pyRepr(data);}
-  let up=chance(0.85);
-
+  let up = true;
   // Always: slice then index the result
   let start=chance(0.4)?null:(chance(0.5)?-rndInt(1,n+1):rndInt(0,n));
   let stop=chance(0.4)?null:(chance(0.5)?-rndInt(1,n+1):rndInt(0,n+1));
@@ -1857,123 +2041,269 @@ function genSliceIndex(dtype) {
   else ar=pyRepr(ans);
   let expected=(typeof ans==="string"&&up)?ans:ar;
   let line1="x = "+dataRepr;
-  let line2=up?"print("+expr+")":">>> "+expr;
+  let line2="print("+expr+")";
   return {lines:[line1,line2],answer:ar,expected:String(expected),isStr:typeof ans==="string",up};
 }
-
 // ═══════════════════════════════════════════════════════════════
-//  genExpression — Boolean, arithmetic, ternary expressions
+//  genExpression — pure arithmetic / relational / logical / combined
+// ═══════════════════════════════════════════════════════════════
+// BASIC distribution (weighted deck per call):
+//   Arithmetic  40% → +  -  *  //  %  **
+//   Relational  25% → == != < > <= >=
+//   Logical     25% → and or not (with booleans & numbers)
+//   Mixed       10% → arithmetic + relational combined
+// INTERMEDIATE distribution:
+//   Arithmetic  20% → multi-op precedence, power, floor-div chains
+//   Relational  10% → chained comparisons  a < b < c
+//   Logical     30% → compound and/or/not with comparisons
+//   Mixed       40% → ternary, nested arithmetic+logical
 // ═══════════════════════════════════════════════════════════════
 function genExpression(difficulty) {
-  const diff = difficulty==="Mixed"?rnd(["Basic","Intermediate","Advanced"]):difficulty;
-  const up=true; // always print()
+  const diff = difficulty==="Mixed"?rnd(["Basic","Intermediate"]):difficulty;
 
-  const basic = [
-    // and / or with booleans
-    ()=>{ let a=rnd([true,false]),b=rnd([true,false]),op=rnd(["and","or"]);
-          let ans=op==="and"?a&&b:a||b;
-          return ["print("+pyRepr(a)+" "+op+" "+pyRepr(b)+")", ans]; },
-    // and / or with numbers (truthy)
-    ()=>{ let a=rnd([0,1,2,5,10,-1]),b=rnd([0,1,3,7,10,-2]),op=rnd(["and","or"]);
+  // ── BASIC pools ────────────────────────────────────────────
+  const arith_basic = [
+    ()=>{ let a=rndInt(1,20),b=rndInt(1,10); return ["print("+a+" + "+b+")", a+b]; },
+    ()=>{ let a=rndInt(5,30),b=rndInt(1,10); return ["print("+a+" - "+b+")", a-b]; },
+    ()=>{ let a=rndInt(2,12),b=rndInt(2,9);  return ["print("+a+" * "+b+")", a*b]; },
+    ()=>{ let a=rndInt(10,50),b=rndInt(2,9); return ["print("+a+" // "+b+")", Math.floor(a/b)]; },
+    ()=>{ let a=rndInt(10,50),b=rndInt(2,9); return ["print("+a+" % "+b+")", a%b]; },
+    ()=>{ let a=rndInt(2,5),b=rndInt(2,4);   return ["print("+a+" ** "+b+")", Math.pow(a,b)]; },
+    ()=>{ let a=rndInt(1,15),b=rndInt(1,15),c=rndInt(1,10); return ["print("+a+" + "+b+" - "+c+")", a+b-c]; },
+    ()=>{ let a=rndInt(2,8),b=rndInt(2,4),c=rndInt(1,5); return ["print("+a+" * "+b+" - "+c+")", a*b-c]; },
+    ()=>{ let a=rndInt(1,9),b=rndInt(1,9),c=rndInt(1,9); return ["print("+a+" + "+b+" + "+c+")", a+b+c]; },
+    ()=>{ let a=rndInt(5,20),b=rndInt(1,5),c=rndInt(1,5); return ["print("+a+" - "+b+" - "+c+")", a-b-c]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10); return ["print("+a+" * "+b+")", a*b]; },
+    ()=>{ let a=rndInt(1,9),b=rndInt(2,5);   return ["print("+a+" ** 2)", a*a]; },
+    ()=>{ let a=rndInt(2,9),b=rndInt(2,9);   return ["print("+a+" * "+b+" + "+rndInt(1,9)+")", a*b+rndInt(1,9)]; },
+    ()=>{ let a=rndInt(4,9),b=rndInt(2,4);   return ["print("+a+" // "+b+")", Math.floor(a/b)]; },
+    ()=>{ let a=rndInt(10,30),b=rndInt(2,9); return ["print("+a+" % "+b+")", a%b]; },
+    ()=>{ let a=rndInt(3,7),b=rndInt(2,3);   return ["print("+a+" ** "+b+")", Math.pow(a,b)]; },
+  ];
+  const rel_basic = [
+    ()=>{ let a=rndInt(1,15),b=rndInt(1,15); return ["print("+a+" == "+b+")", a===b]; },
+    ()=>{ let a=rndInt(1,15),b=rndInt(1,15); return ["print("+a+" != "+b+")", a!==b]; },
+    ()=>{ let a=rndInt(1,15),b=rndInt(1,15); return ["print("+a+" < "+b+")",  a<b]; },
+    ()=>{ let a=rndInt(1,15),b=rndInt(1,15); return ["print("+a+" > "+b+")",  a>b]; },
+    ()=>{ let a=rndInt(1,15),b=rndInt(1,15); return ["print("+a+" <= "+b+")", a<=b]; },
+    ()=>{ let a=rndInt(1,15),b=rndInt(1,15); return ["print("+a+" >= "+b+")", a>=b]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10); let op=rnd(["==","!=","<",">"]);
+          let ans=op==="=="?a===b:op==="!="?a!==b:op==="<"?a<b:a>b;
+          return ["print("+a+" "+op+" "+b+")", ans]; },
+    ()=>{ let a=rndInt(1,20); return ["print("+a+" == "+a+")", true]; },
+    ()=>{ let a=rndInt(1,10),b=a+rndInt(1,5); return ["print("+a+" < "+b+")", true]; },
+    ()=>{ let a=rndInt(5,15),b=rndInt(1,4);   return ["print("+a+" > "+b+")", true]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(11,20); return ["print("+a+" != "+b+")", true]; },
+    ()=>{ let a=rndInt(1,10),b=a; return ["print("+a+" >= "+b+")", true]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10); let op=rnd(["<=",">="]);
+          let ans=op==="<="?a<=b:a>=b; return ["print("+a+" "+op+" "+b+")", ans]; },
+    ()=>{ let a=rndInt(1,9),b=rndInt(1,9); return ["print("+a+" * 2 == "+(a*2)+")", true]; },
+  ];
+  const logic_basic = [
+    ()=>{ let a=rnd([true,false]),b=rnd([true,false]);
+          return ["print("+pyRepr(a)+" and "+pyRepr(b)+")", a&&b]; },
+    ()=>{ let a=rnd([true,false]),b=rnd([true,false]);
+          return ["print("+pyRepr(a)+" or "+pyRepr(b)+")", a||b]; },
+    ()=>{ let v=rnd([true,false]); return ["print(not "+pyRepr(v)+")", !v]; },
+    ()=>{ let v=rnd([0,1,2,-1,5]); return ["print(not "+v+")", !v]; },
+    ()=>{ let a=rnd([0,1,2,5,-1]),b=rnd([0,1,3,7,-2]),op=rnd(["and","or"]);
           let ans=op==="and"?(a?b:a):(a?a:b);
           return ["print("+a+" "+op+" "+b+")", ans]; },
-    // not
-    ()=>{ let v=rnd([true,false,0,1,5,-1]);
-          return ["print(not "+pyRepr(v)+")", !v]; },
-    // not with expression
-    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),op=rnd(["==","!=",">"]);
-          let cmp=op==="=="?a===b:op==="!="?a!==b:a>b;
-          return ["print(not ("+a+" "+op+" "+b+"))", !cmp]; },
-    // simple arithmetic
-    ()=>{ let a=rndInt(1,20),b=rndInt(1,10),op=rnd(["+","-","*","%","//","**"]);
-          let ans=op==="+"?a+b:op==="-"?a-b:op==="*"?a*b:op==="%"?a%b:
-                  op==="//"?Math.floor(a/b):Math.pow(a,b);
-          return ["print("+a+" "+op+" "+b+")", ans]; },
-    // comparison simple
-    ()=>{ let a=rndInt(1,15),b=rndInt(1,15),op=rnd(["==","!=","<",">","<=",">="]);
-          let ans=op==="=="?a===b:op==="!="?a!==b:op==="<"?a<b:op===">"?a>b:op==="<="?a<=b:a>=b;
-          return ["print("+a+" "+op+" "+b+")", ans]; },
-    // bool() of basic values
-    ()=>{ let v=rnd([0,1,-1,0.0,""," ","hello",[]]);
-          let bv=Boolean(v); let repr=Array.isArray(v)?"[]":pyRepr(v);
-          return ["print(bool("+repr+"))", bv]; },
+    ()=>{ let a=rnd([true,false]),b=rnd([true,false]),op=rnd(["and","or"]);
+          return ["print("+pyRepr(a)+" "+op+" "+pyRepr(b)+")", op==="and"?a&&b:a||b]; },
+    ()=>{ let a=rnd([0,1,-1,5,10]); let b=rnd([0,2,7,-3]);
+          return ["print("+a+" or "+b+")", a?a:b]; },
+    ()=>{ return ["print(True and True)", true]; },
+    ()=>{ return ["print(False or True)", true]; },
+    ()=>{ return ["print(not True)", false]; },
+    ()=>{ return ["print(not False)", true]; },
+    ()=>{ let a=rnd([true,false]); return ["print("+pyRepr(a)+" and False)", false]; },
+    ()=>{ let a=rnd([true,false]); return ["print("+pyRepr(a)+" or True)", true]; },
+    ()=>{ let v=rnd([1,2,3,4,5]); return ["print(not "+v+")", false]; },
+  ];
+  const mixed_basic = [
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),c=rndInt(1,10);
+          return ["print("+a+" + "+b+" > "+c+")", a+b>c]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),c=rndInt(1,10);
+          return ["print("+a+" * "+b+" == "+c+")", a*b===c]; },
+    ()=>{ let a=rndInt(2,10),b=rndInt(2,5);
+          return ["print("+a+" % "+b+" == 0)", a%b===0]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10);
+          return ["print("+a+" > 0 and "+b+" > 0)", a>0&&b>0]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),c=rndInt(1,10);
+          return ["print("+a+" - "+b+" > "+c+")", a-b>c]; },
+    ()=>{ let a=rndInt(2,9),b=rndInt(2,5);
+          return ["print("+a+" % "+b+" != 0)", a%b!==0]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10);
+          return ["print("+a+" == 0 or "+b+" > 0)", a===0||b>0]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10);
+          return ["print("+a+" < 0 or "+b+" < 0)", a<0||b<0]; },
+    ()=>{ let a=rndInt(1,9),b=rndInt(1,9);
+          return ["print("+a+" + "+b+" == "+(a+b)+")", true]; },
+    ()=>{ let a=rndInt(2,8);
+          return ["print("+a+" ** 2 > "+a+")", a*a>a]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),c=rndInt(1,10);
+          return ["print("+a+" < "+b+" and "+b+" < "+c+")", a<b&&b<c]; },
+    ()=>{ let a=rndInt(2,9),b=rndInt(2,4),c=rndInt(1,8);
+          return ["print("+a+" // "+b+" > "+c+")", Math.floor(a/b)>c]; },
   ];
 
-  const intermediate = [
-    // combined and/or with comparisons
-    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),c=rndInt(1,10),d=rndInt(1,10);
-          let op1=rnd(["and","or"]);
-          let l=a>b, r=c<d;
-          let ans=op1==="and"?l&&r:l||r;
-          return ["print("+a+" > "+b+" "+op1+" "+c+" < "+d+")", ans]; },
-    // arithmetic with precedence
+  // ── INTERMEDIATE pools ──────────────────────────────────────
+  const arith_int = [
     ()=>{ let a=rndInt(1,10),b=rndInt(1,5),c=rndInt(1,5);
-          let ans=a+b*c;
-          return ["print("+a+" + "+b+" * "+c+")", ans]; },
+          return ["print("+a+" + "+b+" * "+c+")", a+b*c]; },
     ()=>{ let a=rndInt(2,10),b=rndInt(2,5),c=rndInt(1,4);
-          let ans=Math.floor(a/b)+c*2;
-          return ["print("+a+" // "+b+" + "+c+" * 2)", ans]; },
-    // mixed bool and comparison
-    ()=>{ let a=rndInt(1,10),b=rndInt(1,10);
-          let op=rnd(["and","or"]);
-          let ans=op==="and"?(a>0?b>0:false):(a>0||b>0);
-          return ["print("+a+" > 0 "+op+" "+b+" > 0)", ans]; },
-    // chained comparison
+          return ["print("+a+" // "+b+" + "+c+" * 2)", Math.floor(a/b)+c*2]; },
+    ()=>{ let a=rndInt(2,8),b=rndInt(2,5),c=rndInt(1,4);
+          return ["print("+a+"**2 // "+b+" + "+c+")", Math.floor(Math.pow(a,2)/b)+c]; },
+    ()=>{ let a=rndInt(1,5),b=rndInt(1,5),c=rndInt(1,5),d=rndInt(1,5);
+          return ["print(("+a+"+"+b+")*("+c+"-"+d+"))", (a+b)*(c-d)]; },
+    ()=>{ let a=rndInt(2,8),b=rndInt(2,4),c=rndInt(1,6);
+          return ["print(("+a+" + "+b+") * "+c+")", (a+b)*c]; },
+    ()=>{ let a=rndInt(10,30),b=rndInt(2,5),c=rndInt(1,4);
+          return ["print("+a+" // ("+b+" + "+c+"))", Math.floor(a/(b+c))]; },
+    ()=>{ let a=rndInt(2,5),b=rndInt(2,3),c=rndInt(1,3);
+          return ["print("+a+" ** "+b+" - "+c+")", Math.pow(a,b)-c]; },
+    ()=>{ let a=rndInt(10,50),b=rndInt(2,9),c=rndInt(1,5);
+          return ["print("+a+" % "+b+" + "+c+")", a%b+c]; },
+    ()=>{ let a=rndInt(2,6),b=rndInt(2,3),c=rndInt(2,4);
+          return ["print("+a+" ** "+b+" * "+c+")", Math.pow(a,b)*c]; },
+    ()=>{ let a=rndInt(1,8),b=rndInt(1,8),c=rndInt(1,8);
+          return ["print("+a+" * ("+b+" + "+c+"))", a*(b+c)]; },
+    ()=>{ let a=rndInt(2,9),b=rndInt(2,5),c=rndInt(2,9),d=rndInt(2,5);
+          return ["print("+a+" % "+b+" + "+c+" % "+d+")", a%b+c%d]; },
+    ()=>{ let a=rndInt(2,8),b=rndInt(2,4),c=rndInt(2,8),d=rndInt(2,4);
+          return ["print("+a+" // "+b+" + "+c+" // "+d+")", Math.floor(a/b)+Math.floor(c/d)]; },
+    ()=>{ let a=rndInt(1,5),b=rndInt(2,4),c=rndInt(1,5);
+          return ["print("+a+"**"+b+" + "+c+"**"+b+")", Math.pow(a,b)+Math.pow(c,b)]; },
+    ()=>{ let a=rndInt(10,20),b=rndInt(2,5),c=rndInt(1,4);
+          return ["print(("+a+" - "+b+") * "+c+")", (a-b)*c]; },
+  ];
+  const rel_int = [
+    ()=>{ let a=rndInt(1,5),b=rndInt(3,8),c=rndInt(6,12);
+          return ["print("+a+" < "+b+" < "+c+")", a<b&&b<c]; },
     ()=>{ let a=rndInt(1,5),b=rndInt(1,8),c=rndInt(3,10);
-          let ans=a<b&&b<c;
-          return ["print("+a+" < "+b+" < "+c+")", ans]; },
-    // not with compound
+          return ["print("+a+" <= "+b+" <= "+c+")", a<=b&&b<=c]; },
+    ()=>{ let a=rndInt(1,5),b=rndInt(4,9),c=rndInt(2,7);
+          return ["print("+a+" < "+b+" > "+c+")", a<b&&b>c]; },
+    ()=>{ let a=rndInt(3,9),b=rndInt(1,5),c=rndInt(1,4);
+          return ["print("+a+" > "+b+" > "+c+")", a>b&&b>c]; },
+    ()=>{ let a=rndInt(1,4),b=rndInt(4,7),c=rndInt(7,12);
+          return ["print("+a+" < "+b+" <= "+c+")", a<b&&b<=c]; },
+    ()=>{ let a=rndInt(2,5),b=rndInt(5,9),c=rndInt(2,6);
+          return ["print("+a+" <= "+b+" >= "+c+")", a<=b&&b>=c]; },
+    ()=>{ let a=rndInt(5,10),b=rndInt(5,10),c=rndInt(1,5);
+          return ["print("+a+" >= "+b+" >= "+c+")", a>=b&&b>=c]; },
+    ()=>{ let a=rndInt(1,3),b=rndInt(3,6),c=rndInt(6,10),d=rndInt(10,15);
+          return ["print("+a+" < "+b+" < "+c+" < "+d+")", a<b&&b<c&&c<d]; },
+    ()=>{ let a=rndInt(1,5),b=rndInt(1,5),c=rndInt(1,5);
+          return ["print("+a+" != "+b+" != "+c+")", a!==b&&b!==c]; },
+    ()=>{ let a=rndInt(1,9),b=a;
+          return ["print("+a+" == "+b+" == "+b+")", true]; },
+  ];
+  const logic_int = [
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),c=rndInt(1,10),d=rndInt(1,10);
+          let op=rnd(["and","or"]);
+          let ans=op==="and"?(a>b)&&(c<d):(a>b)||(c<d);
+          return ["print("+a+" > "+b+" "+op+" "+c+" < "+d+")", ans]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),op=rnd(["and","or"]);
+          let ans=op==="and"?(a>0&&b>0):(a>0||b>0);
+          return ["print("+a+" > 0 "+op+" "+b+" > 0)", ans]; },
     ()=>{ let a=rndInt(1,10),b=rndInt(1,10),op=rnd(["and","or"]);
           let l=a>b,r=a===b;
-          let inner=op==="and"?l&&r:l||r;
-          return ["print(not("+a+" > "+b+" "+op+" "+a+" == "+b+"))", !inner]; },
-    // modulo and floor div
-    ()=>{ let a=rndInt(10,50),b=rndInt(2,9);
-          return ["print("+a+" % "+b+")", a%b]; },
-    // power
-    ()=>{ let a=rndInt(2,5),b=rndInt(2,4);
-          return ["print("+a+" ** "+b+")", Math.pow(a,b)]; },
-  ];
-
-  const advanced = [
-    // ternary expression
-    ()=>{ let a=rndInt(1,10),b=rndInt(1,10);
-          let cond=a>b,t=rndInt(10,50),f=rndInt(50,100);
-          let ans=cond?t:f;
-          return ["print("+t+" if "+a+" > "+b+" else "+f+")", ans]; },
-    ()=>{ let x=rndInt(1,10);
-          let ans=x%2===0?"even":"odd";
-          return ["print('even' if "+x+" % 2 == 0 else 'odd')", ans]; },
-    // nested arithmetic
-    ()=>{ let a=rndInt(2,8),b=rndInt(2,5),c=rndInt(1,4);
-          let ans=Math.floor(Math.pow(a,2)/b)+c;
-          return ["print("+a+"**2 // "+b+" + "+c+")", ans]; },
-    // complex boolean
+          return ["print(not("+a+" > "+b+" "+op+" "+a+" == "+b+"))", !(op==="and"?l&&r:l||r)]; },
+    ()=>{ let a=rndInt(1,5),b=rndInt(3,8),c=rndInt(6,12);
+          return ["print(not("+a+" < "+b+" < "+c+"))", !(a<b&&b<c)]; },
     ()=>{ let a=rndInt(1,10),b=rndInt(1,10),c=rndInt(1,10);
           let ans=(a>b)||(b<c)&&(a!==c);
           return ["print("+a+" > "+b+" or "+b+" < "+c+" and "+a+" != "+c+")", ans]; },
-    // chained with not
-    ()=>{ let a=rndInt(1,5),b=rndInt(3,8),c=rndInt(6,12);
-          let inner=a<b&&b<c;
-          return ["print(not("+a+" < "+b+" < "+c+"))", !inner]; },
-    // truthy string/list
-    ()=>{ let v=rnd(["",  "hello","0","False"," "]);
-          let ans=Boolean(v);
-          return ["print(bool('"+v+"'))", ans]; },
-    // multiple ops
-    ()=>{ let a=rndInt(1,5),b=rndInt(1,5),c=rndInt(1,5),d=rndInt(1,5);
-          let ans=(a+b)*(c-d);
-          return ["print(("+a+"+"+b+")*("+c+"-"+d+"))", ans]; },
-    // walrus-style value test
     ()=>{ let x=rndInt(0,5),y=rndInt(0,5);
-          let ans=x>0&&y>0;
-          return ["print("+x+" > 0 and "+y+" > 0)", ans]; },
+          return ["print("+x+" > 0 and "+y+" > 0)", x>0&&y>0]; },
+    ()=>{ let a=rnd([true,false]),b=rnd([true,false]),c=rnd([true,false]);
+          return ["print("+pyRepr(a)+" and "+pyRepr(b)+" or "+pyRepr(c)+")", (a&&b)||c]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),c=rndInt(1,10);
+          return ["print("+a+" < "+b+" and "+b+" < "+c+")", a<b&&b<c]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),c=rndInt(1,10),d=rndInt(1,10);
+          let ans=(a>b)&&(c>d);
+          return ["print("+a+" > "+b+" and "+c+" > "+d+")", ans]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),c=rndInt(1,10);
+          let ans=!(a>b)||c===0;
+          return ["print(not "+a+" > "+b+" or "+c+" == 0)", ans]; },
+    ()=>{ let a=rnd([true,false]),b=rnd([true,false]);
+          return ["print(not("+pyRepr(a)+" and "+pyRepr(b)+"))", !(a&&b)]; },
+    ()=>{ let a=rnd([true,false]),b=rnd([true,false]);
+          return ["print(not("+pyRepr(a)+" or "+pyRepr(b)+"))", !(a||b)]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10);
+          return ["print("+a+" > "+b+" or "+b+" > "+a+")", a>b||b>a]; },
+    ()=>{ let a=rndInt(1,5),b=rndInt(1,5),c=rndInt(1,5);
+          return ["print("+a+" == "+b+" and "+b+" == "+c+")", a===b&&b===c]; },
+  ];
+  const mixed_int = [
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10);
+          let cond=a>b,t=rndInt(10,50),f=rndInt(50,100);
+          return ["print("+t+" if "+a+" > "+b+" else "+f+")", cond?t:f]; },
+    ()=>{ let x=rndInt(1,10);
+          return ["print('even' if "+x+" % 2 == 0 else 'odd')", x%2===0?"even":"odd"]; },
+    ()=>{ let a=rndInt(2,8),b=rndInt(2,5),c=rndInt(1,4);
+          return ["print("+a+"**2 // "+b+" > "+c+")", Math.floor(Math.pow(a,2)/b)>c]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,5),c=rndInt(1,5);
+          return ["print("+a+" + "+b+" * "+c+" > "+a+")", a+b*c>a]; },
+    ()=>{ let a=rndInt(2,10),b=rndInt(2,5);
+          return ["print("+a+" % "+b+" == 0 or "+a+" > "+b+")", a%b===0||a>b]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10),c=rndInt(1,10);
+          return ["print(("+a+"+"+b+") > "+c+" and "+a+" > 0)", (a+b)>c&&a>0]; },
+    ()=>{ let a=rndInt(1,5),b=rndInt(1,5),c=rndInt(1,5),d=rndInt(1,5);
+          return ["print(("+a+"+"+b+")*("+c+"-"+d+") > 0)", (a+b)*(c-d)>0]; },
+    ()=>{ let a=rndInt(2,6),b=rndInt(2,4);
+          return ["print("+a+"**"+b+" > "+a+"*"+b+")", Math.pow(a,b)>a*b]; },
+    ()=>{ let a=rndInt(1,9),b=rndInt(2,4);
+          return ["print("+a+"**"+b+" == "+a+"**"+b+")", true]; },
+    ()=>{ let a=rndInt(1,8),b=rndInt(1,4),c=rndInt(1,4);
+          return ["print("+a+" * "+b+" > "+a+" * "+c+" - 1)", a*b>a*c-1]; },
+    ()=>{ let a=rndInt(1,10),b=rndInt(1,10);
+          let t=rndInt(1,5),f=rndInt(6,10);
+          return ["print("+t+" if "+a+" == "+b+" else "+f+")", a===b?t:f]; },
+    ()=>{ let x=rndInt(1,20);
+          return ["print('pos' if "+x+" > 0 else 'zero')", x>0?"pos":"zero"]; },
+    ()=>{ let a=rndInt(2,9),b=rndInt(2,5),c=rndInt(1,5);
+          return ["print("+a+" % "+b+" < "+c+" and "+a+" > "+b+")", a%b<c&&a>b]; },
+    ()=>{ let a=rndInt(1,6),b=rndInt(1,6),c=rndInt(1,6);
+          return ["print("+a+" + "+b+" > "+c+" or "+a+" * "+b+" == "+c+")", a+b>c||a*b===c]; },
   ];
 
-  const pool = diff==="Basic"?basic:diff==="Intermediate"?intermediate:advanced;
-  for(let i=0;i<30;i++){
+  // ── Persistent cycling deck — 25% each category, like _cmpState ──
+  // One deck per difficulty level, persists across calls (not rebuilt each time)
+  if(!genExpression._deck) genExpression._deck = {Basic:{cards:[],pos:0}, Intermediate:{cards:[],pos:0}};
+  const deckState = genExpression._deck[diff];
+
+  function buildExprDeck(d) {
+    // 20-card deck: 5 arith + 5 rel + 5 logic + 5 mixed = 25% each
+    const pools = d==="Basic"
+      ? [arith_basic, rel_basic, logic_basic, mixed_basic]
+      : [arith_int,   rel_int,   logic_int,   mixed_int];
+    let cards = [];
+    for(const pool of pools)
+      for(let i=0;i<5;i++) cards.push(rnd(pool));
+    // Fisher-Yates shuffle
+    for(let i=cards.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [cards[i],cards[j]]=[cards[j],cards[i]];
+    }
+    return cards;
+  }
+
+  if(deckState.pos >= deckState.cards.length){
+    deckState.cards = buildExprDeck(diff);
+    deckState.pos   = 0;
+  }
+
+  // Try cards from current position until one succeeds
+  const startPos = deckState.pos;
+  do {
+    const fn = deckState.cards[deckState.pos];
+    deckState.pos++;
     try{
-      let [exprLine, ans]=rnd(pool)();
+      let [exprLine, ans] = fn();
       let ar;
       if(typeof ans==="boolean") ar=ans?"True":"False";
       else if(typeof ans==="string") ar="'"+ans+"'";
@@ -1982,97 +2312,131 @@ function genExpression(difficulty) {
       return {lines:[exprLine],
               answer:ar, expected:String(expected), isStr:typeof ans==="string", up:true};
     }catch(e){}
-  }
-  // fallback
+  } while(deckState.pos < deckState.cards.length);
+
   return {lines:["print(True and False)"],answer:"False",expected:"False",isStr:false,up:true};
 }
-
 // ═══════════════════════════════════════════════════════════════
-//  genTypeFunction — int, float, str, chr, ord, bool, type, abs, round
+//  genTypeFunction — built-in + math + random + statistics modules
 // ═══════════════════════════════════════════════════════════════
 function genTypeFunction(difficulty) {
-  const diff = difficulty==="Mixed"?rnd(["Basic","Intermediate","Advanced"]):difficulty;
-
+  const diff = difficulty==="Mixed"?rnd(["Basic","Intermediate"]):difficulty;
+  const up=true;
   const basic = [
-    ()=>{ let v=rnd([7.5,3.9,0.1,2.7,9.99,1.1]); return ["int("+v+")",Math.trunc(v),false]; },
-    ()=>{ let v=rnd(["42","7","100","0","999"]); return ["int('"+v+"')",parseInt(v),false]; },
-    ()=>{ let v=rnd([5,3,10,7,0,-1]); return ["float("+v+")",parseFloat(v+".0"),false]; },
-    ()=>{ let v=rnd(["3.14","2.5","0.0","1.0"]); return ["float('"+v+"')",parseFloat(v),false]; },
-    ()=>{ let v=rnd([100,42,7,0,-5,999]); return ["str("+v+")",String(v),true]; },
+    // int() conversions
+    ()=>{ let v=rnd([7.5,3.9,0.1,2.7,9.99,1.1,4.6,8.3]); return ["int("+v+")",Math.trunc(v),false]; },
+    ()=>{ let v=rnd(["42","7","100","0","999","55","88"]); return ["int('"+v+"')",parseInt(v),false]; },
+    ()=>{ let v=rnd([-3.7,-1.2,-9.9,-0.5]); return ["int("+v+")",Math.trunc(v),false]; },
+    // float()
+    ()=>{ let v=rnd([5,3,10,7,0,-1,8,12]); return ["float("+v+")",parseFloat(v+".0"),false]; },
+    ()=>{ let v=rnd(["3.14","2.5","0.0","1.0","9.9"]); return ["float('"+v+"')",parseFloat(v),false]; },
+    // str()
+    ()=>{ let v=rnd([100,42,7,0,-5,999,256]); return ["str("+v+")",String(v),true]; },
+    ()=>{ let v=rnd([3.14,2.5,0.0,1.5]); return ["str("+v+")",String(v),true]; },
+    // bool()
     ()=>{ let v=rnd([true,false,0,1]); return ["bool("+pyRepr(v)+")",Boolean(v),false]; },
-    ()=>{ let v=rnd([65,66,97,98,48,49,90,122]); return ["chr("+v+")",String.fromCharCode(v),true]; },
-    ()=>{ let v=rnd(["A","B","a","b","0","Z","z"]); return ["ord('"+v+"')",v.charCodeAt(0),false]; },
-    ()=>{ let v=rnd([7,3,0,-5,100]); return ["abs("+v+")",Math.abs(v),false]; },
-    ()=>{ let v=rnd([-7,-3,-100,-0.5]); return ["abs("+v+")",Math.abs(v),false]; },
-  ];
-
-  const intermediate = [
-    ()=>{ let v=rnd([3.14,2.718,9.99,1.41]); let d=rnd([1,2]);
-          return ["round("+v+", "+d+")",parseFloat(v.toFixed(d)),false]; },
+    ()=>{ let v=rnd([0,1,2,-1,100]); return ["bool("+v+")",Boolean(v),false]; },
+    // chr() and ord()
+    ()=>{ let v=rnd([65,66,67,90,97,98,99,122,48,49,57]); return ["chr("+v+")",String.fromCharCode(v),true]; },
+    ()=>{ let v=rnd(["A","B","Z","a","b","z","0","9","M","m"]); return ["ord('"+v+"')",v.charCodeAt(0),false]; },
+    // abs()
+    ()=>{ let v=rnd([7,3,0,-5,100,-42,-7,15]); return ["abs("+v+")",Math.abs(v),false]; },
+    ()=>{ let v=rnd([-7,-3,-100,-0.5,-9,-15]); return ["abs("+v+")",Math.abs(v),false]; },
+    // round()
+    ()=>{ let v=rnd([3.14,2.718,9.99,1.41,7.5,4.5]); return ["round("+v+")",Math.round(v),false]; },
+    ()=>{ let v=rnd([3.14,2.718,9.99,1.41]); let d=rnd([1,2]); return ["round("+v+", "+d+")",parseFloat(v.toFixed(d)),false]; },
+    // type()
     ()=>{ let v=rnd([42,7,100,0,-5]); return ["type("+v+")","<class 'int'>",false,true]; },
-    ()=>{ let v=rnd([3.14,2.5,0.0]); return ["type("+v+")","<class 'float'>",false,true]; },
+    ()=>{ let v=rnd([3.14,2.5,1.5,0.5]); return ["type("+v+")","<class 'float'>",false,true]; },
     ()=>{ let v=rnd(["hello","world","py"]); return ["type('"+v+"')","<class 'str'>",false,true]; },
     ()=>{ let v=rnd([true,false]); return ["type("+pyRepr(v)+")","<class 'bool'>",false,true]; },
     ()=>{ return ["type([1,2,3])","<class 'list'>",false,true]; },
     ()=>{ return ["type((1,2,3))","<class 'tuple'>",false,true]; },
+    ()=>{ return ["type({'a':1})","<class 'dict'>",false,true]; },
+  ];
+  const intermediate = [
+    // Nested built-ins
     ()=>{ let v=rnd([7.9,3.1,5.5,2.2]); return ["int(float('"+v+"'))",Math.trunc(parseFloat(v)),false]; },
     ()=>{ let v=rnd([42,-7,100,0]); return ["str(abs("+v+"))",String(Math.abs(v)),true]; },
-    ()=>{ let i=rnd([65,66,97,98,90]); return ["ord(chr("+i+"))",i,false]; },
-  ];
-
-  const advanced = [
+    ()=>{ let i=rnd([65,66,97,98,90,72]); return ["ord(chr("+i+"))",i,false]; },
     ()=>{ let v=rnd([7.9,3.1,5.5]); return ["int(str("+v+")[0])",parseInt(String(v)[0]),false]; },
     ()=>{ let s=rnd(["42","007","100"]); return ["float(int('"+s+"'))",parseFloat(parseInt(s)+".0"),false]; },
     ()=>{ let a=rnd([65,72,80,90,97]); let b=rnd([1,2,3,4,5]);
           return ["chr("+a+"+"+b+")",String.fromCharCode(a+b),true]; },
-    ()=>{ let v=rnd(["0","","None","False"," "]);
-          let ans=v.length>0&&v!=="0"&&v!=="False"&&v!=="None";
-          return ["bool('"+v+"')",ans,false]; },
-    ()=>{ let v=rnd([3.7,2.4,9.6,1.1]);
-          return ["round("+v+") == int("+v+")", Math.round(v)===Math.trunc(v), false]; },
     ()=>{ let a=rnd([1,2,3]),b=rnd([4,5,6]);
           return ["str("+a+") + str("+b+")",String(a)+String(b),true]; },
-    ()=>{ let v=rnd([100,200,255,48,65]);
-          return ["chr("+v+"-32)",String.fromCharCode(v-32),true]; },
     ()=>{ let v=rnd(["Hello","World","Python"]);
           return ["ord('"+v+"'[0])",v.charCodeAt(0),false]; },
-    ()=>{ let v=rnd([7.5,3.2,8.9]); return ["round("+v+")",Math.round(v),false]; },
-    ()=>{ let a=rndInt(10,99),b=rndInt(1,9);
-          return ["int(str("+a+")["+b%2+"])",parseInt(String(a)[b%2]),false]; },
+    ()=>{ let a=rndInt(10,99),b=rndInt(0,1);
+          return ["int(str("+a+")["+b+"])",parseInt(String(a)[b]),false]; },
+    ()=>{ let v=rnd([100,200,255,65,90]);
+          return ["chr("+v+"-32)",String.fromCharCode(v-32),true]; },
+    // math module
+    ()=>{ let v=rnd([4,9,16,25,36,49,64,81,100]);
+          return ["import math\nprint(math.sqrt("+v+"))",Math.sqrt(v),false]; },
+    ()=>{ let a=rnd([2,3,4,5]),b=rnd([2,3,4]);
+          return ["import math\nprint(math.pow("+a+", "+b+"))",Math.pow(a,b),false]; },
+    ()=>{ let v=rnd([3.2,4.7,5.1,2.9,7.3,1.6]);
+          return ["import math\nprint(math.ceil("+v+"))",Math.ceil(v),false]; },
+    ()=>{ let v=rnd([3.2,4.7,5.1,2.9,7.3,1.6]);
+          return ["import math\nprint(math.floor("+v+"))",Math.floor(v),false]; },
+    ()=>{ let v=rnd([-3.2,-4.7,-5.1,2.9,7.3,-1.6]);
+          return ["import math\nprint(math.fabs("+v+"))",Math.abs(v),false]; },
+    ()=>{ let v=rnd([1,2,3,4,5,6,7,8,9,10]);
+          let fact=[1,1,2,6,24,120,720,5040,40320,362880];
+          return ["import math\nprint(math.factorial("+v+"))",fact[v],false]; },
+    // random module — fixed seed questions (predictable answers)
+    ()=>{ return ["import random\nprint(random.randint(1, 10) >= 1)",true,false]; },
+    ()=>{ return ["import random\nprint(type(random.random()))","<class 'float'>",false,true]; },
+    ()=>{ return ["import random\nprint(1 <= random.randint(1,6) <= 6)",true,false]; },
+    ()=>{ return ["import random\nprint(type(random.randint(1,10)))","<class 'int'>",false,true]; },
+    // statistics module
+    ()=>{ let d=rnd([[1,2,3,4,5],[2,4,6,8],[1,3,5,7,9],[10,20,30]]);
+          let mean=d.reduce((a,b)=>a+b,0)/d.length;
+          return ["import statistics\nprint(statistics.mean("+pyRepr(d)+"))",mean,false]; },
+    ()=>{ let d=rnd([[1,2,3,4,5],[1,3,5,7,9],[2,4,6]]);
+          const s=[...d].sort((a,b)=>a-b);
+          const m=s.length%2===0?(s[s.length/2-1]+s[s.length/2])/2:s[Math.floor(s.length/2)];
+          return ["import statistics\nprint(statistics.median("+pyRepr(d)+"))",m,false]; },
+    ()=>{ let d=rnd([[1,1,2,3,4],[2,2,2,3,4],[1,2,3,3,3],[5,5,6,7,8]]);
+          let freq={};d.forEach(v=>freq[v]=(freq[v]||0)+1);
+          let mode=Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0];
+          return ["import statistics\nprint(statistics.mode("+pyRepr(d)+"))",parseInt(mode),false]; },
   ];
-
-  const pool = diff==="Basic"?basic:diff==="Intermediate"?intermediate:advanced;
-  for(let i=0;i<30;i++){
+  const pool = diff==="Basic"?basic:intermediate;
+  for(let i=0;i<40;i++){
     try{
       let result=rnd(pool)();
       let [expr,ans,isStr,rawAns]=result;
+      let lines_arr;
+      if(expr.startsWith("import ")) {
+        let parts=expr.split("\n");
+        lines_arr=[parts[0], parts[1]];
+      } else {
+        lines_arr=["print("+expr+")"];
+      }
       let ar;
-      if(rawAns) ar=String(ans);           // type() output — no quotes
+      if(rawAns) ar=String(ans);
       else if(isStr) ar="'"+ans+"'";
       else if(typeof ans==="boolean") ar=ans?"True":"False";
       else if(typeof ans==="number") ar=Number.isInteger(ans)?String(ans):
              (String(ans).includes(".")?String(ans):ans+".0");
       else ar=String(ans);
       let expected=isStr?String(ans):ar;
-      let up=chance(0.85);
-      let line2=up?"print("+expr+")":">>> "+expr;
-      return {lines:[line2],
-              answer:ar,expected:String(expected),isStr:isStr,up};
+      return {lines:lines_arr,
+              answer:ar,expected:String(expected),isStr:isStr,up:true};
     }catch(e){}
   }
   return {lines:["print(int(7.5))"],answer:"7",expected:"7",isStr:false,up:true};
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  SYNTAX HIGHLIGHTING
 // ═══════════════════════════════════════════════════════════════
 function highlight(line, lineIdx, total) {
   if(!line) return '';
   const esc = s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-
   // Comment
   if(line.startsWith("#")) return '<span class="cmt">'+esc(line)+'</span>';
-
   // Assignment line: "x = ..." or "y = ..."
   // Match any line that is  <var> = <value>  (not a comparison inside print)
   const assignMatch = line.match(/^([a-zA-Z_]\w*)\s*=\s*(.+)$/);
@@ -2094,7 +2458,6 @@ function highlight(line, lineIdx, total) {
          + '<span class="kw"> = </span>'
          + rhsHtml;
   }
-
   // Helper: colour the operator in an expression like "x == y", "x <= y"
   function colorExpr(expr) {
     // operators in priority order (longest first to avoid partial match)
@@ -2110,13 +2473,11 @@ function highlight(line, lineIdx, total) {
     }
     return '<span class="plain">'+esc(expr)+'</span>';
   }
-
   // Last line: >>> expr
   if(line.startsWith(">>>")) {
     const expr = line.slice(4).trim();
     return '<span class="cmt">&gt;&gt;&gt; </span>' + colorExpr(expr);
   }
-
   // Last line: print(expr)
   if(line.startsWith("print(") && line.endsWith(")")) {
     const inner = line.slice(6,-1);
@@ -2125,10 +2486,8 @@ function highlight(line, lineIdx, total) {
          + colorExpr(inner)
          + '<span class="punc">)</span>';
   }
-
   return '<span class="plain">'+esc(line)+'</span>';
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════════
@@ -2137,34 +2496,28 @@ let state = {
   checked:false, qcount:0, q:null,
   dtype:"String", qtype:"Indexing",
   indexMode:"single",   // "single", "nested", "both"
-  difficulty:"Basic"
+  difficulty:"Basic", diffAlt:0   // diffAlt alternates when difficulty=="Both"
 };
-
 // ═══════════════════════════════════════════════════════════════
 //  RENDER
 // ═══════════════════════════════════════════════════════════════
 function renderQuestion() {
   const q = state.q;
   const lines = q.lines;
-
   // Gutter — one div per line
   document.getElementById("gutter").innerHTML =
     lines.map((_,i)=>`<div class="gutter-num">${i+1}</div>`).join("");
-
   // Code — one div per line
   document.getElementById("code-display").innerHTML =
     lines.map((l,i)=>`<div class="code-line">${highlight(l,i,lines.length)}</div>`).join("");
-
   // Q number
   document.getElementById("q-num").textContent = "Question "+state.qcount;
-
   // Animate only code lines, not the whole card
   const codeDisplay = document.getElementById("code-display");
   codeDisplay.style.animation="none";
   void codeDisplay.offsetHeight;
   codeDisplay.style.animation="fadeSlide 0.2s ease";
 }
-
 function renderScore() {
   document.getElementById("score").textContent = state.score+" / "+state.total;
   document.getElementById("streak").textContent =
@@ -2174,13 +2527,11 @@ function renderScore() {
   document.getElementById("stat-wrong").textContent   = state.wrong;
   document.getElementById("stat-streak").textContent  = state.bestStreak;
 }
-
 function setFeedback(text, cls) {
   const fb = document.getElementById("feedback");
   fb.textContent = text;
   fb.className = "feedback "+cls;
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  ACTIONS
 // ═══════════════════════════════════════════════════════════════
@@ -2194,7 +2545,6 @@ function newQuestion() {
   setFeedback("","empty");
   renderQuestion();
 }
-
 function checkAnswer() {
   if(state.checked||!state.q) return;
   const user = document.getElementById("ans-input").value;
@@ -2214,36 +2564,35 @@ function checkAnswer() {
   document.getElementById("btn-check").disabled=true;
   renderScore();
 }
-
 function revealAnswer() {
   if(!state.q) return;
+  if(sessionStorage.getItem("pyzap_role") === "student") return; // students blocked
   setFeedback("◎  Answer:   "+state.q.expected, "revealed");
   state.checked=true;
   document.getElementById("btn-check").disabled=true;
 }
-
 function resetScore() {
   state.score=0; state.total=0; state.streak=0; state.wrong=0; state.bestStreak=0;
-  state.qcount=0;
+  state.qcount=0; state.diffAlt=0;
+  document.getElementById("q-num").textContent = "Question 1";
   renderScore();
   newQuestion();
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  SPACEBAR — reveal if not checked, next if checked
 // ═══════════════════════════════════════════════════════════════
 document.addEventListener("keydown", e=>{
   if(e.code==="Space") {
     e.preventDefault();
-    if(!state.checked) revealAnswer();
-    else newQuestion();
+    const isTeacher = sessionStorage.getItem("pyzap_role") === "teacher";
+    if(!state.checked && isTeacher) revealAnswer();
+    else if(state.checked) newQuestion();
   }
   if(e.code==="Enter") {
     if(!state.checked) checkAnswer();
     else newQuestion();
   }
 });
-
 // ═══════════════════════════════════════════════════════════════
 //  BUTTONS
 // ═══════════════════════════════════════════════════════════════
@@ -2251,21 +2600,19 @@ document.getElementById("btn-check").addEventListener("click", checkAnswer);
 document.getElementById("btn-reveal").addEventListener("click", revealAnswer);
 document.getElementById("btn-next").addEventListener("click", newQuestion);
 document.getElementById("btn-reset").addEventListener("click", resetScore);
-
 // ═══════════════════════════════════════════════════════════════
 //  SETTINGS TOGGLES
 // ═══════════════════════════════════════════════════════════════
 function updateSubRows() {
   const isIdx  = state.qtype==="Indexing";
-  const isExpr = state.qtype==="Expressions"||state.qtype==="TypeFunctions";
+  const isExpr = state.qtype==="Expressions";
   const supportsNested = state.dtype==="List"||state.dtype==="Tuple"||state.dtype==="Mixed";
   const showIdx  = isIdx && supportsNested;
   const showDiff = isExpr;
   document.getElementById("row-indexing").style.display   = showIdx  ? "flex" : "none";
   document.getElementById("row-difficulty").style.display = showDiff ? "flex" : "none";
-  if(!showDiff){ state.difficulty="Basic"; const r=document.getElementById("diff-Basic"); if(r) r.checked=true; }
+  if(!showDiff){ state.difficulty="Basic"; state.diffAlt=0; const bs=document.getElementById("diff-Basic"); const im=document.getElementById("diff-Intermediate"); if(bs) bs.checked=true; if(im) im.checked=false; }
 }
-
 // Data Type
 document.querySelectorAll("#dtype-group .tog").forEach(btn=>{
   btn.addEventListener("click",()=>{
@@ -2293,7 +2640,6 @@ document.querySelectorAll("#dtype-group .tog").forEach(btn=>{
     newQuestion();
   });
 });
-
 // Question Type
 document.querySelectorAll("#qtype-group .tog").forEach(btn=>{
   btn.addEventListener("click",()=>{
@@ -2304,7 +2650,6 @@ document.querySelectorAll("#qtype-group .tog").forEach(btn=>{
     newQuestion();
   });
 });
-
 // Indexing checkboxes — single / nested
 function updateIndexMode() {
   const s = document.getElementById("chk-single").checked;
@@ -2316,20 +2661,25 @@ function updateIndexMode() {
 }
 document.getElementById("chk-single").addEventListener("change", updateIndexMode);
 document.getElementById("chk-nested").addEventListener("change", updateIndexMode);
-
-// Difficulty
+// Difficulty — free checkboxes; you can check/uncheck freely
+// Only rule: if you try to uncheck the LAST one, we stop it
 (function(){
   const diffs = document.querySelectorAll("#diff-group input[type=checkbox]");
   diffs.forEach(cb=>{
     cb.addEventListener("change", ()=>{
-      diffs.forEach(o=>{ if(o!==cb) o.checked=false; });
-      if(!cb.checked) cb.checked=true;
-      state.difficulty = cb.value;
+      const checked = [...diffs].filter(c=>c.checked);
+      if(checked.length===0){
+        // blocked — restore this one
+        cb.checked = true;
+        return;
+      }
+      if(checked.length===2) state.difficulty = "Both";
+      else state.difficulty = checked[0].value;
+      state.diffAlt = 0; // reset alternation on change
       newQuestion();
     });
   });
 })();
-
 // ═══════════════════════════════════════════════════════════════
 //  PROVERB — rotate every 3 minutes
 // ═══════════════════════════════════════════════════════════════
@@ -2343,7 +2693,6 @@ function nextProverb() {
 }
 nextProverb();
 setInterval(nextProverb, 30000);
-
 // ═══════════════════════════════════════════════════════════════
 //  TAGLINES
 // ═══════════════════════════════════════════════════════════════
@@ -2401,28 +2750,57 @@ const TAGLINES = [
 ];
 const SESSION_TAGLINE = TAGLINES[Math.floor(Math.random()*TAGLINES.length)];
 document.getElementById("login-tagline").textContent = SESSION_TAGLINE;
-
 // ═══════════════════════════════════════════════════════════════
-//  LOGIN
+//  LOGIN — password determines role silently
 // ═══════════════════════════════════════════════════════════════
 (function(){
-  const screen = document.getElementById("login-screen");
-  const pw     = document.getElementById("login-pw");
-  const btn    = document.getElementById("login-btn");
-  const err    = document.getElementById("login-err");
-  const PASS   = "bithia";
+  const TEACHER_PASS = "pyZAP@27122";
+  const STUDENT_PASS = "leo";
+
+  function applyRole(role) {
+    const revealBtn = document.getElementById("btn-reveal");
+    const userPill  = document.getElementById("user-pill");
+    const roleBadge = document.getElementById("role-badge");
+    if(role === "teacher") {
+      revealBtn.style.display = "";
+      roleBadge.textContent   = "Teacher";
+      roleBadge.className     = "teacher";
+    } else {
+      revealBtn.style.display = "none";
+      roleBadge.textContent   = "Student";
+      roleBadge.className     = "student";
+    }
+    userPill.classList.add("visible");
+  }
+
+  // ── Restore existing session ─────────────────────────────────
+  const savedRole = sessionStorage.getItem("pyzap_role");
+  const screen    = document.getElementById("login-screen");
+  if(savedRole === "teacher" || savedRole === "student") {
+    screen.style.display = "none";
+    applyRole(savedRole);
+  }
+
+  // ── Login attempt — role detected from password ──────────────
+  const pw  = document.getElementById("login-pw");
+  const btn = document.getElementById("login-btn");
+  const err = document.getElementById("login-err");
 
   function tryLogin() {
-    if(pw.value === PASS) {
+    const val = pw.value;
+    let role  = null;
+    if(val === TEACHER_PASS)      role = "teacher";
+    else if(val === STUDENT_PASS) role = "student";
+
+    if(role) {
+      sessionStorage.setItem("pyzap_role", role);
       screen.style.transition = "opacity 0.4s";
-      screen.style.opacity = "0";
-      setTimeout(()=>screen.style.display="none", 400);
+      screen.style.opacity    = "0";
+      setTimeout(()=>{ screen.style.display="none"; applyRole(role); }, 400);
     } else {
       err.textContent = "Incorrect password. Try again.";
       pw.value = "";
       pw.focus();
-      screen.style.animation = "none";
-      // shake effect
       pw.style.borderColor = "var(--red)";
       setTimeout(()=>pw.style.borderColor="", 800);
     }
@@ -2430,15 +2808,21 @@ document.getElementById("login-tagline").textContent = SESSION_TAGLINE;
 
   btn.addEventListener("click", tryLogin);
   pw.addEventListener("keydown", e=>{ if(e.key==="Enter") tryLogin(); });
-  // Focus password field on load
-  setTimeout(()=>pw.focus(), 100);
-})();
 
+  // ── Logout ───────────────────────────────────────────────────
+  document.getElementById("logout-btn").addEventListener("click", ()=>{
+    sessionStorage.removeItem("pyzap_role");
+    location.reload();
+  });
+
+  if(!savedRole) setTimeout(()=>pw.focus(), 100);
+})();
 // ═══════════════════════════════════════════════════════════════
 //  START
 // ═══════════════════════════════════════════════════════════════
 updateSubRows();
 newQuestion();
+
 </script>
 </body>
 </html>
