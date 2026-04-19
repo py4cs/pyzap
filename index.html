@@ -748,14 +748,17 @@ body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit'
     <div class="sbar" style="margin-bottom:8px;">
       <div class="sg-lbl" style="margin-bottom:6px;">Topic</div>
       <div class="bgrp" id="dtype-group">
-        <button class="tog dt-String active" data-dtype="String">String</button>
-        <button class="tog dt-List"           data-dtype="List">List</button>
-        <button class="tog dt-Tuple"          data-dtype="Tuple">Tuple</button>
-        <button class="tog dt-Dict"           data-dtype="Dictionary">Dict</button>
-        <button class="tog dt-Mixed"          data-dtype="Mixed">Mixed</button>
-        <button class="tog dt-Functions locked" data-dtype="Functions">Functions &#x1F512;</button>
-        <button class="tog dt-Modules locked"   data-dtype="Modules">Modules &#x1F512;</button>
-        <button class="tog dt-Exception locked" data-dtype="Exception">Exception &#x1F512;</button>
+        <button class="tog dt-String active"     data-dtype="String">String</button>
+        <button class="tog dt-List"              data-dtype="List">List</button>
+        <button class="tog dt-Tuple"             data-dtype="Tuple">Tuple</button>
+        <button class="tog dt-Dict"              data-dtype="Dictionary">Dictionary</button>
+        <button class="tog dt-Mixed locked"      data-dtype="Mixed">Mixed &#x1F512;</button>
+        <button class="tog dt-Functions locked"  data-dtype="Functions">Functions &#x1F512;</button>
+        <button class="tog dt-Modules locked"    data-dtype="Modules">Modules &#x1F512;</button>
+        <button class="tog dt-Exception locked"  data-dtype="Exception">Exception &#x1F512;</button>
+        <button class="tog dt-AR locked"         data-dtype="AssertionReason">Assertion &amp; Reason &#x1F512;</button>
+        <button class="tog dt-SQL"               data-dtype="SQL">SQL</button>
+        <button class="tog dt-Networking"        data-dtype="Networking">Networking - Case Study</button>
       </div>
     </div>
 
@@ -774,6 +777,9 @@ body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit'
         <button class="tog qt-Mixed active"  data-qtype="Mixed">Mixed</button>
       </div>
     </div>
+
+    <!-- SQL schema display (shown when SQL topic active) -->
+    <div id="sql-schema-container" class="sql-schema-container" style="display:none;flex-shrink:0;"></div>
 
     <!-- Case-based: shared context shown above question -->
     <div id="case-text-block" style="display:none;background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:10px 12px;margin-bottom:8px;flex-shrink:0;">
@@ -884,7 +890,8 @@ body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit'
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script>'use strict';'use strict';
+<script>
+'use strict';
 
 // ═══ FIREBASE ═══
 firebase.initializeApp({
@@ -1233,69 +1240,154 @@ function applyPlanUI(){
   applyDtypeLocks();
   updateFreeBanner();
 }
-var PYTHON_DTYPES = ["Functions","Modules","Exception"];
+var PYTHON_DTYPES = ["Functions","Modules","Exception","AssertionReason"];
+var PAID_ONLY_DTYPES = ["Functions","Modules","Exception","Mixed","AssertionReason"];
 
 function applyDtypeLocks(){
   document.querySelectorAll("#dtype-group .tog").forEach(function(btn){
     var dt = btn.dataset.dtype;
-    // Python sub-topics: paid only
-    if(PYTHON_DTYPES.indexOf(dt) >= 0){
-      btn.classList.toggle("locked", S.plan!=="paid");
+    if(!btn.dataset.orig) btn.dataset.orig = btn.textContent.replace(/🔒/g,"").trim();
+    var orig = btn.dataset.orig;
+
+    // Paid: unlock everything
+    if(S.plan==="paid"){
+      btn.classList.remove("locked");
+      btn.textContent = orig;
       return;
     }
-    if(S.plan==="paid"){btn.classList.remove("locked");if(btn.dataset.orig)btn.textContent=btn.dataset.orig;return;}
-    if(!btn.dataset.orig) btn.dataset.orig=btn.textContent;
-    var orig2=btn.dataset.orig;
-    // Free: only todaysConcepts unlocked
+
+    // SQL: unlock unless both DDL and DML daily limit reached
+    if(dt==="SQL"){
+      var done = sqlIsQtypeLimitReached("DDL") && sqlIsQtypeLimitReached("DML");
+      if(done){ btn.classList.add("locked"); btn.textContent = orig+" 🔒"; }
+      else{ btn.classList.remove("locked"); btn.textContent = orig; }
+      return;
+    }
+
+    // Networking: unlock unless daily case limit reached
+    if(dt==="Networking"){
+      if(netIsLimitReached()){ btn.classList.add("locked"); btn.textContent = orig+" 🔒"; }
+      else{ btn.classList.remove("locked"); btn.textContent = orig; }
+      return;
+    }
+
+    // Mixed, Functions, Modules, Exception: always locked for free
+    if(PAID_ONLY_DTYPES.indexOf(dt) >= 0){
+      btn.classList.add("locked"); btn.textContent = orig+" 🔒";
+      return;
+    }
+
+    // String: always unlocked
+    if(dt==="String"){
+      btn.classList.remove("locked"); btn.textContent = orig;
+      return;
+    }
+
+    // List, Tuple, Dictionary: unlocked only if in todaysConcepts
     if(S.todaysConcepts.indexOf(dt) < 0){
-      btn.classList.add("locked");
-      btn.textContent=orig2+" 🔒";
+      btn.classList.add("locked"); btn.textContent = orig+" 🔒";
       return;
     }
-    // Lock if all 9 qtypes done for this concept
-    if(isConceptDone(dt)){btn.classList.add("locked");btn.textContent=orig2+" 🔒";
-    }else{btn.classList.remove("locked");btn.textContent=orig2;}
+    if(isConceptDone(dt)){
+      btn.classList.add("locked"); btn.textContent = orig+" 🔒";
+    }else{
+      btn.classList.remove("locked"); btn.textContent = orig;
+    }
   });
   applyQtypeLocks();
 }
+
 function isPythonDtype(dt){
   return PYTHON_DTYPES.indexOf(dt||S.dtype) >= 0;
 }
 
 function applyQtypeLocks(){
   var pyDtype = isPythonDtype();
-  // Show/hide the entire qtype sbar
-  var qtypeSection = document.getElementById("qtype-sbar");
-  if(qtypeSection) qtypeSection.style.display = pyDtype ? "none" : "";
-  // Show/hide mode toggle — Python dtypes: MCQ only
-  var modeSection = document.querySelector(".mode-toggle");
+  var sqlDtype = isSQLDtype();
+
+  if(isNetworkingDtype()){
+    var qtypeSection=document.getElementById("qtype-sbar");
+    if(qtypeSection)qtypeSection.style.display="none";
+    document.querySelectorAll(".mode-btn,.mode-btn-v").forEach(function(b){b.style.display="none";});
+    var sce=document.getElementById("sql-schema-container");if(sce)sce.style.display="none";
+    return;
+  }
+  if(sqlDtype){
+    var qtypeSection=document.getElementById('qtype-sbar');
+    if(qtypeSection)qtypeSection.style.display='';
+    var qg=document.getElementById('qtype-group');
+    if(qg&&!qg.dataset.sqlMode){
+      qg.dataset.sqlMode='1';
+      qg.dataset.origHTML=qg.innerHTML;
+      var allQt=['DDL','DML','JOIN','Aggregate','Schema','Board','Mixed'];
+      qg.innerHTML=allQt.map(function(qt){
+        var lbl=SQL_QTYPE_LABELS[qt]||qt;
+        var locked=S.plan!=='paid'&&SQL_FREE_QTYPES.indexOf(qt)===-1;
+        if(locked)lbl+='🔒';
+        var active=S.qtype===qt;
+        return '<button class="tog sql-qt'+(active?' active':'')+(locked?' locked':'')+' " data-qtype="'+qt+'"'+(active?' style="background:var(--accdim);border-color:var(--acc);color:var(--acc)"':'')+'>'+lbl+'</button>';
+      }).join('');
+      qg.querySelectorAll('.sql-qt').forEach(function(btn){
+        btn.addEventListener('click',function(){
+          var qt=btn.dataset.qtype;
+          if(btn.classList.contains('locked')){
+            showUpgrade(SQL_QTYPE_LABELS[qt]+' is available for Pro students only.');return;
+          }
+          qg.querySelectorAll('.sql-qt').forEach(function(b){
+            b.classList.remove('active');b.style.background='';b.style.borderColor='';b.style.color='';
+          });
+          btn.classList.add('active');
+          btn.style.background='var(--accdim)';btn.style.borderColor='var(--acc)';btn.style.color='var(--acc)';
+          loadSQLQuestions(qt);
+        });
+      });
+    }
+    document.querySelectorAll('.mode-btn,.mode-btn-v').forEach(function(b){b.style.display='none';});
+    var cb=document.getElementById('case-text-block');if(cb)cb.style.display='none';
+    return;
+  }
+
+  // Restore original qtype buttons when leaving SQL
+  var qg2=document.getElementById('qtype-group');
+  if(qg2&&qg2.dataset.sqlMode){
+    delete qg2.dataset.sqlMode;
+    if(qg2.dataset.origHTML)qg2.innerHTML=qg2.dataset.origHTML;
+    qg2.querySelectorAll('.tog').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        if(btn.classList.contains('locked')){showToast("You've completed all '"+btn.dataset.qtype+"' questions!",'info');return;}
+        loadQtypeQuestions(S.dtype,btn.dataset.qtype);
+      });
+    });
+    document.querySelectorAll('.mode-btn,.mode-btn-v').forEach(function(b){b.style.display='';});
+  }
+  var sce=document.getElementById('sql-schema-container');if(sce)sce.style.display='none';
+
+  var qtypeSection=document.getElementById('qtype-sbar');
+  if(qtypeSection)qtypeSection.style.display=pyDtype?'none':'';
+  var modeSection=document.querySelector('.mode-toggle');
   if(modeSection){
     if(pyDtype){
-      // Force MCQ, hide Type button
-      document.querySelectorAll(".mode-btn").forEach(function(b){
-        if(b.dataset.mode==="mcq"){b.classList.add("active");}
-        else{b.classList.remove("active");b.style.display="none";}
+      document.querySelectorAll('.mode-btn').forEach(function(b){
+        if(b.dataset.mode==='mcq'){b.classList.add('active');}
+        else{b.classList.remove('active');b.style.display='none';}
       });
-      S.mode = "mcq";
-    } else {
-      document.querySelectorAll(".mode-btn").forEach(function(b){b.style.display="";});
+      S.mode='mcq';
+    }else{
+      document.querySelectorAll('.mode-btn').forEach(function(b){b.style.display='';});
     }
   }
-  if(pyDtype) return;
-  // Lock/unlock qtype buttons
-  document.querySelectorAll("#qtype-group .tog").forEach(function(btn){
-    var qt = btn.dataset.qtype;
-    btn.style.display = "";
-    if(!btn.dataset.orig) btn.dataset.orig=btn.textContent;
+  if(pyDtype)return;
+  document.querySelectorAll('#qtype-group .tog').forEach(function(btn){
+    btn.style.display='';
+    if(!btn.dataset.orig)btn.dataset.orig=btn.textContent;
     var qorig=btn.dataset.orig;
-    if(S.plan==="paid"){btn.classList.remove("locked");btn.textContent=qorig;return;}
-    // Free: lock if this qtype is fully done
-    if(isQtypeDone(S.dtype,qt)){btn.classList.add("locked");btn.textContent=qorig+" 🔒";
-    }else{btn.classList.remove("locked");btn.textContent=qorig;} //ignore_toggle, isQtypeDone(S.dtype, qt));
+    if(S.plan==='paid'){btn.classList.remove('locked');btn.textContent=qorig;return;}
+    if(isQtypeDone(S.dtype,btn.dataset.qtype)){
+      btn.classList.add('locked');btn.textContent=qorig+'🔒';
+    }else{btn.classList.remove('locked');btn.textContent=qorig;}
   });
 }
 
-// ═══ NAVIGATION ═══
 function switchTab(tabName){
   document.querySelectorAll(".app-nav-item,.bottom-nav-item").forEach(function(n){n.classList.toggle("active",n.dataset.tab===tabName);});
   document.querySelectorAll(".main-panel").forEach(function(p){p.classList.remove("active");});
@@ -1462,47 +1554,33 @@ function fetchAllQuestions(){
   setCardLoading("Loading your questions...");
 
   if(S.plan === "paid"){
-    // Paid: try cache per concept
-    var dtypes = ["String","List","Tuple","Dictionary","Functions","Modules","Exception"];
-    var allCached = true;
-    dtypes.forEach(function(d){
-      var cached = loadConceptCache(d);
-      if(cached && cached.questions && (Array.isArray(cached.questions)?cached.questions.length:Object.keys(cached.questions).length) > 0){
-        S.allQuestions[d] = cached.questions;
-        S.conceptIdx[d]   = cached.idx || 0;
-      } else { allCached = false; }
+    // Login: load only core topics (String/List/Tuple/Dictionary)
+    // Functions/Modules/Exception loaded lazily on first click
+    var coreTopics = ["String","List","Tuple","Dictionary"];
+    var missingTopics = [];
+    coreTopics.forEach(function(t){
+      var cached = loadConceptCache(t);
+      if(cached && cached.questions && cached.questions.length > 0){
+        S.allQuestions[t] = cached.questions;
+        S.conceptIdx[t]   = cached.idx || 0;
+      } else { missingTopics.push(t); }
     });
-    if(allCached){ startPractice(); return; }
-    // Fetch paid
+    if(!missingTopics.length){ startPractice(); return; }
+    // Fetch only missing topics
     fetch(CF_GENERATE,{
       method:"POST",
       headers:{"Content-Type":"application/json","Authorization":"Bearer "+S.idToken},
-      body:JSON.stringify({dtypes:dtypes.map(function(d){
-        if(d==="Functions"||d==="Modules"||d==="Exception") return "Python";
-        return d;
-      }).filter(function(d,i,a){return a.indexOf(d)===i;})}),
+      body:JSON.stringify({topics:missingTopics}),
     }).then(function(res){return res.json().then(function(d){return{ok:res.ok,data:d};});})
     .then(function(r){
       if(!r.ok){setCardLoading("Error loading. Please refresh.");return;}
       var allQs=r.data.allQuestions||{};
-      // Split Python
-      if(allQs["Python"]){
-        var pqs=allQs["Python"];
-        var fnQs=pqs.filter(function(q){return q.qtype==="Functions";});
-        var modQs=pqs.filter(function(q){return q.qtype==="Modules";});
-        var exQs=pqs.filter(function(q){return q.qtype==="ExceptionHandling";});
-        if(!fnQs.length&&!modQs.length&&!exQs.length){
-          var t=Math.floor(pqs.length/3);
-          fnQs=pqs.slice(0,t);modQs=pqs.slice(t,t*2);exQs=pqs.slice(t*2);
-        }
-        allQs["Functions"]=fnQs;allQs["Modules"]=modQs;allQs["Exception"]=exQs;
-      }
-      dtypes.forEach(function(d){
-        if(!S.allQuestions[d]||!S.allQuestions[d].length){
-          var aiQs = allQs[d]||[];
-          S.allQuestions[d] = mixBoardQuestions(d, aiQs);
-          S.conceptIdx[d]=0;
-          saveConcept(d);
+      missingTopics.forEach(function(t){
+        var aiQs = allQs[t]||[];
+        if(aiQs.length){
+          S.allQuestions[t] = mixBoardQuestions(t, aiQs);
+          S.conceptIdx[t]=0;
+          saveConcept(t);
         }
       });
       startPractice();
@@ -1650,23 +1728,54 @@ function startPractice(){
 }
 
 // ─── Switch concept ───
-function loadConceptQuestions(dtype){
-  S.dtype = dtype;
+function loadConceptQuestions(topic){
+  S.dtype = topic;  // topic = dtype internally
+  if(S.plan!=="paid" && PAID_ONLY_DTYPES.indexOf(topic)>=0){
+    showUpgrade(topic+" is available for Pro students only.");
+    return;
+  }
   document.querySelectorAll("#dtype-group .tog").forEach(function(b){
-    b.classList.toggle("active", b.dataset.dtype===dtype);
+    b.classList.toggle("active", b.dataset.dtype===topic);
   });
   applyQtypeLocks();
   updateFreeBanner();
 
-  if(S.plan !== "paid" && isConceptDone(dtype)){
+  // Functions/Modules/Exception: lazy load on first click
+  if(topic==="Functions"||topic==="Modules"||topic==="Exception"){
+    if(!S.allQuestions[topic]||!S.allQuestions[topic].length){
+      setCardLoading("Loading "+topic+" questions...");
+      fetchConceptFromServer(topic, function(){
+        loadQtypeQuestions(topic, S.qtype);
+      });
+      return;
+    }
+  }
+  // AssertionReason: load from Firestore boardQuestions
+  if(topic==="AssertionReason"){
+    loadAssertionReasonQuestions();
+    return;
+  }
+  // Networking: route to networking module
+  if(isNetworkingDtype(topic)){
+    loadNetworkingQuestions();
+    return;
+  }
+  // SQL: use SQL generator
+  if(isSQLDtype(topic)){
+    S.qtype = S.plan==="paid" ? "Mixed" : "DDL";
+    loadSQLQuestions(S.qtype);
+    return;
+  }
+
+  if(S.plan !== "paid" && isConceptDone(topic)){
     var avail = S.todaysConcepts.filter(function(c){ return !isConceptDone(c); });
     setCardLoading(avail.length > 0
-      ? "You've completed all '" + dtype + "' questions today! Switch to " + avail.join(" or ") + "."
+      ? "You've completed all '" + topic + "' questions today! Switch to " + avail.join(" or ") + "."
       : "All done for today! Come back tomorrow or upgrade to Pro.");
     return;
   }
   // Load qtype questions
-  loadQtypeQuestions(dtype, S.qtype);
+  loadQtypeQuestions(topic, S.qtype);
 }
 
 // ─── Switch qtype ───
@@ -1756,30 +1865,63 @@ function showQtypeCompleteMsg(dtype, qtype){
 }
 
 // ─── fetchConceptFromServer (paid only, for batch refetch) ───
-function fetchConceptFromServer(dtype, onDone){
-  var serverDtype = (dtype==="Functions"||dtype==="Modules"||dtype==="Exception")?"Python":dtype;
+var _pyTopicsFetching = false; // prevent double-fetch
+
+function fetchConceptFromServer(topic, onDone){
+  var isPyTopic = (topic==="Functions"||topic==="Modules"||topic==="Exception");
+
+  if(isPyTopic){
+    // Smart: if all 3 caches empty → fetch all 3 in one call
+    // If only this one is exhausted → fetch only this one
+    var fnEmpty  = !S.allQuestions["Functions"]  || !S.allQuestions["Functions"].length;
+    var modEmpty = !S.allQuestions["Modules"]    || !S.allQuestions["Modules"].length;
+    var exEmpty  = !S.allQuestions["Exception"]  || !S.allQuestions["Exception"].length;
+    var allEmpty = fnEmpty && modEmpty && exEmpty;
+
+    if(_pyTopicsFetching){ setTimeout(function(){fetchConceptFromServer(topic,onDone);},500); return; }
+
+    var topicsToFetch = allEmpty
+      ? ["Functions","Modules","Exception"]  // first time: fetch all 3
+      : [topic];                              // exhausted: fetch only this one
+
+    _pyTopicsFetching = true;
+    fetch(CF_GENERATE,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+S.idToken},
+      body:JSON.stringify({topics:topicsToFetch}),
+    }).then(function(res){return res.json().then(function(d){return{ok:res.ok,data:d};});})
+    .then(function(r){
+      _pyTopicsFetching = false;
+      if(!r.ok){setCardLoading("Error loading. Try again.");return;}
+      var allQs=r.data.allQuestions||{};
+      topicsToFetch.forEach(function(t){
+        var qs = allQs[t]||[];
+        S.allQuestions[t] = qs;
+        S.conceptIdx[t] = 0;
+        saveConcept(t);
+      });
+      if(onDone)onDone();
+    }).catch(function(e){
+      _pyTopicsFetching=false;
+      console.error(e);
+      setCardLoading("Error loading. Please refresh.");
+    });
+    return;
+  }
+
+  // Core topics (String/List/Tuple/Dictionary) — fetch individually
   fetch(CF_GENERATE,{
     method:"POST",
     headers:{"Content-Type":"application/json","Authorization":"Bearer "+S.idToken},
-    body:JSON.stringify({dtypes:[serverDtype]}),
+    body:JSON.stringify({topics:[topic]}),
   }).then(function(res){return res.json().then(function(d){return{ok:res.ok,data:d};});})
   .then(function(r){
     if(!r.ok){setCardLoading("Error loading. Try again.");return;}
     var allQs=r.data.allQuestions||{};
-    var newQs;
-    if(serverDtype==="Python"){
-      var pqs=allQs["Python"]||[];
-      var fnQs=pqs.filter(function(q){return q.qtype==="Functions";});
-      var modQs=pqs.filter(function(q){return q.qtype==="Modules";});
-      var exQs=pqs.filter(function(q){return q.qtype==="ExceptionHandling";});
-      if(!fnQs.length&&!modQs.length&&!exQs.length){var t=Math.floor(pqs.length/3);fnQs=pqs.slice(0,t);modQs=pqs.slice(t,t*2);exQs=pqs.slice(t*2);}
-      if(dtype==="Functions") newQs=fnQs;
-      else if(dtype==="Modules") newQs=modQs;
-      else newQs=exQs;
-    } else { newQs=allQs[dtype]||[]; }
-    S.allQuestions[dtype]=newQs;
-    S.conceptIdx[dtype]=0;
-    saveConcept(dtype);
+    var newQs = allQs[topic]||[];
+    S.allQuestions[topic] = mixBoardQuestions(topic, newQs);
+    S.conceptIdx[topic]=0;
+    saveConcept(topic);
     if(onDone)onDone();
   }).catch(function(e){console.error(e);setCardLoading("Error loading. Please refresh.");});
 }
@@ -2030,6 +2172,8 @@ function selfMark(correct){
 }
 function checkAns(){
   if(S.checked)return;
+  if(isNetworkingDtype(S.dtype)){checkNetworkingAns();return;}
+  if(isSQLDtype(S.dtype)){checkSQLAns();return;}
   var q=S.currentQuestions[S.currentIdx];if(!q)return;
   var uv;
   if(S.mode==="mcq"){uv=S.sel;if(!uv){setFB("← Select an option first","wrong");return;}}
@@ -2056,6 +2200,8 @@ function checkAns(){
 document.getElementById("btn-check").addEventListener("click",checkAns);
 document.getElementById("btn-next").addEventListener("click",function(){
   if(!S.checked){showToast("Check your answer first!","info");return;}
+  if(isNetworkingDtype(S.dtype)){netNextQuestion();return;}
+  if(isSQLDtype(S.dtype)){startSQLQuestion();return;}
   if(S.plan!=="paid"&&isQtypeDone(S.dtype,S.qtype)){
     showQtypeCompleteMsg(S.dtype,S.qtype);return;
   }
@@ -2384,6 +2530,2195 @@ function loadHistory(){
   });
   html+='</div>';el.innerHTML=html;
 }
+
+// ═══════════════════════════════════════════════════════════
+//  SQL QUESTION GENERATOR v2 — PyZap
+//  100 parametric domains, client-side, no AI, no CF
+//  Free: DDL|DML|Schema (10/day) Paid: all 7 qtypes
+// ═══════════════════════════════════════════════════════════
+
+// ── SQL Free limit ──
+var SQL_FREE_PER_QTYPE = 5; // 5 per qtype per day
+var SQL_FREE_QTYPES = ["DDL","DML"]; // only DDL and DML free
+var SQL_PAID_QTYPES = ["DDL","DML","JOIN","Aggregate","Schema","Board","Mixed"];
+var SQL_DTYPE_QTYPES = SQL_PAID_QTYPES;
+
+function sqlGetFreeUsage(){
+  try{
+    var raw = localStorage.getItem("pyzap_sql_free");
+    var today = new Date().toISOString().slice(0,10);
+    if(!raw) return {date:today,DDL:0,DML:0};
+    var d = JSON.parse(raw);
+    if(d.date !== today) return {date:today,DDL:0,DML:0};
+    return d;
+  }catch(e){ return {date:new Date().toISOString().slice(0,10),DDL:0,DML:0}; }
+}
+function sqlIncrementFreeUsage(qtype){
+  var u = sqlGetFreeUsage();
+  u.date = new Date().toISOString().slice(0,10);
+  if(qtype==="DDL") u.DDL=(u.DDL||0)+1;
+  else if(qtype==="DML") u.DML=(u.DML||0)+1;
+  try{ localStorage.setItem("pyzap_sql_free", JSON.stringify(u)); }catch(e){}
+}
+function sqlFreeRemaining(qtype){
+  if(S.plan==="paid") return 999;
+  var u = sqlGetFreeUsage();
+  if(qtype==="DDL") return Math.max(0, SQL_FREE_PER_QTYPE-(u.DDL||0));
+  if(qtype==="DML") return Math.max(0, SQL_FREE_PER_QTYPE-(u.DML||0));
+  return 0;
+}
+function sqlIsQtypeLimitReached(qtype){
+  if(S.plan==="paid") return false;
+  var u = sqlGetFreeUsage();
+  if(qtype==="DDL") return (u.DDL||0) >= SQL_FREE_PER_QTYPE;
+  if(qtype==="DML") return (u.DML||0) >= SQL_FREE_PER_QTYPE;
+  return true; // all other qtypes blocked for free
+}
+function sqlIsFreeQtype(qt){
+  return SQL_FREE_QTYPES.indexOf(qt) > -1;
+}
+
+// ── Helpers ──
+function sqlPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function sqlRandInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function sqlShuffle(arr){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+
+// ── Normalize SQL for answer checking ──
+function normSQL(s){
+  return String(s||"")
+    .trim().toLowerCase()
+    .replace(/"/g,"'")
+    .replace(/\s+/g," ")
+    .replace(/\s*=\s*/g,"=")
+    .replace(/\s*>\s*/g,">")
+    .replace(/\s*<\s*/g,"<")
+    .replace(/\s*>=\s*/g,">=")
+    .replace(/\s*<=\s*/g,"<=")
+    .replace(/\s*,\s*/g,",")
+    .replace(/\s*\(\s*/g,"(")
+    .replace(/\s*\)\s*/g,")")
+    .replace(/;$/,"");
+}
+
+// ══════════════════════════════════════════════════════
+//  WORD BANKS
+// ══════════════════════════════════════════════════════
+var SQL_NAMES = ["Arjun","Priya","Rahul","Sneha","Vikram","Deepa","Karan","Meera",
+  "Aditya","Pooja","Rohan","Ananya","Siddharth","Kavya","Nikhil","Divya",
+  "Harsh","Shruti","Varun","Nisha","Abhishek","Riya","Tanmay","Swati",
+  "Gaurav","Simran","Akash","Neha","Pranav","Ishita","Kunal","Pallavi",
+  "Vishal","Ankita","Mohit","Preeti","Tushar","Nidhi","Sachin","Ritika"];
+
+var SQL_CITIES = ["Delhi","Mumbai","Chennai","Hyderabad","Bangalore","Pune","Kolkata",
+  "Ahmedabad","Jaipur","Lucknow","Surat","Chandigarh","Indore","Bhopal",
+  "Nagpur","Patna","Vadodara","Coimbatore","Kochi","Visakhapatnam"];
+
+var SQL_GRADES = ["A","B","C","D","A+","B+"];
+var SQL_STATUS = ["Active","Inactive","Pending","Approved","Rejected","Completed"];
+var SQL_GENDERS = ["Male","Female"];
+var SQL_YES_NO = ["Yes","No"];
+
+// ══════════════════════════════════════════════════════
+//  100 DOMAIN DEFINITIONS
+//  Each has: name, table1, table2(optional), fkPair(optional)
+// ══════════════════════════════════════════════════════
+var SQL_DOMAIN_DEFS = [
+  // ── EDUCATION (15) ──
+  {
+    name:"school",
+    t1:{name:"students",cols:[
+      {n:"student_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"age",t:"INT"},
+      {n:"grade",t:"VARCHAR(5)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"marks",t:"INT"}
+    ],data:{name:SQL_NAMES,age:[13,14,15,16,17],grade:SQL_GRADES,city:SQL_CITIES,marks:[45,67,89,92,55,73,81,38,95,60]}},
+    t2:{name:"departments",cols:[
+      {n:"dept_id",t:"INT",pk:true},
+      {n:"dept_name",t:"VARCHAR(30)"},
+      {n:"hod",t:"VARCHAR(30)"},
+      {n:"num_students",t:"INT"}
+    ],data:{dept_name:["Science","Arts","Commerce","Sports","Technology","Maths"],hod:SQL_NAMES,num_students:[45,32,60,28,55,70]}},
+    fk:{child:"students",fk:"grade",parent:"departments",pk:"dept_name"}
+  },
+  {
+    name:"college",
+    t1:{name:"students",cols:[
+      {n:"student_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"branch",t:"VARCHAR(20)"},
+      {n:"year",t:"INT"},
+      {n:"cgpa",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"}
+    ],data:{name:SQL_NAMES,branch:["CS","ECE","Mech","Civil","IT","EEE"],year:[1,2,3,4],cgpa:[6,7,8,9,10],city:SQL_CITIES}},
+    t2:{name:"courses",cols:[
+      {n:"course_id",t:"INT",pk:true},
+      {n:"course_name",t:"VARCHAR(30)"},
+      {n:"credits",t:"INT"},
+      {n:"branch",t:"VARCHAR(20)"}
+    ],data:{course_name:["DBMS","OS","Networks","Algorithms","Maths","Physics"],credits:[3,4,2,3,4,2],branch:["CS","ECE","Mech","Civil","IT"]}},
+    fk:{child:"students",fk:"branch",parent:"courses",pk:"branch"}
+  },
+  {
+    name:"library",
+    t1:{name:"books",cols:[
+      {n:"book_id",t:"INT",pk:true},
+      {n:"title",t:"VARCHAR(40)"},
+      {n:"author",t:"VARCHAR(30)"},
+      {n:"genre",t:"VARCHAR(20)"},
+      {n:"price",t:"INT"},
+      {n:"copies",t:"INT"}
+    ],data:{title:["Python Basics","Data Structures","DBMS Concepts","OS Fundamentals","Networks","Algorithms"],author:SQL_NAMES,genre:["Fiction","Science","Technology","History","Math","Literature"],price:[250,350,450,300,400,200],copies:[3,5,2,8,4,6]}},
+    t2:{name:"members",cols:[
+      {n:"member_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"books_issued",t:"INT"},
+      {n:"membership",t:"VARCHAR(10)"}
+    ],data:{name:SQL_NAMES,city:SQL_CITIES,books_issued:[1,2,3,4,5],membership:["Annual","Monthly","Quarterly"]}},
+    fk:null
+  },
+  {
+    name:"coaching",
+    t1:{name:"students",cols:[
+      {n:"student_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"subject",t:"VARCHAR(20)"},
+      {n:"batch",t:"VARCHAR(10)"},
+      {n:"fees",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"}
+    ],data:{name:SQL_NAMES,subject:["Maths","Physics","Chemistry","Biology","CS"],batch:["Morning","Evening","Weekend"],fees:[3000,4000,5000,6000,7000],city:SQL_CITIES}},
+    t2:null,fk:null
+  },
+  {
+    name:"hostel",
+    t1:{name:"residents",cols:[
+      {n:"resident_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"room_no",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"fees",t:"INT"},
+      {n:"year",t:"INT"}
+    ],data:{name:SQL_NAMES,room_no:[101,102,103,104,105,201,202,203],city:SQL_CITIES,fees:[3000,3500,4000,4500],year:[1,2,3,4]}},
+    t2:null,fk:null
+  },
+  {
+    name:"exam_center",
+    t1:{name:"candidates",cols:[
+      {n:"candidate_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"subject",t:"VARCHAR(20)"},
+      {n:"center",t:"VARCHAR(30)"},
+      {n:"score",t:"INT"},
+      {n:"status",t:"VARCHAR(10)"}
+    ],data:{name:SQL_NAMES,subject:["Maths","Physics","Chemistry","CS","English"],center:SQL_CITIES,score:[45,67,89,92,55,73,81,38],status:["Pass","Fail","Absent"]}},
+    t2:null,fk:null
+  },
+  {
+    name:"sports_academy",
+    t1:{name:"players",cols:[
+      {n:"player_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"sport",t:"VARCHAR(20)"},
+      {n:"age",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"wins",t:"INT"}
+    ],data:{name:SQL_NAMES,sport:["Cricket","Football","Badminton","Tennis","Hockey","Swimming"],age:[14,15,16,17,18,19,20],city:SQL_CITIES,wins:[0,1,2,3,4,5,6,7,8]}},
+    t2:{name:"coaches",cols:[
+      {n:"coach_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"sport",t:"VARCHAR(20)"},
+      {n:"experience",t:"INT"},
+      {n:"salary",t:"INT"}
+    ],data:{name:SQL_NAMES,sport:["Cricket","Football","Badminton","Tennis","Hockey"],experience:[2,5,8,10,15,20],salary:[30000,40000,50000,60000,70000]}},
+    fk:{child:"players",fk:"sport",parent:"coaches",pk:"sport"}
+  },
+  {
+    name:"university",
+    t1:{name:"professors",cols:[
+      {n:"prof_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"dept",t:"VARCHAR(20)"},
+      {n:"salary",t:"INT"},
+      {n:"experience",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"}
+    ],data:{name:SQL_NAMES,dept:["CS","Physics","Maths","Chemistry","Economics"],salary:[60000,75000,90000,80000,70000],experience:[2,5,8,12,20],city:SQL_CITIES}},
+    t2:{name:"departments",cols:[
+      {n:"dept_id",t:"INT",pk:true},
+      {n:"dept_name",t:"VARCHAR(20)"},
+      {n:"hod",t:"VARCHAR(30)"},
+      {n:"budget",t:"INT"}
+    ],data:{dept_name:["CS","Physics","Maths","Chemistry","Economics"],hod:SQL_NAMES,budget:[500000,600000,400000,700000,800000]}},
+    fk:{child:"professors",fk:"dept",parent:"departments",pk:"dept_name"}
+  },
+  {
+    name:"school_lab",
+    t1:{name:"equipment",cols:[
+      {n:"equip_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"lab_type",t:"VARCHAR(20)"},
+      {n:"quantity",t:"INT"},
+      {n:"cost",t:"INT"},
+      {n:"condition",t:"VARCHAR(15)"}
+    ],data:{name:["Microscope","Beaker","Bunsen Burner","Computer","Oscilloscope","Centrifuge"],lab_type:["Physics","Chemistry","Biology","Computer","Electronics"],quantity:[5,10,15,20,8,3],cost:[2000,500,300,40000,15000,25000],condition:["Good","Fair","Needs Repair","New"]}},
+    t2:null,fk:null
+  },
+  {
+    name:"online_course",
+    t1:{name:"courses",cols:[
+      {n:"course_id",t:"INT",pk:true},
+      {n:"title",t:"VARCHAR(40)"},
+      {n:"instructor",t:"VARCHAR(30)"},
+      {n:"category",t:"VARCHAR(20)"},
+      {n:"price",t:"INT"},
+      {n:"students",t:"INT"}
+    ],data:{title:["Python","Web Dev","Data Science","Machine Learning","SQL","Java"],instructor:SQL_NAMES,category:["Programming","Design","Data","Business","Marketing"],price:[999,1499,1999,2499,799,1299],students:[500,1200,800,300,2000,600]}},
+    t2:null,fk:null
+  },
+  // ── HEALTHCARE (12) ──
+  {
+    name:"hospital",
+    t1:{name:"patients",cols:[
+      {n:"patient_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"age",t:"INT"},
+      {n:"disease",t:"VARCHAR(30)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"fees",t:"INT"}
+    ],data:{name:SQL_NAMES,age:[25,34,45,60,32,50,28,55],disease:["Fever","Diabetes","Fracture","Asthma","Hypertension","Flu","Malaria"],city:SQL_CITIES,fees:[500,1200,3000,800,1500,2500,700]}},
+    t2:{name:"doctors",cols:[
+      {n:"doctor_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"speciality",t:"VARCHAR(30)"},
+      {n:"dept_id",t:"INT"},
+      {n:"salary",t:"INT"}
+    ],data:{name:SQL_NAMES,speciality:["Cardiology","Ortho","Neurology","Pediatrics","ENT","Dermatology"],dept_id:[1,2,3,4,5],salary:[80000,75000,90000,70000,85000]}},
+    fk:{child:"doctors",fk:"dept_id",parent:"patients",pk:"patient_id"}
+  },
+  {
+    name:"pharmacy",
+    t1:{name:"medicines",cols:[
+      {n:"med_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"category",t:"VARCHAR(20)"},
+      {n:"price",t:"INT"},
+      {n:"stock",t:"INT"},
+      {n:"expiry_year",t:"INT"}
+    ],data:{name:["Paracetamol","Ibuprofen","Amoxicillin","Metformin","Omeprazole","Cetirizine"],category:["Painkiller","Antibiotic","Antidiabetic","Antacid","Antihistamine"],price:[15,30,80,25,40,20],stock:[100,50,30,75,60,90],expiry_year:[2025,2026,2027,2028]}},
+    t2:null,fk:null
+  },
+  {
+    name:"blood_bank",
+    t1:{name:"donors",cols:[
+      {n:"donor_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"blood_group",t:"VARCHAR(5)"},
+      {n:"age",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"donations",t:"INT"}
+    ],data:{name:SQL_NAMES,blood_group:["A+","A-","B+","B-","O+","O-","AB+","AB-"],age:[18,22,28,35,40,45],city:SQL_CITIES,donations:[1,2,3,4,5,6]}},
+    t2:null,fk:null
+  },
+  {
+    name:"clinic",
+    t1:{name:"appointments",cols:[
+      {n:"appt_id",t:"INT",pk:true},
+      {n:"patient",t:"VARCHAR(30)"},
+      {n:"doctor",t:"VARCHAR(30)"},
+      {n:"dept",t:"VARCHAR(20)"},
+      {n:"fees",t:"INT"},
+      {n:"status",t:"VARCHAR(15)"}
+    ],data:{patient:SQL_NAMES,doctor:SQL_NAMES,dept:["General","Dental","Eye","Skin","Ortho"],fees:[200,400,600,800,1000],status:["Scheduled","Completed","Cancelled"]}},
+    t2:null,fk:null
+  },
+  {
+    name:"gym",
+    t1:{name:"members",cols:[
+      {n:"member_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"age",t:"INT"},
+      {n:"plan",t:"VARCHAR(15)"},
+      {n:"fees",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"}
+    ],data:{name:SQL_NAMES,age:[18,22,25,30,35,40,45],plan:["Monthly","Quarterly","Annual","Daily"],fees:[500,1200,4000,100],city:SQL_CITIES}},
+    t2:{name:"trainers",cols:[
+      {n:"trainer_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"speciality",t:"VARCHAR(20)"},
+      {n:"experience",t:"INT"},
+      {n:"salary",t:"INT"}
+    ],data:{name:SQL_NAMES,speciality:["Cardio","Strength","Yoga","Zumba","CrossFit"],experience:[1,2,3,5,8,10],salary:[20000,25000,30000,35000,40000]}},
+    fk:null
+  },
+  {
+    name:"dental_clinic",
+    t1:{name:"patients",cols:[
+      {n:"patient_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"age",t:"INT"},
+      {n:"treatment",t:"VARCHAR(30)"},
+      {n:"fees",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"}
+    ],data:{name:SQL_NAMES,age:[10,15,25,35,45,55],treatment:["Filling","Extraction","Cleaning","Braces","Root Canal","Whitening"],fees:[500,800,400,15000,5000,3000],city:SQL_CITIES}},
+    t2:null,fk:null
+  },
+  // ── COMMERCE/RETAIL (15) ──
+  {
+    name:"store",
+    t1:{name:"products",cols:[
+      {n:"product_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"category",t:"VARCHAR(20)"},
+      {n:"price",t:"INT"},
+      {n:"stock",t:"INT"},
+      {n:"brand",t:"VARCHAR(20)"}
+    ],data:{name:["Laptop","Phone","Tablet","Headphones","Keyboard","Monitor","Mouse","Printer"],category:["Electronics","Accessories","Mobile","Computing","Audio"],price:[25000,15000,8000,2000,1500,12000,800,5000],stock:[10,25,8,50,30,12,45,15],brand:["Dell","Samsung","Apple","Sony","HP","Lenovo","LG"]}},
+    t2:{name:"customers",cols:[
+      {n:"cust_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"purchases",t:"INT"},
+      {n:"total_spent",t:"INT"}
+    ],data:{name:SQL_NAMES,city:SQL_CITIES,purchases:[1,2,3,4,5,6,7],total_spent:[1000,5000,15000,25000,50000,8000]}},
+    fk:null
+  },
+  {
+    name:"supermarket",
+    t1:{name:"items",cols:[
+      {n:"item_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"category",t:"VARCHAR(20)"},
+      {n:"price",t:"INT"},
+      {n:"quantity",t:"INT"},
+      {n:"shelf",t:"VARCHAR(5)"}
+    ],data:{name:["Rice","Wheat","Sugar","Salt","Oil","Milk","Tea","Coffee"],category:["Grains","Dairy","Beverages","Condiments","Snacks"],price:[50,60,45,20,120,60,80,200],quantity:[100,80,50,200,60,40,30,20],shelf:["A1","A2","B1","B2","C1","D1"]}},
+    t2:null,fk:null
+  },
+  {
+    name:"restaurant",
+    t1:{name:"menu",cols:[
+      {n:"item_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"category",t:"VARCHAR(20)"},
+      {n:"price",t:"INT"},
+      {n:"calories",t:"INT"},
+      {n:"available",t:"VARCHAR(5)"}
+    ],data:{name:["Biryani","Pizza","Pasta","Burger","Salad","Soup","Dosa","Noodles"],category:["Main Course","Starter","Dessert","Beverage","Snack"],price:[200,250,180,120,80,60,90,100],calories:[450,600,400,500,200,150,300,350],available:["Yes","No"]}},
+    t2:{name:"orders",cols:[
+      {n:"order_id",t:"INT",pk:true},
+      {n:"customer",t:"VARCHAR(30)"},
+      {n:"item",t:"VARCHAR(30)"},
+      {n:"qty",t:"INT"},
+      {n:"total",t:"INT"}
+    ],data:{customer:SQL_NAMES,item:["Biryani","Pizza","Pasta","Burger","Dosa"],qty:[1,2,3,4,5],total:[200,400,600,800,1000]}},
+    fk:null
+  },
+  {
+    name:"hotel",
+    t1:{name:"rooms",cols:[
+      {n:"room_id",t:"INT",pk:true},
+      {n:"room_type",t:"VARCHAR(20)"},
+      {n:"price",t:"INT"},
+      {n:"floor",t:"INT"},
+      {n:"capacity",t:"INT"},
+      {n:"status",t:"VARCHAR(15)"}
+    ],data:{room_type:["Standard","Deluxe","Suite","Executive","Economy"],price:[1500,2500,5000,4000,1000],floor:[1,2,3,4,5],capacity:[1,2,3,4],status:["Available","Booked","Maintenance"]}},
+    t2:{name:"guests",cols:[
+      {n:"guest_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"room_type",t:"VARCHAR(20)"},
+      {n:"days",t:"INT"},
+      {n:"total",t:"INT"}
+    ],data:{name:SQL_NAMES,city:SQL_CITIES,room_type:["Standard","Deluxe","Suite","Executive"],days:[1,2,3,4,5,7],total:[1500,5000,15000,8000,2000]}},
+    fk:{child:"guests",fk:"room_type",parent:"rooms",pk:"room_type"}
+  },
+  {
+    name:"bakery",
+    t1:{name:"products",cols:[
+      {n:"product_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"category",t:"VARCHAR(20)"},
+      {n:"price",t:"INT"},
+      {n:"qty_made",t:"INT"},
+      {n:"qty_sold",t:"INT"}
+    ],data:{name:["Bread","Cake","Cookies","Muffin","Croissant","Bun","Pie","Tart"],category:["Bread","Cake","Pastry","Cookie","Savoury"],price:[40,350,120,60,80,30,200,150],qty_made:[50,20,100,40,30,60,15,25],qty_sold:[45,18,95,38,28,55,12,20]}},
+    t2:null,fk:null
+  },
+  {
+    name:"clothing",
+    t1:{name:"items",cols:[
+      {n:"item_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"category",t:"VARCHAR(20)"},
+      {n:"size",t:"VARCHAR(5)"},
+      {n:"price",t:"INT"},
+      {n:"stock",t:"INT"}
+    ],data:{name:["Shirt","Jeans","Saree","Kurta","Jacket","Dress","Trousers","Shorts"],category:["Men","Women","Kids","Unisex"],size:["S","M","L","XL","XXL"],price:[500,1200,800,600,2000,900,700,400],stock:[20,15,8,30,12,10,25,35]}},
+    t2:null,fk:null
+  },
+  {
+    name:"jewellery",
+    t1:{name:"items",cols:[
+      {n:"item_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"material",t:"VARCHAR(20)"},
+      {n:"weight",t:"INT"},
+      {n:"price",t:"INT"},
+      {n:"stock",t:"INT"}
+    ],data:{name:["Necklace","Ring","Bracelet","Earrings","Bangle","Chain","Pendant","Anklet"],material:["Gold","Silver","Platinum","Diamond","Gemstone"],weight:[5,10,15,20,25,30],price:[5000,15000,8000,3000,25000,10000,7000,2000],stock:[5,10,15,8,3,12,7,20]}},
+    t2:null,fk:null
+  },
+  {
+    name:"bookstore",
+    t1:{name:"books",cols:[
+      {n:"book_id",t:"INT",pk:true},
+      {n:"title",t:"VARCHAR(40)"},
+      {n:"author",t:"VARCHAR(30)"},
+      {n:"genre",t:"VARCHAR(20)"},
+      {n:"price",t:"INT"},
+      {n:"stock",t:"INT"}
+    ],data:{title:["Wings of Fire","Midnight Children","The Guide","Untouchable","India After Gandhi","Train to Pakistan"],author:SQL_NAMES,genre:["Fiction","Non-Fiction","Biography","History","Science","Poetry"],price:[250,350,200,180,450,300],stock:[10,5,8,12,3,15]}},
+    t2:null,fk:null
+  },
+  {
+    name:"electronics_shop",
+    t1:{name:"products",cols:[
+      {n:"prod_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"brand",t:"VARCHAR(20)"},
+      {n:"category",t:"VARCHAR(20)"},
+      {n:"price",t:"INT"},
+      {n:"warranty",t:"INT"}
+    ],data:{name:["TV","Fridge","Washing Machine","AC","Microwave","Mixer"],brand:["Samsung","LG","Sony","Whirlpool","Bajaj","Panasonic"],category:["Appliance","Electronics","Kitchen"],price:[25000,30000,20000,35000,8000,3000],warranty:[1,2,3,5]}},
+    t2:null,fk:null
+  },
+  {
+    name:"furniture",
+    t1:{name:"items",cols:[
+      {n:"item_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"material",t:"VARCHAR(20)"},
+      {n:"room",t:"VARCHAR(20)"},
+      {n:"price",t:"INT"},
+      {n:"stock",t:"INT"}
+    ],data:{name:["Sofa","Bed","Table","Chair","Wardrobe","Bookshelf","Desk","Cabinet"],material:["Wood","Metal","Plastic","Glass","Fabric"],room:["Living Room","Bedroom","Office","Kitchen","Study"],price:[15000,20000,5000,3000,25000,8000,10000,6000],stock:[5,8,12,20,3,6,10,15]}},
+    t2:null,fk:null
+  },
+  // ── TRANSPORT (12) ──
+  {
+    name:"airline",
+    t1:{name:"flights",cols:[
+      {n:"flight_id",t:"INT",pk:true},
+      {n:"airline",t:"VARCHAR(20)"},
+      {n:"source",t:"VARCHAR(20)"},
+      {n:"destination",t:"VARCHAR(20)"},
+      {n:"seats",t:"INT"},
+      {n:"fare",t:"INT"}
+    ],data:{airline:["IndiGo","Air India","SpiceJet","Vistara","GoAir","AirAsia"],source:SQL_CITIES,destination:SQL_CITIES,seats:[100,150,180,200,120,160],fare:[3000,5000,4000,8000,2500,3500]}},
+    t2:{name:"passengers",cols:[
+      {n:"passenger_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"flight_id",t:"INT"},
+      {n:"seat_class",t:"VARCHAR(15)"},
+      {n:"fare_paid",t:"INT"}
+    ],data:{name:SQL_NAMES,flight_id:[1,2,3,4,5],seat_class:["Economy","Business","First"],fare_paid:[3000,5000,4000,8000,2500]}},
+    fk:{child:"passengers",fk:"flight_id",parent:"flights",pk:"flight_id"}
+  },
+  {
+    name:"railway",
+    t1:{name:"trains",cols:[
+      {n:"train_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"source",t:"VARCHAR(20)"},
+      {n:"destination",t:"VARCHAR(20)"},
+      {n:"seats",t:"INT"},
+      {n:"fare",t:"INT"}
+    ],data:{name:["Rajdhani","Shatabdi","Express","Mail","Duronto","Garib Rath"],source:SQL_CITIES,destination:SQL_CITIES,seats:[500,300,800,600,400,700],fare:[500,800,300,200,600,150]}},
+    t2:{name:"passengers",cols:[
+      {n:"passenger_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"train_id",t:"INT"},
+      {n:"class",t:"VARCHAR(5)"},
+      {n:"fare_paid",t:"INT"}
+    ],data:{name:SQL_NAMES,train_id:[1,2,3,4,5],class:["1A","2A","3A","SL","CC"],fare_paid:[500,800,300,200,600]}},
+    fk:{child:"passengers",fk:"train_id",parent:"trains",pk:"train_id"}
+  },
+  {
+    name:"bus_depot",
+    t1:{name:"buses",cols:[
+      {n:"bus_id",t:"INT",pk:true},
+      {n:"route",t:"VARCHAR(30)"},
+      {n:"type",t:"VARCHAR(20)"},
+      {n:"capacity",t:"INT"},
+      {n:"fare",t:"INT"},
+      {n:"status",t:"VARCHAR(15)"}
+    ],data:{route:["Delhi-Agra","Mumbai-Pune","Chennai-Bangalore","Hyderabad-Vizag","Jaipur-Jodhpur"],type:["AC","Non-AC","Sleeper","Volvo","Mini"],capacity:[40,50,30,45,20],fare:[200,100,350,400,80],status:["Running","Breakdown","Maintenance"]}},
+    t2:null,fk:null
+  },
+  {
+    name:"taxi",
+    t1:{name:"rides",cols:[
+      {n:"ride_id",t:"INT",pk:true},
+      {n:"driver",t:"VARCHAR(30)"},
+      {n:"passenger",t:"VARCHAR(30)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"distance",t:"INT"},
+      {n:"fare",t:"INT"}
+    ],data:{driver:SQL_NAMES,passenger:SQL_NAMES,city:SQL_CITIES,distance:[5,10,15,20,25,30],fare:[60,120,180,240,300,360]}},
+    t2:null,fk:null
+  },
+  {
+    name:"cargo",
+    t1:{name:"shipments",cols:[
+      {n:"shipment_id",t:"INT",pk:true},
+      {n:"sender",t:"VARCHAR(30)"},
+      {n:"receiver",t:"VARCHAR(30)"},
+      {n:"weight",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"charges",t:"INT"}
+    ],data:{sender:SQL_NAMES,receiver:SQL_NAMES,weight:[5,10,20,50,100,200],city:SQL_CITIES,charges:[100,200,400,1000,2000,4000]}},
+    t2:null,fk:null
+  },
+  {
+    name:"parking",
+    t1:{name:"vehicles",cols:[
+      {n:"vehicle_id",t:"INT",pk:true},
+      {n:"owner",t:"VARCHAR(30)"},
+      {n:"type",t:"VARCHAR(15)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"slot",t:"VARCHAR(5)"},
+      {n:"charges",t:"INT"}
+    ],data:{owner:SQL_NAMES,type:["Car","Bike","Truck","Bus","Auto"],city:SQL_CITIES,slot:["A1","A2","B1","B2","C1"],charges:[20,10,50,80,15]}},
+    t2:null,fk:null
+  },
+  // ── FINANCE/BANKING (10) ──
+  {
+    name:"bank",
+    t1:{name:"accounts",cols:[
+      {n:"account_id",t:"INT",pk:true},
+      {n:"holder",t:"VARCHAR(30)"},
+      {n:"type",t:"VARCHAR(15)"},
+      {n:"balance",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"branch_id",t:"INT"}
+    ],data:{holder:SQL_NAMES,type:["Savings","Current","Fixed","Recurring"],balance:[1000,5000,15000,50000,100000,200000],city:SQL_CITIES,branch_id:[1,2,3,4,5]}},
+    t2:{name:"branches",cols:[
+      {n:"branch_id",t:"INT",pk:true},
+      {n:"branch_name",t:"VARCHAR(30)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"manager",t:"VARCHAR(30)"}
+    ],data:{branch_name:["Main Branch","City Branch","North Branch","South Branch","East Branch"],city:SQL_CITIES,manager:SQL_NAMES}},
+    fk:{child:"accounts",fk:"branch_id",parent:"branches",pk:"branch_id"}
+  },
+  {
+    name:"insurance",
+    t1:{name:"policies",cols:[
+      {n:"policy_id",t:"INT",pk:true},
+      {n:"holder",t:"VARCHAR(30)"},
+      {n:"type",t:"VARCHAR(20)"},
+      {n:"premium",t:"INT"},
+      {n:"sum_assured",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"}
+    ],data:{holder:SQL_NAMES,type:["Life","Health","Vehicle","Property","Travel"],premium:[1000,2000,3000,5000,500],sum_assured:[100000,500000,1000000,200000,50000],city:SQL_CITIES}},
+    t2:null,fk:null
+  },
+  {
+    name:"stock_market",
+    t1:{name:"stocks",cols:[
+      {n:"stock_id",t:"INT",pk:true},
+      {n:"company",t:"VARCHAR(30)"},
+      {n:"sector",t:"VARCHAR(20)"},
+      {n:"price",t:"INT"},
+      {n:"quantity",t:"INT"},
+      {n:"change",t:"INT"}
+    ],data:{company:["TCS","Infosys","Reliance","HDFC","ICICI","Wipro","HUL","ITC"],sector:["IT","Finance","Energy","FMCG","Pharma","Auto"],price:[3500,1500,2800,1600,900,400,2600,450],quantity:[100,200,150,300,250,400,180,350],change:[50,-30,100,-20,40,-10,60,-5]}},
+    t2:null,fk:null
+  },
+  {
+    name:"microfinance",
+    t1:{name:"loans",cols:[
+      {n:"loan_id",t:"INT",pk:true},
+      {n:"borrower",t:"VARCHAR(30)"},
+      {n:"purpose",t:"VARCHAR(20)"},
+      {n:"amount",t:"INT"},
+      {n:"interest",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"}
+    ],data:{borrower:SQL_NAMES,purpose:["Business","Education","Agriculture","Medical","Home"],amount:[10000,25000,50000,100000,200000],interest:[8,10,12,15,18],city:SQL_CITIES}},
+    t2:null,fk:null
+  },
+  // ── ENTERTAINMENT/EVENTS (10) ──
+  {
+    name:"cinema",
+    t1:{name:"movies",cols:[
+      {n:"movie_id",t:"INT",pk:true},
+      {n:"title",t:"VARCHAR(40)"},
+      {n:"language",t:"VARCHAR(15)"},
+      {n:"genre",t:"VARCHAR(20)"},
+      {n:"duration",t:"INT"},
+      {n:"rating",t:"INT"}
+    ],data:{title:["Action Hero","Love Story","Comedy Night","Mystery","Thriller","Adventure"],language:["Hindi","Tamil","Telugu","English","Malayalam"],genre:["Action","Romance","Comedy","Drama","Thriller","Horror"],duration:[120,140,100,130,150,110],rating:[6,7,8,9,10]}},
+    t2:{name:"shows",cols:[
+      {n:"show_id",t:"INT",pk:true},
+      {n:"movie_id",t:"INT"},
+      {n:"screen",t:"VARCHAR(10)"},
+      {n:"time",t:"VARCHAR(10)"},
+      {n:"seats",t:"INT"},
+      {n:"price",t:"INT"}
+    ],data:{movie_id:[1,2,3,4,5],screen:["Screen 1","Screen 2","Screen 3","Screen 4"],time:["10:00","14:00","18:00","22:00"],seats:[100,120,80,150,200],price:[150,200,250,180]}},
+    fk:{child:"shows",fk:"movie_id",parent:"movies",pk:"movie_id"}
+  },
+  {
+    name:"stadium",
+    t1:{name:"matches",cols:[
+      {n:"match_id",t:"INT",pk:true},
+      {n:"sport",t:"VARCHAR(20)"},
+      {n:"team1",t:"VARCHAR(30)"},
+      {n:"team2",t:"VARCHAR(30)"},
+      {n:"venue",t:"VARCHAR(20)"},
+      {n:"tickets_sold",t:"INT"}
+    ],data:{sport:["Cricket","Football","Kabaddi","Hockey","Badminton"],team1:["India","Mumbai","Delhi","Chennai","Kolkata"],team2:["Australia","Bangalore","Pune","Hyderabad","Rajasthan"],venue:SQL_CITIES,tickets_sold:[50000,30000,25000,40000,20000]}},
+    t2:null,fk:null
+  },
+  {
+    name:"zoo",
+    t1:{name:"animals",cols:[
+      {n:"animal_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"species",t:"VARCHAR(30)"},
+      {n:"habitat",t:"VARCHAR(20)"},
+      {n:"age",t:"INT"},
+      {n:"weight",t:"INT"}
+    ],data:{name:["Leo","Sheru","Raja","Moti","Bholu","Kali","Sona","Ramu"],species:["Lion","Tiger","Elephant","Giraffe","Zebra","Leopard","Bear","Monkey"],habitat:["Jungle","Savanna","Forest","Grassland","Desert"],age:[2,5,8,12,15,20],weight:[50,120,2000,500,200,60,150,10]}},
+    t2:null,fk:null
+  },
+  {
+    name:"museum",
+    t1:{name:"exhibits",cols:[
+      {n:"exhibit_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(40)"},
+      {n:"category",t:"VARCHAR(20)"},
+      {n:"origin",t:"VARCHAR(20)"},
+      {n:"age_years",t:"INT"},
+      {n:"value",t:"INT"}
+    ],data:{name:["Ancient Coin","Fossil","Painting","Sculpture","Pottery","Weapon","Jewelry","Manuscript"],category:["History","Science","Art","Culture","Natural"],origin:SQL_CITIES,age_years:[100,500,1000,2000,5000,200],value:[50000,100000,500000,1000000,200000]}},
+    t2:null,fk:null
+  },
+  {
+    name:"event_management",
+    t1:{name:"events",cols:[
+      {n:"event_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(40)"},
+      {n:"type",t:"VARCHAR(20)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"budget",t:"INT"},
+      {n:"attendees",t:"INT"}
+    ],data:{name:["Tech Summit","Music Fest","Food Carnival","Sports Meet","Wedding","Conference"],type:["Corporate","Cultural","Social","Sports","Wedding"],city:SQL_CITIES,budget:[100000,50000,200000,75000,500000,150000],attendees:[100,500,1000,200,300,50]}},
+    t2:null,fk:null
+  },
+  {
+    name:"streaming",
+    t1:{name:"content",cols:[
+      {n:"content_id",t:"INT",pk:true},
+      {n:"title",t:"VARCHAR(40)"},
+      {n:"type",t:"VARCHAR(15)"},
+      {n:"language",t:"VARCHAR(15)"},
+      {n:"views",t:"INT"},
+      {n:"rating",t:"INT"}
+    ],data:{title:["Sacred Games","Mirzapur","Panchayat","Scam 1992","Delhi Crime","Farzi"],type:["Series","Movie","Documentary","Short Film"],language:["Hindi","Tamil","Telugu","English","Malayalam"],views:[1000000,500000,750000,2000000,800000,600000],rating:[7,8,9,10,6,8]}},
+    t2:null,fk:null
+  },
+  // ── GOVERNMENT/PUBLIC SERVICES (10) ──
+  {
+    name:"police",
+    t1:{name:"cases",cols:[
+      {n:"case_id",t:"INT",pk:true},
+      {n:"type",t:"VARCHAR(20)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"officer",t:"VARCHAR(30)"},
+      {n:"year",t:"INT"},
+      {n:"status",t:"VARCHAR(15)"}
+    ],data:{type:["Theft","Fraud","Assault","Missing","Cybercrime","Traffic"],city:SQL_CITIES,officer:SQL_NAMES,year:[2020,2021,2022,2023,2024],status:["Open","Closed","Under Investigation","Pending"]}},
+    t2:null,fk:null
+  },
+  {
+    name:"post_office",
+    t1:{name:"parcels",cols:[
+      {n:"parcel_id",t:"INT",pk:true},
+      {n:"sender",t:"VARCHAR(30)"},
+      {n:"receiver",t:"VARCHAR(30)"},
+      {n:"weight",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"charges",t:"INT"}
+    ],data:{sender:SQL_NAMES,receiver:SQL_NAMES,weight:[100,250,500,1000,2000],city:SQL_CITIES,charges:[30,50,80,120,200]}},
+    t2:null,fk:null
+  },
+  {
+    name:"municipality",
+    t1:{name:"complaints",cols:[
+      {n:"complaint_id",t:"INT",pk:true},
+      {n:"citizen",t:"VARCHAR(30)"},
+      {n:"category",t:"VARCHAR(20)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"priority",t:"VARCHAR(10)"},
+      {n:"status",t:"VARCHAR(15)"}
+    ],data:{citizen:SQL_NAMES,category:["Roads","Water","Electricity","Sanitation","Drainage","Parks"],city:SQL_CITIES,priority:["High","Medium","Low"],status:["Open","In Progress","Resolved","Closed"]}},
+    t2:null,fk:null
+  },
+  {
+    name:"ration_shop",
+    t1:{name:"beneficiaries",cols:[
+      {n:"card_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"category",t:"VARCHAR(10)"},
+      {n:"members",t:"INT"},
+      {n:"allotment",t:"INT"}
+    ],data:{name:SQL_NAMES,city:SQL_CITIES,category:["APL","BPL","AAY"],members:[2,3,4,5,6],allotment:[10,20,35,25,15]}},
+    t2:null,fk:null
+  },
+  // ── TECHNOLOGY/IT (10) ──
+  {
+    name:"it_company",
+    t1:{name:"employees",cols:[
+      {n:"emp_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"dept",t:"VARCHAR(20)"},
+      {n:"salary",t:"INT"},
+      {n:"experience",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"}
+    ],data:{name:SQL_NAMES,dept:["Development","Testing","DevOps","Design","Management","Data"],salary:[30000,50000,75000,100000,40000,60000],experience:[1,2,3,5,8,10,15],city:SQL_CITIES}},
+    t2:{name:"departments",cols:[
+      {n:"dept_id",t:"INT",pk:true},
+      {n:"dept_name",t:"VARCHAR(20)"},
+      {n:"manager",t:"VARCHAR(30)"},
+      {n:"budget",t:"INT"}
+    ],data:{dept_name:["Development","Testing","DevOps","Design","Management"],manager:SQL_NAMES,budget:[500000,300000,400000,200000,600000]}},
+    fk:{child:"employees",fk:"dept",parent:"departments",pk:"dept_name"}
+  },
+  {
+    name:"startup",
+    t1:{name:"projects",cols:[
+      {n:"project_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"tech",t:"VARCHAR(20)"},
+      {n:"team_size",t:"INT"},
+      {n:"budget",t:"INT"},
+      {n:"status",t:"VARCHAR(15)"}
+    ],data:{name:["App Dev","Web Portal","API Service","ML Model","Dashboard","Mobile App"],tech:["Python","Java","React","Node","Flutter","Django"],team_size:[2,3,5,8,10,15],budget:[50000,100000,200000,500000,75000,150000],status:["Active","Completed","On Hold","Planning"]}},
+    t2:null,fk:null
+  },
+  {
+    name:"data_center",
+    t1:{name:"servers",cols:[
+      {n:"server_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(20)"},
+      {n:"location",t:"VARCHAR(20)"},
+      {n:"cpu",t:"INT"},
+      {n:"ram",t:"INT"},
+      {n:"status",t:"VARCHAR(15)"}
+    ],data:{name:["Server A","Server B","Server C","Server D","Server E"],location:SQL_CITIES,cpu:[4,8,16,32,64],ram:[8,16,32,64,128],status:["Active","Idle","Maintenance","Offline"]}},
+    t2:null,fk:null
+  },
+  {
+    name:"ecommerce",
+    t1:{name:"orders",cols:[
+      {n:"order_id",t:"INT",pk:true},
+      {n:"customer",t:"VARCHAR(30)"},
+      {n:"product",t:"VARCHAR(30)"},
+      {n:"qty",t:"INT"},
+      {n:"total",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"}
+    ],data:{customer:SQL_NAMES,product:["Phone","Laptop","Shirt","Book","Shoes","Bag","Watch","Camera"],qty:[1,2,3,4,5],total:[500,1000,2000,5000,10000,25000],city:SQL_CITIES}},
+    t2:{name:"customers",cols:[
+      {n:"cust_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"total_orders",t:"INT"},
+      {n:"membership",t:"VARCHAR(10)"}
+    ],data:{name:SQL_NAMES,city:SQL_CITIES,total_orders:[1,2,5,10,20,50],membership:["Gold","Silver","Bronze","Basic"]}},
+    fk:null
+  },
+  // ── AGRICULTURE/ENVIRONMENT (8) ──
+  {
+    name:"farm",
+    t1:{name:"crops",cols:[
+      {n:"crop_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(20)"},
+      {n:"farmer",t:"VARCHAR(30)"},
+      {n:"area",t:"INT"},
+      {n:"yield",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"}
+    ],data:{name:["Wheat","Rice","Maize","Cotton","Sugarcane","Soybean","Groundnut","Mustard"],farmer:SQL_NAMES,area:[2,5,10,15,20,25],yield:[1000,2000,3000,5000,8000,1500],city:SQL_CITIES}},
+    t2:null,fk:null
+  },
+  {
+    name:"weather_station",
+    t1:{name:"readings",cols:[
+      {n:"reading_id",t:"INT",pk:true},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"temperature",t:"INT"},
+      {n:"humidity",t:"INT"},
+      {n:"rainfall",t:"INT"},
+      {n:"season",t:"VARCHAR(10)"}
+    ],data:{city:SQL_CITIES,temperature:[15,20,25,30,35,40,45],humidity:[40,50,60,70,80,90],rainfall:[0,10,50,100,200,300],season:["Summer","Winter","Monsoon","Spring"]}},
+    t2:null,fk:null
+  },
+  {
+    name:"power_plant",
+    t1:{name:"units",cols:[
+      {n:"unit_id",t:"INT",pk:true},
+      {n:"type",t:"VARCHAR(20)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"capacity",t:"INT"},
+      {n:"output",t:"INT"},
+      {n:"status",t:"VARCHAR(15)"}
+    ],data:{type:["Solar","Wind","Hydro","Thermal","Nuclear"],city:SQL_CITIES,capacity:[100,200,500,1000,2000],output:[80,150,400,900,1800],status:["Running","Shutdown","Maintenance","Standby"]}},
+    t2:null,fk:null
+  },
+  // ── NGO/SOCIAL (5) ──
+  {
+    name:"ngo",
+    t1:{name:"volunteers",cols:[
+      {n:"vol_id",t:"INT",pk:true},
+      {n:"name",t:"VARCHAR(30)"},
+      {n:"age",t:"INT"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"hours",t:"INT"},
+      {n:"cause",t:"VARCHAR(20)"}
+    ],data:{name:SQL_NAMES,age:[18,22,25,30,35,40],city:SQL_CITIES,hours:[5,10,20,40,80,100],cause:["Education","Health","Environment","Food","Women Empowerment"]}},
+    t2:null,fk:null
+  },
+  {
+    name:"charity",
+    t1:{name:"donations",cols:[
+      {n:"don_id",t:"INT",pk:true},
+      {n:"donor",t:"VARCHAR(30)"},
+      {n:"amount",t:"INT"},
+      {n:"cause",t:"VARCHAR(20)"},
+      {n:"city",t:"VARCHAR(20)"},
+      {n:"year",t:"INT"}
+    ],data:{donor:SQL_NAMES,amount:[500,1000,5000,10000,25000,50000],cause:["Education","Health","Disaster Relief","Animal Welfare","Environment"],city:SQL_CITIES,year:[2020,2021,2022,2023,2024]}},
+    t2:null,fk:null
+  }
+];
+
+// ══════════════════════════════════════════════════════
+//  PARAMETRIC SCHEMA GENERATOR
+// ══════════════════════════════════════════════════════
+function sqlBuildTable(tDef){
+  var rows = [];
+  for(var i=0;i<5;i++){
+    var row={};
+    tDef.cols.forEach(function(col){
+      if(col.pk){ row[col.n]=i+1; }
+      else{ row[col.n]=sqlPick(tDef.data[col.n]); }
+    });
+    rows.push(row);
+  }
+  return { name:tDef.name, columns:tDef.cols, rows:rows };
+}
+
+function sqlPickDomain(){
+  return sqlPick(SQL_DOMAIN_DEFS);
+}
+
+function sqlPickDomainForJoin(){
+  var withFK = SQL_DOMAIN_DEFS.filter(function(d){return d.t2&&d.fk;});
+  return sqlPick(withFK);
+}
+
+function sqlGenSingleSchema(){
+  var dom = sqlPickDomain();
+  var tbl = dom.t2 && Math.random()>0.5 ? dom.t2 : dom.t1;
+  return sqlBuildTable(tbl);
+}
+
+function sqlGenJoinSchemas(){
+  var dom = sqlPickDomainForJoin();
+  return {
+    child:  sqlBuildTable(dom.t1),
+    parent: sqlBuildTable(dom.t2),
+    pair:   dom.fk
+  };
+}
+
+// ══════════════════════════════════════════════════════
+//  SCHEMA HTML RENDERER
+// ══════════════════════════════════════════════════════
+function sqlRenderTable(schema){
+  var h = '<div class="sql-schema-block">';
+  h += '<div class="sql-table-name">'+schema.name.toUpperCase()+'</div>';
+  h += '<div class="sql-table-wrap"><table class="sql-tbl"><thead><tr>';
+  schema.columns.forEach(function(col){
+    h += '<th>'+col.n+(col.pk?' <span class="sql-pk">PK</span>':'')+'</th>';
+  });
+  h += '</tr></thead><tbody>';
+  schema.rows.forEach(function(row){
+    h += '<tr>';
+    schema.columns.forEach(function(col){ h += '<td>'+row[col.n]+'</td>'; });
+    h += '</tr>';
+  });
+  h += '</tbody></table></div></div>';
+  return h;
+}
+
+// ══════════════════════════════════════════════════════
+//  DDL GENERATOR
+// ══════════════════════════════════════════════════════
+function sqlGenDDL(schema){
+  var tbl=schema.name, cols=schema.columns;
+  var pkCol=cols.find(function(c){return c.pk;});
+  var nonPK=cols.filter(function(c){return !c.pk;});
+  var intCols=nonPK.filter(function(c){return c.t==="INT";});
+  var varCols=nonPK.filter(function(c){return c.t.indexOf("VARCHAR")>-1;});
+  var rnd=sqlPick([0,1,2,3,4,5,6,7,8]);
+
+  if(rnd===0){
+    var defs=cols.map(function(c){return c.n+" "+c.t;}).join(",");
+    return {prompt:"Write the SQL command to create the "+tbl+" table with the given structure.",
+      answer:"CREATE TABLE "+tbl+" ("+defs+");"};
+  }
+  if(rnd===1){
+    var defs=cols.map(function(c){return c.n+" "+c.t+(c.pk?" PRIMARY KEY":"");}).join(",");
+    return {prompt:"Write the CREATE TABLE command for "+tbl+" with "+pkCol.n+" as PRIMARY KEY.",
+      answer:"CREATE TABLE "+tbl+" ("+defs+");"};
+  }
+  if(rnd===2){
+    var defs=cols.map(function(c){var d=c.n+" "+c.t;if(c.pk)d+=" PRIMARY KEY";else d+=" NOT NULL";return d;}).join(",");
+    return {prompt:"Write the CREATE TABLE command for "+tbl+" with PRIMARY KEY and NOT NULL constraints.",
+      answer:"CREATE TABLE "+tbl+" ("+defs+");"};
+  }
+  if(rnd===3){
+    var col=sqlPick(nonPK);
+    return {prompt:"Write the command to add a column "+col.n+" of type "+col.t+" to the "+tbl+" table.",
+      answer:"ALTER TABLE "+tbl+" ADD "+col.n+" "+col.t+";"};
+  }
+  if(rnd===4){
+    var col=sqlPick(nonPK);
+    return {prompt:"Write the command to remove the column "+col.n+" from "+tbl+".",
+      answer:"ALTER TABLE "+tbl+" DROP COLUMN "+col.n+";"};
+  }
+  if(rnd===5){
+    var col=sqlPick(intCols.length?intCols:nonPK);
+    var nt=col.t==="INT"?"VARCHAR(20)":"INT";
+    return {prompt:"Write the command to change the data type of "+col.n+" to "+nt+" in "+tbl+".",
+      answer:"ALTER TABLE "+tbl+" MODIFY "+col.n+" "+nt+";"};
+  }
+  if(rnd===6){
+    return {prompt:"Write the command to delete the "+tbl+" table completely.",
+      answer:"DROP TABLE "+tbl+";"};
+  }
+  if(rnd===7){
+    return {prompt:"Write the command to view the structure of the "+tbl+" table.",
+      answer:"DESC "+tbl+";"};
+  }
+  return {prompt:"Write the command to add "+pkCol.n+" as PRIMARY KEY to the existing "+tbl+" table.",
+    answer:"ALTER TABLE "+tbl+" ADD PRIMARY KEY ("+pkCol.n+");"};
+}
+
+// ══════════════════════════════════════════════════════
+//  DML GENERATOR
+// ══════════════════════════════════════════════════════
+function sqlGenDML(schema){
+  var tbl=schema.name,cols=schema.columns;
+  var pkCol=cols.find(function(c){return c.pk;});
+  var nonPK=cols.filter(function(c){return !c.pk;});
+  var intCols=nonPK.filter(function(c){return c.t==="INT";});
+  var varCols=nonPK.filter(function(c){return c.t.indexOf("VARCHAR")>-1;});
+  var row=schema.rows[sqlRandInt(0,4)];
+  var rnd=sqlPick([0,1,2,3,4,5,6,7,8,9,10,11]);
+
+  if(rnd===0){
+    return {prompt:"Write the SQL query to display all records from "+tbl+".",
+      answer:"SELECT * FROM "+tbl+";"};
+  }
+  if(rnd===1){
+    var col=sqlPick(varCols.length?varCols:nonPK);
+    var val=row[col.n];
+    return {prompt:"Write the SQL query to display all records from "+tbl+" where "+col.n+" is '"+val+"'.",
+      answer:"SELECT * FROM "+tbl+" WHERE "+col.n+"='"+val+"';"};
+  }
+  if(rnd===2){
+    var col=sqlPick(intCols.length?intCols:nonPK);
+    var val=row[col.n];
+    var op=sqlPick([">","<",">=","<="]);
+    return {prompt:"Write the SQL query to display all records from "+tbl+" where "+col.n+" "+op+" "+val+".",
+      answer:"SELECT * FROM "+tbl+" WHERE "+col.n+op+val+";"};
+  }
+  if(rnd===3){
+    var sc=sqlShuffle(nonPK).slice(0,2).map(function(c){return c.n;});
+    var fc=sqlPick(varCols.length?varCols:nonPK);
+    var fv=row[fc.n];
+    return {prompt:"Write the SQL query to display "+sc.join(", ")+" from "+tbl+" where "+fc.n+"='"+fv+"'.",
+      answer:"SELECT "+sc.join(",")+" FROM "+tbl+" WHERE "+fc.n+"='"+fv+"';"};
+  }
+  if(rnd===4){
+    var col=sqlPick(intCols.length?intCols:nonPK);
+    var ord=sqlPick(["ASC","DESC"]);
+    return {prompt:"Write the SQL query to display all records from "+tbl+" sorted by "+col.n+" in "+ord+" order.",
+      answer:"SELECT * FROM "+tbl+" ORDER BY "+col.n+" "+ord+";"};
+  }
+  if(rnd===5){
+    var col=sqlPick(varCols.length?varCols:nonPK);
+    var val=String(row[col.n]);
+    var pat=sqlPick([val.charAt(0)+"%","%"+val.charAt(val.length-1),"%"+val.slice(1,3)+"%"]);
+    return {prompt:"Write the SQL query to display all records from "+tbl+" where "+col.n+" matches the pattern '"+pat+"'.",
+      answer:"SELECT * FROM "+tbl+" WHERE "+col.n+" LIKE '"+pat+"';"};
+  }
+  if(rnd===6){
+    var col=sqlPick(intCols.length?intCols:nonPK);
+    var vals=schema.rows.map(function(r){return r[col.n];}).sort(function(a,b){return a-b;});
+    var lo=vals[0],hi=vals[vals.length-1];
+    return {prompt:"Write the SQL query to display all records from "+tbl+" where "+col.n+" is between "+lo+" and "+hi+".",
+      answer:"SELECT * FROM "+tbl+" WHERE "+col.n+" BETWEEN "+lo+" AND "+hi+";"};
+  }
+  if(rnd===7){
+    var col=sqlPick(varCols.length?varCols:nonPK);
+    return {prompt:"Write the SQL query to display distinct values of "+col.n+" from "+tbl+".",
+      answer:"SELECT DISTINCT "+col.n+" FROM "+tbl+";"};
+  }
+  if(rnd===8){
+    var allVals=cols.map(function(c){var v=row[c.n];return c.t.indexOf("VARCHAR")>-1?"'"+v+"'":v;}).join(",");
+    return {prompt:"Write the INSERT command to add this record to "+tbl+": "+cols.map(function(c){return c.n+"="+row[c.n];}).join(", ")+".",
+      answer:"INSERT INTO "+tbl+" VALUES ("+allVals+");"};
+  }
+  if(rnd===9){
+    var updCol=sqlPick(nonPK);
+    var newVal=updCol.t.indexOf("VARCHAR")>-1?"'Updated'":999;
+    var pkVal=row[pkCol.n];
+    return {prompt:"Write the UPDATE command to change "+updCol.n+" to "+newVal+" for "+pkCol.n+"="+pkVal+" in "+tbl+".",
+      answer:"UPDATE "+tbl+" SET "+updCol.n+"="+newVal+" WHERE "+pkCol.n+"="+pkVal+";"};
+  }
+  if(rnd===10){
+    var col=sqlPick(varCols.length?varCols:nonPK);
+    var val=row[col.n];
+    return {prompt:"Write the DELETE command to remove the record from "+tbl+" where "+col.n+"='"+val+"'.",
+      answer:"DELETE FROM "+tbl+" WHERE "+col.n+"='"+val+"';"};
+  }
+  var col=sqlPick(nonPK);
+  return {prompt:"Write the SQL query to display all records from "+tbl+" where "+col.n+" IS NOT NULL.",
+    answer:"SELECT * FROM "+tbl+" WHERE "+col.n+" IS NOT NULL;"};
+}
+
+// ══════════════════════════════════════════════════════
+//  JOIN GENERATOR
+// ══════════════════════════════════════════════════════
+function sqlGenJOIN(joinData){
+  var c=joinData.child,p=joinData.parent,pair=joinData.pair;
+  var ct=c.name,pt=p.name,fk=pair.fk,ppk=pair.pk;
+  var cCols=c.columns.filter(function(c){return !c.pk;});
+  var rnd=sqlPick([0,1,2,3,4]);
+
+  if(rnd===0){
+    return {prompt:"Write an Equi-JOIN query to display all records from "+ct+" and "+pt+" where "+ct+"."+fk+" matches "+pt+"."+ppk+".",
+      answer:"SELECT * FROM "+ct+","+pt+" WHERE "+ct+"."+fk+"="+pt+"."+ppk+";"};
+  }
+  if(rnd===1){
+    return {prompt:"Write a Natural JOIN query to combine "+ct+" and "+pt+".",
+      answer:"SELECT * FROM "+ct+" NATURAL JOIN "+pt+";"};
+  }
+  if(rnd===2){
+    return {prompt:"Write a query to display the Cartesian product of "+ct+" and "+pt+".",
+      answer:"SELECT * FROM "+ct+","+pt+";"};
+  }
+  if(rnd===3){
+    var sc=[ct+"."+c.columns[1].n,pt+"."+p.columns[1].n];
+    return {prompt:"Write a JOIN query to display "+sc.join(", ")+" from "+ct+" and "+pt+".",
+      answer:"SELECT "+sc.join(",")+" FROM "+ct+","+pt+" WHERE "+ct+"."+fk+"="+pt+"."+ppk+";"};
+  }
+  var col=sqlPick(cCols.filter(function(c){return c.t.indexOf("VARCHAR")>-1;})||cCols);
+  var val=joinData.child.rows[0][col.n];
+  return {prompt:"Write a JOIN query to display all records from "+ct+" and "+pt+" where "+ct+"."+col.n+"='"+val+"'.",
+    answer:"SELECT * FROM "+ct+","+pt+" WHERE "+ct+"."+fk+"="+pt+"."+ppk+" AND "+ct+"."+col.n+"='"+val+"';"};
+}
+
+// ══════════════════════════════════════════════════════
+//  AGGREGATE / GROUP BY GENERATOR
+// ══════════════════════════════════════════════════════
+function sqlGenAggregate(schema){
+  var tbl=schema.name,cols=schema.columns;
+  var nonPK=cols.filter(function(c){return !c.pk;});
+  var intCols=nonPK.filter(function(c){return c.t==="INT";});
+  var varCols=nonPK.filter(function(c){return c.t.indexOf("VARCHAR")>-1;});
+  var ic=intCols.length?intCols[0]:nonPK[0];
+  var vc=varCols.length?varCols[0]:nonPK[0];
+  var ic2=intCols.length>1?intCols[1]:ic;
+  var row=schema.rows[0];
+  var rnd=sqlPick([0,1,2,3,4,5,6,7,8,9,10]);
+
+  if(rnd===0) return {prompt:"Write the SQL query to count the total number of records in "+tbl+".",answer:"SELECT COUNT(*) FROM "+tbl+";"};
+  if(rnd===1) return {prompt:"Write the SQL query to find the maximum value of "+ic.n+" in "+tbl+".",answer:"SELECT MAX("+ic.n+") FROM "+tbl+";"};
+  if(rnd===2) return {prompt:"Write the SQL query to find the minimum value of "+ic.n+" in "+tbl+".",answer:"SELECT MIN("+ic.n+") FROM "+tbl+";"};
+  if(rnd===3) return {prompt:"Write the SQL query to find the sum of "+ic.n+" from "+tbl+".",answer:"SELECT SUM("+ic.n+") FROM "+tbl+";"};
+  if(rnd===4) return {prompt:"Write the SQL query to find the average "+ic.n+" from "+tbl+".",answer:"SELECT AVG("+ic.n+") FROM "+tbl+";"};
+  if(rnd===5){
+    var col=sqlPick(varCols.length?varCols:[nonPK[0]]);
+    var val=row[col.n];
+    return {prompt:"Write the SQL query to count records in "+tbl+" where "+col.n+"='"+val+"'.",
+      answer:"SELECT COUNT(*) FROM "+tbl+" WHERE "+col.n+"='"+val+"';"};
+  }
+  if(rnd===6) return {prompt:"Write the SQL query to display "+vc.n+" and count of records for each "+vc.n+" in "+tbl+".",answer:"SELECT "+vc.n+",COUNT(*) FROM "+tbl+" GROUP BY "+vc.n+";"};
+  if(rnd===7) return {prompt:"Write the SQL query to display "+vc.n+" and total "+ic.n+" for each "+vc.n+" in "+tbl+".",answer:"SELECT "+vc.n+",SUM("+ic.n+") FROM "+tbl+" GROUP BY "+vc.n+";"};
+  if(rnd===8) return {prompt:"Write the SQL query to display "+vc.n+" and average "+ic.n+" for each "+vc.n+" in "+tbl+".",answer:"SELECT "+vc.n+",AVG("+ic.n+") FROM "+tbl+" GROUP BY "+vc.n+";"};
+  if(rnd===9){
+    var vals=schema.rows.map(function(r){return r[ic.n];});
+    var avg=Math.floor(vals.reduce(function(a,b){return a+b;},0)/vals.length);
+    return {prompt:"Write the SQL query to display "+vc.n+" groups in "+tbl+" where average "+ic.n+" is greater than "+avg+".",
+      answer:"SELECT "+vc.n+",AVG("+ic.n+") FROM "+tbl+" GROUP BY "+vc.n+" HAVING AVG("+ic.n+")>"+avg+";"};
+  }
+  return {prompt:"Write the SQL query to display "+vc.n+" groups in "+tbl+" that have more than 1 record.",
+    answer:"SELECT "+vc.n+",COUNT(*) FROM "+tbl+" GROUP BY "+vc.n+" HAVING COUNT(*)>1;"};
+}
+
+// ══════════════════════════════════════════════════════
+//  SCHEMA THEORY MCQ GENERATOR
+// ══════════════════════════════════════════════════════
+function sqlGenSchemaTheory(schema){
+  var tbl=schema.name,cols=schema.columns;
+  var degree=cols.length,card=schema.rows.length;
+  var pkCol=cols.find(function(c){return c.pk;});
+  var fkCols=cols.filter(function(c){return !c.pk&&c.t==="INT"&&c.n.indexOf("_id")>-1;});
+
+  function wrongs(correct,count){
+    var w=[],off=sqlShuffle([-4,-3,-2,-1,1,2,3,4,5,6]);
+    off.forEach(function(o){var v=correct+o;if(v>0&&v!==correct&&w.indexOf(v)===-1)w.push(v);});
+    return w.slice(0,count);
+  }
+
+  var templates=[
+    function(){var c=degree,w=wrongs(c,3),o=sqlShuffle([c].concat(w));return{prompt:"What is the degree of the "+tbl+" table?",answer:String(c),options:o.map(String),isMCQ:true};},
+    function(){var c=card,w=wrongs(c,3),o=sqlShuffle([c].concat(w));return{prompt:"What is the cardinality of the "+tbl+" table?",answer:String(c),options:o.map(String),isMCQ:true};},
+    function(){var n=sqlRandInt(2,6),c=card+n,w=wrongs(c,3),o=sqlShuffle([c].concat(w));return{prompt:"If "+n+" more rows are added to "+tbl+", what will be the new cardinality?",answer:String(c),options:o.map(String),isMCQ:true};},
+    function(){var n=sqlRandInt(1,4),c=card-n;if(c<1)c=1;var w=wrongs(c,3),o=sqlShuffle([c].concat(w));return{prompt:"If "+n+" rows are removed from "+tbl+", what will be the cardinality?",answer:String(c),options:o.map(String),isMCQ:true};},
+    function(){var n=sqlRandInt(1,3),c=degree+n,w=wrongs(c,3),o=sqlShuffle([c].concat(w));return{prompt:"If "+n+" columns are added to "+tbl+", what will be the new degree?",answer:String(c),options:o.map(String),isMCQ:true};},
+    function(){var opts=sqlShuffle(cols.map(function(c){return c.n;})).slice(0,4);if(opts.indexOf(pkCol.n)===-1)opts[0]=pkCol.n;opts=sqlShuffle(opts);return{prompt:"Which column is the PRIMARY KEY of the "+tbl+" table?",answer:pkCol.n,options:opts,isMCQ:true};},
+    function(){
+      var d1=degree,c1=card,d2=sqlRandInt(3,6),c2=5;
+      var isD=Math.random()>0.5,correct=isD?d1+d2:c1*c2;
+      var w=wrongs(correct,3),o=sqlShuffle([correct].concat(w));
+      return{prompt:isD?"Table "+tbl+" has degree "+d1+". Another table has degree "+d2+". What is the degree of their Cartesian product?":"Table "+tbl+" has cardinality "+c1+". Another table has cardinality "+c2+". What is the cardinality of their Cartesian product?",answer:String(correct),options:o.map(String),isMCQ:true};
+    }
+  ];
+  if(fkCols.length){
+    templates.push(function(){
+      var fk=fkCols[0];
+      var others=cols.filter(function(c){return !c.pk&&c.n!==fk.n;});
+      var wrong=sqlShuffle(others).slice(0,3).map(function(c){return c.n;});
+      var opts=sqlShuffle([fk.n].concat(wrong));
+      return{prompt:"Which column in "+tbl+" could be a FOREIGN KEY?",answer:fk.n,options:opts,isMCQ:true};
+    });
+  }
+  return sqlPick(templates)();
+}
+
+// ══════════════════════════════════════════════════════
+//  BOARD QUESTIONS (Firestore topic=SQL)
+// ══════════════════════════════════════════════════════
+var _sqlBoardCache=null,_sqlBoardFetching=false;
+function sqlFetchBoard(onDone){
+  if(_sqlBoardCache!==null){onDone(_sqlBoardCache);return;}
+  if(_sqlBoardFetching){setTimeout(function(){sqlFetchBoard(onDone);},300);return;}
+  _sqlBoardFetching=true;
+  db.collection("boardQuestions").where("topic","==","SQL").get()
+  .then(function(snap){
+    _sqlBoardCache=[];
+    snap.forEach(function(doc){_sqlBoardCache.push(Object.assign({id:doc.id},doc.data()));});
+    _sqlBoardFetching=false;
+    onDone(_sqlBoardCache);
+  }).catch(function(e){_sqlBoardFetching=false;console.warn("SQL board:",e.message);onDone([]);});
+}
+
+// ══════════════════════════════════════════════════════
+//  MAIN QUESTION GENERATOR — one question per call
+// ══════════════════════════════════════════════════════
+function sqlGenerateOne(qtype,onDone){
+  if(qtype==="Board"){
+    sqlFetchBoard(function(qs){
+      if(!qs.length){
+        // fallback to mixed if no board questions
+        onDone(sqlGenerateOne("Mixed",onDone));return;
+      }
+      var q=sqlPick(qs);
+      onDone(q);
+    });
+    return;
+  }
+  if(qtype==="Mixed"){
+    var freeCats=["DDL","DML","Schema"];
+    var allCats=["DDL","DML","JOIN","Aggregate","Schema"];
+    var pool=S.plan==="paid"?allCats:freeCats;
+    qtype=sqlPick(pool);
+  }
+  var qa,schemaHTML,q;
+  if(qtype==="JOIN"){
+    var jd=sqlGenJoinSchemas();
+    schemaHTML=sqlRenderTable(jd.child)+sqlRenderTable(jd.parent);
+    qa=sqlGenJOIN(jd);
+    q={lines:[qa.prompt],answer:qa.answer,qtype:"write_query",source:"sql_gen",schemaHTML:schemaHTML};
+  }else if(qtype==="Schema"){
+    var s=sqlGenSingleSchema();
+    schemaHTML=sqlRenderTable(s);
+    qa=sqlGenSchemaTheory(s);
+    q={lines:[qa.prompt],answer:qa.answer,options:qa.options,qtype:"mcq",source:"sql_gen",schemaHTML:schemaHTML,isSQLMCQ:true};
+  }else{
+    var s=sqlGenSingleSchema();
+    schemaHTML=sqlRenderTable(s);
+    if(qtype==="DDL") qa=sqlGenDDL(s);
+    else if(qtype==="DML") qa=sqlGenDML(s);
+    else qa=sqlGenAggregate(s);
+    q={lines:[qa.prompt],answer:qa.answer,qtype:"write_query",source:"sql_gen",schemaHTML:schemaHTML};
+  }
+  onDone(q);
+}
+
+// ══════════════════════════════════════════════════════
+//  SQL ANSWER CHECKER
+// ══════════════════════════════════════════════════════
+function sqlCheckAns(userAnswer,correctAnswer){
+  return normSQL(userAnswer)===normSQL(correctAnswer);
+}
+
+// ══════════════════════════════════════════════════════
+//  CSS (injected once)
+// ══════════════════════════════════════════════════════
+var _sqlCSSInjected=false;
+function sqlInjectCSS(){
+  if(_sqlCSSInjected)return;
+  _sqlCSSInjected=true;
+  var s=document.createElement("style");
+  s.textContent=
+    ".sql-schema-container{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;flex-shrink:0;}"+
+    ".sql-schema-block{flex:1;min-width:0;}"+
+    ".sql-table-name{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2);margin-bottom:4px;}"+
+    ".sql-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--bdr2);}"+
+    ".sql-tbl{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--mono);}"+
+    ".sql-tbl th{background:var(--s3);padding:6px 10px;text-align:left;font-size:9px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);white-space:nowrap;border-bottom:1px solid var(--bdr2);}"+
+    ".sql-tbl td{padding:5px 10px;color:var(--text2);white-space:nowrap;border-bottom:1px solid var(--bdr);}"+
+    ".sql-tbl tr:last-child td{border-bottom:none;}"+
+    ".sql-tbl tr:hover td{background:var(--s3);}"+
+    ".sql-pk{font-size:8px;background:rgba(245,166,35,.2);color:var(--gold);padding:1px 4px;border-radius:3px;}"+
+    "@media(max-width:600px){.sql-schema-container{flex-direction:column;}}"+
+    ".sql-free-counter{font-size:10px;color:var(--muted);text-align:right;margin-bottom:4px;}";
+  document.head.appendChild(s);
+}
+
+// ══════════════════════════════════════════════════════
+//  INTEGRATION — loadSQLQuestions, renderSQLQuestion,
+//  checkSQLAns, startSQLQuestion
+// ══════════════════════════════════════════════════════
+var SQL_QTYPE_LABELS={DDL:"DDL",DML:"DML",JOIN:"JOIN",Aggregate:"Group By",Schema:"Schema",Board:"Board",Mixed:"Mixed"};
+
+function isSQLDtype(dt){ return (dt||S.dtype)==="SQL"; }
+
+function sqlFreeBlocked(qtype){
+  if(S.plan==="paid") return false;
+  if(SQL_FREE_QTYPES.indexOf(qtype)===-1) return true;
+  return sqlIsQtypeLimitReached(qtype);
+}
+
+function loadSQLQuestions(qtype){
+  S.qtype=qtype;
+  // Check free restrictions
+  if(S.plan!=="paid"){
+    if(SQL_FREE_QTYPES.indexOf(qtype)===-1){
+      setCardLoading(qtype+" is available for Pro students only. Upgrade to unlock.");
+      return;
+    }
+    if(sqlIsQtypeLimitReached(qtype)){
+      setCardLoading("You've used all "+SQL_FREE_PER_QTYPE+" free "+qtype+" questions for today. Come back tomorrow or upgrade to Pro.");
+      return;
+    }
+  }
+  sqlInjectCSS();
+  setCardLoading("Generating SQL question...");
+  sqlGenerateOne(qtype,function(q){
+    S.currentQuestions=[q];
+    S.currentIdx=0;
+    setCardLoaded();
+    S.checked=false;S.sel=null;S.qcount++;
+    renderSQLQuestion(q);
+  });
+}
+
+function renderSQLQuestion(q){
+  // Schema container
+  var sce=document.getElementById("sql-schema-container");
+  if(sce){sce.style.display=q.schemaHTML?"":"none";sce.innerHTML=q.schemaHTML||"";}
+  // Hide case block
+  var cb=document.getElementById("case-text-block");if(cb)cb.style.display="none";
+
+  // Render question lines in code block
+  renderCode(q.lines||[],document.getElementById("gutter"),document.getElementById("code"));
+
+  // Free counter
+  if(S.plan!=="paid"){
+    var rem=sqlFreeRemaining(S.qtype);
+    document.getElementById("qnum").textContent="SQL Q"+S.qcount+" ("+rem+" "+S.qtype+" left)";
+  }else{
+    document.getElementById("qnum").textContent="SQL Q"+S.qcount;
+  }
+
+  var qtLabel=SQL_QTYPE_LABELS[S.qtype]||S.qtype;
+  document.getElementById("qbadge").textContent=qtLabel;
+  document.getElementById("qprompt").textContent=(q.isSQLMCQ||(q.options&&q.options.length))?"Select the correct answer:":"Write the SQL query:";
+
+  var grid=document.getElementById("mcq-grid");grid.innerHTML="";
+  var mg=document.getElementById("mcq-grid");
+  var ta=document.getElementById("type-area");
+  var wa=document.getElementById("write-area");
+  var isMCQ=!!(q.isSQLMCQ||(q.options&&q.options.length));
+  S._isWriteQ=false;
+
+  if(isMCQ){
+    var opts=q.options||[],ltrs=["A","B","C","D"];
+    opts.forEach(function(opt,i){
+      var btn=document.createElement("button");btn.className="mcq-opt";btn.dataset.value=opt;
+      btn.innerHTML='<span class="opt-ltr">'+ltrs[i]+'</span>'+String(opt).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      btn.addEventListener("click",function(){
+        if(S.checked)return;
+        S.sel=opt;
+        document.querySelectorAll(".mcq-opt").forEach(function(b){b.classList.remove("sel");});
+        btn.classList.add("sel");
+      });
+      grid.appendChild(btn);
+    });
+    mg.style.display="grid";
+    if(ta)ta.classList.remove("show");
+    if(wa)wa.style.display="none";
+    document.getElementById("btn-check").textContent="Check Answer";
+  }else{
+    mg.style.display="none";
+    if(ta){ta.classList.add("show");}
+    if(wa)wa.style.display="none";
+    var ti=document.getElementById("type-inp");
+    if(ti){ti.value="";ti.className="type-inp";ti.placeholder="Type your SQL query...";}
+    document.getElementById("btn-check").textContent="Check Answer";
+  }
+  setFB("","empty");
+  document.getElementById("expl").className="expl";
+  document.getElementById("btn-check").disabled=false;
+  document.getElementById("btn-next").disabled=false;
+}
+
+function checkSQLAns(){
+  if(S.checked)return;
+  var q=S.currentQuestions[S.currentIdx];if(!q)return;
+  var isMCQ=!!(q.isSQLMCQ||(q.options&&q.options.length));
+  var uv;
+  if(isMCQ){uv=S.sel;if(!uv){setFB("\u2190 Select an option first","wrong");return;}}
+  else{uv=document.getElementById("type-inp").value.trim();if(!uv){setFB("\u2190 Type your SQL query first","wrong");return;}}
+  var correct=q.answer;
+  var ok=isMCQ?(String(uv)===String(correct)):sqlCheckAns(uv,correct);
+  S.total++;S.checked=true;
+  // Increment free usage
+  if(S.plan!=="paid") sqlIncrementFreeUsage(S.qtype);
+  if(ok){
+    S.score++;S.streak++;S.best=Math.max(S.best,S.streak);
+    setFB("\u2713  Correct!","correct");
+    if(S.streak>=3)toast(S.streak+" in a row! \u26A1");
+  }else{
+    S.streak=0;S.wrong++;
+    setFB("\u2717  Wrong","wrong");
+    var el=document.getElementById("expl");
+    el.innerHTML="<strong>Answer:</strong> <code style=\"color:var(--gold);font-family:var(--mono);font-size:12px\">"+correct+"</code>";
+    el.className="expl show";
+  }
+  document.getElementById("btn-check").disabled=true;
+  if(isMCQ){
+    document.querySelectorAll(".mcq-opt").forEach(function(btn){
+      btn.disabled=true;
+      if(btn.dataset.value===correct)btn.classList.add("correct");
+      else if(btn.classList.contains("sel"))btn.classList.add("wrong");
+    });
+  }else{
+    var ti=document.getElementById("type-inp");
+    if(ti)ti.className="type-inp "+(ok?"correct":"wrong");
+  }
+  updHdr();
+}
+
+function startSQLQuestion(){
+  // Generate fresh question on each Next
+  loadSQLQuestions(S.qtype);
+}
+
+
+// ═══════════════════════════════════════════════════════════
+//  NETWORKING - CASE STUDY MODULE — PyZap
+//  Client-side, no AI, no CF
+//  Free: 5 cases/day (localStorage)
+//  Paid: unlimited
+// ═══════════════════════════════════════════════════════════
+
+// ── Free limit ──
+var NET_FREE_DAILY_LIMIT = 5;
+
+function netGetFreeUsage(){
+  try{
+    var raw=localStorage.getItem("pyzap_net_free");
+    var today=new Date().toISOString().slice(0,10);
+    if(!raw) return {date:today,count:0};
+    var d=JSON.parse(raw);
+    if(d.date!==today) return {date:today,count:0};
+    return d;
+  }catch(e){return {date:new Date().toISOString().slice(0,10),count:0};}
+}
+function netIncrementFreeUsage(){
+  var u=netGetFreeUsage();
+  u.date=new Date().toISOString().slice(0,10);
+  u.count=(u.count||0)+1;
+  try{localStorage.setItem("pyzap_net_free",JSON.stringify(u));}catch(e){}
+}
+function netIsLimitReached(){
+  if(S.plan==="paid") return false;
+  return netGetFreeUsage().count>=NET_FREE_DAILY_LIMIT;
+}
+function netFreeRemaining(){
+  if(S.plan==="paid") return 999;
+  return Math.max(0,NET_FREE_DAILY_LIMIT-netGetFreeUsage().count);
+}
+
+// ── Helpers ──
+function netPick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function netRandInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function netShuffle(arr){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
+}
+
+// ── Word banks ──
+var NET_COMPANIES=["Deccan Tech","Nova Systems","Apex Corp","Stellar Infotech",
+  "Kiran Industries","Bluewave Solutions","Horizon IT","Zenith Networks",
+  "Pinnacle Systems","Falcon Technologies","Orbit Infotech","Crest Solutions",
+  "Dynamo Tech","Vertex Systems","Pulse Networks","Summit IT Services"];
+
+var NET_CITIES=["Chennai","Pune","Hyderabad","Delhi","Bengaluru","Mumbai",
+  "Ahmedabad","Kolkata","Jaipur","Lucknow","Chandigarh","Nagpur","Surat","Indore"];
+
+var NET_BLOCK_GROUPS=[
+  ["HR","IT","Finance","Logistics"],
+  ["Admin","Sales","Service","Insurance"],
+  ["Research","Development","Testing","Management"],
+  ["Library","Lab","Admin Block","Principal Office"],
+  ["Production","Quality","Dispatch","Accounts"],
+  ["Marketing","Operations","Security","Reception"],
+  ["Design","Engineering","Support","Training"],
+  ["Legal","Purchase","Stores","Maintenance"]
+];
+
+// ── Q5 variant queue (shuffled, no repeat until all 4 done) ──
+var _netQ5Queue=[];
+var _netQ5LastVariant=-1;
+function netGetQ5Variant(){
+  if(_netQ5Queue.length===0){
+    var pool=[0,1,2,3];
+    do{ _netQ5Queue=netShuffle(pool); }
+    while(_netQ5Queue[0]===_netQ5LastVariant);
+  }
+  var v=_netQ5Queue.shift();
+  _netQ5LastVariant=v;
+  return v;
+}
+
+// ── Generate random case ──
+function netGenerateCase(){
+  var company=netPick(NET_COMPANIES);
+  var campus=netPick(NET_CITIES);
+  var headOfficeCities=NET_CITIES.filter(function(c){return c!==campus;});
+  var headOffice=netPick(headOfficeCities);
+  var blocks=netPick(NET_BLOCK_GROUPS).map(function(name){
+    return {name:name, computers:netRandInt(10,120)};
+  });
+  // Generate distances between all pairs
+  var distances=[];
+  for(var i=0;i<blocks.length;i++){
+    for(var j=i+1;j<blocks.length;j++){
+      distances.push({from:blocks[i].name,to:blocks[j].name,metres:netRandInt(20,150)});
+    }
+  }
+  var headOfficeDistance=netRandInt(500,2000);
+  return {company:company,campus:campus,headOffice:headOffice,
+    blocks:blocks,distances:distances,headOfficeDistance:headOfficeDistance,
+    isBoard:false};
+}
+
+// ── Minimum Spanning Tree (Prim's algorithm) ──
+function netMST(blocks,distances){
+  var n=blocks.length;
+  var names=blocks.map(function(b){return b.name;});
+  // Build adjacency
+  var adj={};
+  names.forEach(function(n1){
+    adj[n1]={};
+    names.forEach(function(n2){adj[n1][n2]=Infinity;});
+  });
+  distances.forEach(function(d){adj[d.from][d.to]=d.metres;adj[d.to][d.from]=d.metres;});
+
+  var inMST={};
+  var edges=[];
+  inMST[names[0]]=true;
+  for(var step=0;step<n-1;step++){
+    var best=null,bestW=Infinity;
+    Object.keys(inMST).forEach(function(u){
+      names.forEach(function(v){
+        if(!inMST[v]&&adj[u][v]<bestW){
+          bestW=adj[u][v];best={from:u,to:v,metres:bestW};
+        }
+      });
+    });
+    if(best){edges.push(best);inMST[best.to]=true;}
+  }
+  return edges; // 3 edges for 4 blocks
+}
+
+// ── Generate wrong MST option ──
+function netWrongMST(blocks,distances,correctEdges){
+  // Swap one correct edge with a longer one
+  var allEdges=distances.slice().sort(function(a,b){return a.metres-b.metres;});
+  var correctSet=correctEdges.map(function(e){return e.from+"-"+e.to;});
+  var wrongEdges=correctEdges.slice();
+  // Find an edge not in MST and swap
+  for(var i=0;i<allEdges.length;i++){
+    var e=allEdges[i];
+    var key1=e.from+"-"+e.to, key2=e.to+"-"+e.from;
+    if(correctSet.indexOf(key1)===-1&&correctSet.indexOf(key2)===-1){
+      // Replace last correct edge with this wrong one
+      wrongEdges[wrongEdges.length-1]=e;
+      break;
+    }
+  }
+  return wrongEdges;
+}
+
+// ── Format MST as string ──
+function netFormatMST(edges){
+  return edges.map(function(e){return e.from+" \u2014 "+e.to+": "+e.metres+"m";}).join(", ");
+}
+
+// ── Generate all 5 sub-questions from a case ──
+function netBuildQuestions(c){
+  var blocks=c.blocks, distances=c.distances;
+
+  // Q1: Server placement
+  var maxBlock=blocks.reduce(function(a,b){return b.computers>a.computers?b:a;});
+  var q1Opts=netShuffle(blocks.map(function(b){return b.name+" Block";}));
+  var q1Ans=maxBlock.name+" Block";
+  if(q1Opts.indexOf(q1Ans)===-1)q1Opts[0]=q1Ans;
+  q1Opts=netShuffle(q1Opts);
+
+  // Q2: Cable layout (MST) — 2 options
+  var mstEdges=netMST(blocks,distances);
+  var wrongEdges=netWrongMST(blocks,distances,mstEdges);
+  var q2Ans=netFormatMST(mstEdges);
+  var q2Wrong=netFormatMST(wrongEdges);
+  var q2Opts=netShuffle([q2Ans,q2Wrong]);
+
+  // Q3: Network type
+  var isWAN=c.headOfficeDistance>100;
+  var q3Ans="(a) LAN  (b) WAN";
+  var q3Opts=netShuffle(["(a) LAN  (b) WAN","(a) WAN  (b) LAN","(a) MAN  (b) WAN","(a) LAN  (b) MAN"]);
+  if(q3Opts.indexOf(q3Ans)===-1)q3Opts[0]=q3Ans;
+  q3Opts=netShuffle(q3Opts);
+
+  // Q4: Device placement
+  var repeaterNeeded=distances.filter(function(d){return d.metres>100;});
+  var q4Ans,q4Wrong1,q4Wrong2,q4Wrong3;
+  if(repeaterNeeded.length>0){
+    var rp=repeaterNeeded[0];
+    q4Ans="Switch in every block. Repeater between "+rp.from+" and "+rp.to+" ("+rp.metres+"m).";
+    q4Wrong1="Router in every block. Repeater between "+rp.from+" and "+rp.to+".";
+    q4Wrong2="Switch in every block. No repeater needed.";
+    q4Wrong3="Hub in every block. Repeater between "+rp.from+" and "+rp.to+".";
+  }else{
+    q4Ans="Switch in every block. No repeater needed.";
+    q4Wrong1="Router in every block. No repeater needed.";
+    q4Wrong2="Switch in every block. Repeater between "+blocks[0].name+" and "+blocks[1].name+".";
+    q4Wrong3="Hub in every block. No repeater needed.";
+  }
+  var q4Opts=netShuffle([q4Ans,q4Wrong1,q4Wrong2,q4Wrong3]);
+
+  // Q5: Communication medium (variant from queue)
+  var v=netGetQ5Variant();
+  var q5=netBuildQ5(v,c);
+
+  return [
+    {
+      qnum:1,
+      prompt:"Suggest the most appropriate location for the server inside the "+c.campus+" campus. Justify your answer.",
+      answer:q1Ans,
+      options:q1Opts,
+      explanation:"The server should be placed in the "+maxBlock.name+" Block because it has the maximum number of computers ("+maxBlock.computers+"), providing best connectivity to the most users and minimizing cable length."
+    },
+    {
+      qnum:2,
+      prompt:"Suggest the most effective cable layout to connect all blocks within the "+c.campus+" campus.",
+      answer:q2Ans,
+      options:q2Opts,
+      explanation:"The most effective layout uses a tree topology (Minimum Spanning Tree) connecting blocks through shortest distances without forming loops, minimizing cable cost. Connections: "+q2Ans+"."
+    },
+    {
+      qnum:3,
+      prompt:"What type of network (LAN/MAN/WAN) will be formed by: (a) connecting computers within a block, (b) connecting "+c.campus+" campus to "+c.headOffice+" head office?",
+      answer:q3Ans,
+      options:q3Opts,
+      explanation:"(a) Within a block is a LAN (Local Area Network) — covers a small area like a single building. (b) "+c.campus+" to "+c.headOffice+" is "+c.headOfficeDistance+"km apart, so it is a WAN (Wide Area Network) — covers large geographical distances between cities."
+    },
+    {
+      qnum:4,
+      prompt:"Suggest the placement of the following devices: (a) Switch  (b) Repeater",
+      answer:q4Ans,
+      options:q4Opts,
+      explanation:(repeaterNeeded.length>0?
+        "A Switch is placed in each block to connect all computers and direct data to correct devices. A Repeater is placed between "+repeaterNeeded[0].from+" and "+repeaterNeeded[0].to+" because the distance ("+repeaterNeeded[0].metres+"m) exceeds 100m, causing signal degradation.":
+        "A Switch is placed in each block to connect all computers and direct data to correct devices. No Repeater is needed as all block distances are within 100m.")
+    },
+    q5
+  ];
+}
+
+function netBuildQ5(variant,c){
+  if(variant===0){
+    var ans="Optical Fibre Cable";
+    return {
+      qnum:5,
+      prompt:"Which wired medium would you suggest to connect the "+c.campus+" server to the "+c.headOffice+" head office?",
+      answer:ans,
+      options:netShuffle([ans,"Twisted Pair Cable","Coaxial Cable","Ethernet Cable"]),
+      explanation:"Optical Fibre Cable is recommended for the "+c.headOfficeDistance+"km long distance connection between "+c.campus+" and "+c.headOffice+" because it supports very high speed data transmission, is not affected by electromagnetic interference, and has very low signal loss over long distances."
+    };
+  }
+  if(variant===1){
+    var ans="Twisted Pair Cable";
+    return {
+      qnum:5,
+      prompt:"Which wired medium would you suggest for connecting computers within the "+c.campus+" campus blocks?",
+      answer:ans,
+      options:netShuffle([ans,"Optical Fibre Cable","Coaxial Cable","Radio Waves"]),
+      explanation:"Twisted Pair Cable is suitable for local connections within a campus because it is cost-effective and sufficient for LAN speeds. Optical Fibre can also be used for very high speed but is more expensive and not required for local connections."
+    };
+  }
+  if(variant===2){
+    var ans="Microwave and Infrared";
+    return {
+      qnum:5,
+      prompt:"Suggest any two wireless transmission media that can be used in the "+c.campus+" campus network.",
+      answer:ans,
+      options:netShuffle([ans,"Radio Waves and Satellite","Bluetooth and Infrared","Coaxial and Microwave"]),
+      explanation:"Microwave is suitable for wireless communication between buildings within the campus. Infrared is suitable for short range device-to-device communication within a room. Radio Waves (WiFi) can also be used for wireless LAN within the campus."
+    };
+  }
+  // variant 3
+  var ans="Twisted Pair Cable";
+  return {
+    qnum:5,
+    prompt:"The company wants to connect local offices within the "+c.campus+" campus. They can compromise on speed but want an economical solution. Which medium do you suggest?",
+    answer:ans,
+    options:netShuffle([ans,"Optical Fibre Cable","Coaxial Cable","Satellite Link"]),
+    explanation:"Twisted Pair Cable is the most economical wired medium for local area connections. Since speed is not the priority, it is the best choice over Optical Fibre (expensive) or Coaxial Cable. It is sufficient for the LAN requirements within the campus."
+  };
+}
+
+// ── Board questions from Firestore topic="Networking" ──
+var _netBoardCache=null,_netBoardFetching=false,_netBoardIdx=0;
+function netFetchBoard(onDone){
+  if(_netBoardCache!==null){onDone(_netBoardCache);return;}
+  if(_netBoardFetching){setTimeout(function(){netFetchBoard(onDone);},300);return;}
+  _netBoardFetching=true;
+  db.collection("boardQuestions").where("topic","==","Networking").get()
+  .then(function(snap){
+    _netBoardCache=[];
+    snap.forEach(function(doc){_netBoardCache.push(Object.assign({id:doc.id},doc.data()));});
+    _netBoardFetching=false;
+    onDone(_netBoardCache);
+  }).catch(function(e){_netBoardFetching=false;console.warn("Net board:",e.message);onDone([]);});
+}
+
+// ── Networking state ──
+var NET = {
+  mode: null,        // "practice","board","both"
+  caseData: null,    // current case
+  questions: [],     // 5 sub-questions
+  currentQ: 0,       // 0-4
+  checked: false,
+  sel: null,
+  practicePhase: true, // for "both" mode
+  boardDone: false
+};
+
+// ── CSS (injected once) ──
+var _netCSSInjected=false;
+function netInjectCSS(){
+  if(_netCSSInjected)return;
+  _netCSSInjected=true;
+  var s=document.createElement("style");
+  s.textContent=
+    ".net-mode-card{background:var(--s2);border:1px solid var(--bdr2);border-radius:12px;padding:20px 22px;margin-bottom:0;}"+
+    ".net-mode-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;}"+
+    ".net-mode-options{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}"+
+    ".net-checkbox-row{display:flex;align-items:center;gap:10px;cursor:pointer;}"+
+    ".net-checkbox{width:18px;height:18px;border:2px solid var(--bdr2);border-radius:4px;background:var(--s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}"+
+    ".net-checkbox.checked{background:var(--acc);border-color:var(--acc);}"+
+    ".net-checkbox.checked::after{content:'\\2713';color:#000;font-size:11px;font-weight:800;}"+
+    ".net-checkbox-lbl{font-size:13px;color:var(--text2);font-weight:600;}"+
+    ".net-checkbox-desc{font-size:11px;color:var(--muted);margin-left:28px;margin-top:-6px;}"+
+    ".net-case-box{background:var(--s2);border:1px solid var(--bdr2);border-radius:10px;padding:14px 16px;margin-bottom:8px;flex-shrink:0;}"+
+    ".net-case-title{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2);margin-bottom:10px;}"+
+    ".net-company{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}"+
+    ".net-campus{font-size:11px;color:var(--text2);margin-bottom:10px;}"+
+    ".net-blocks-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px;}"+
+    ".net-block-card{background:var(--s3);border:1px solid var(--bdr);border-radius:7px;padding:8px 10px;}"+
+    ".net-block-name{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--acc);}"+
+    ".net-block-comp{font-size:12px;font-weight:700;color:var(--text);font-family:var(--mono);}"+
+    ".net-dist-table{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--mono);}"+
+    ".net-dist-table th{background:var(--s3);padding:5px 8px;text-align:left;font-size:9px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);white-space:nowrap;}"+
+    ".net-dist-table td{padding:4px 8px;color:var(--text2);border-top:1px solid var(--bdr);}"+
+    ".net-dist-wrap{overflow-x:auto;border:1px solid var(--bdr2);border-radius:7px;}"+
+    ".net-progress{display:flex;gap:4px;margin-bottom:10px;flex-shrink:0;}"+
+    ".net-prog-dot{flex:1;height:4px;border-radius:2px;background:var(--bdr2);}"+
+    ".net-prog-dot.done{background:var(--acc);}"+
+    ".net-prog-dot.active{background:var(--gold);}"+
+    ".net-expl{background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.2);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.6;margin-top:8px;display:none;}"+
+    ".net-expl.show{display:block;}"+
+    ".net-done-box{text-align:center;padding:20px 0;}"+
+    ".net-done-title{font-size:16px;font-weight:700;color:var(--acc);margin-bottom:8px;}"+
+    ".net-done-sub{font-size:12px;color:var(--text2);margin-bottom:16px;}"+
+    "@media(max-width:600px){.net-blocks-grid{grid-template-columns:1fr 1fr;}}";
+  document.head.appendChild(s);
+}
+
+// ── Render case info box (always visible during questions) ──
+function netRenderCaseBox(c){
+  var h='<div class="net-case-box">';
+  h+='<div class="net-case-title">Case Details</div>';
+  h+='<div class="net-company">'+c.company+'</div>';
+  h+='<div class="net-campus">Campus: '+c.campus+' &nbsp;|&nbsp; Head Office: '+c.headOffice+' &nbsp;|&nbsp; Distance: '+c.headOfficeDistance+'km</div>';
+  h+='<div class="net-blocks-grid">';
+  c.blocks.forEach(function(b){
+    h+='<div class="net-block-card"><div class="net-block-name">'+b.name+'</div><div class="net-block-comp">'+b.computers+' computers</div></div>';
+  });
+  h+='</div>';
+  // Distances table
+  h+='<div class="net-dist-wrap"><table class="net-dist-table"><thead><tr><th>From</th><th>To</th><th>Distance</th></tr></thead><tbody>';
+  c.distances.forEach(function(d){
+    h+='<tr><td>'+d.from+'</td><td>'+d.to+'</td><td>'+d.metres+'m</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='</div>';
+  return h;
+}
+
+// ── Main entry: show mode selector ──
+function loadNetworkingQuestions(){
+  netInjectCSS();
+  // Hide SQL schema container
+  var sce=document.getElementById("sql-schema-container");if(sce)sce.style.display="none";
+  var cb=document.getElementById("case-text-block");if(cb)cb.style.display="none";
+
+  // Check free limit
+  if(S.plan!=="paid"&&netIsLimitReached()){
+    setCardLoading("You've used your "+NET_FREE_DAILY_LIMIT+" free Networking cases for today. Come back tomorrow or upgrade to Pro.");
+    return;
+  }
+
+  setCardLoaded();
+  netShowModeSelector();
+}
+
+function netShowModeSelector(){
+  // Build mode selector in qcard content area
+  document.getElementById("qnum").textContent="Networking";
+  document.getElementById("qbadge").textContent="Case Study";
+  document.getElementById("qprompt").textContent="Select mode to start:";
+
+  // Hide code/mcq/type areas
+  renderCode([],document.getElementById("gutter"),document.getElementById("code"));
+  document.getElementById("mcq-grid").style.display="none";
+  document.getElementById("mcq-grid").innerHTML="";
+  var ta=document.getElementById("type-area");if(ta)ta.classList.remove("show");
+  var wa=document.getElementById("write-area");if(wa)wa.style.display="none";
+  document.getElementById("btn-check").style.display="none";
+  document.getElementById("btn-next").style.display="none";
+  setFB("","empty");
+  document.getElementById("expl").className="expl";
+
+  // Build selector in expl area (repurpose as content area)
+  var rem=S.plan==="paid"?"":' <span style="font-size:10px;color:var(--muted)">('+netFreeRemaining()+' cases left today)</span>';
+  var el=document.getElementById("expl");
+  el.className="expl show";
+  el.innerHTML=
+    '<div class="net-mode-card">'+
+    '<div class="net-mode-title">Choose Practice Mode'+rem+'</div>'+
+    '<div class="net-mode-options">'+
+      '<div>'+
+        '<div class="net-checkbox-row" onclick="netToggleMode(\'practice\')">'+
+          '<div class="net-checkbox" id="net-cb-practice"></div>'+
+          '<span class="net-checkbox-lbl">Practice Mode</span>'+
+        '</div>'+
+        '<div class="net-checkbox-desc">Fresh case generated with random company, blocks and distances</div>'+
+      '</div>'+
+      '<div>'+
+        '<div class="net-checkbox-row" onclick="netToggleMode(\'board\')">'+
+          '<div class="net-checkbox" id="net-cb-board"></div>'+
+          '<span class="net-checkbox-lbl">Board Questions</span>'+
+        '</div>'+
+        '<div class="net-checkbox-desc">Real CBSE exam-style questions from question bank</div>'+
+      '</div>'+
+    '</div>'+
+    '<button class="btn btn-check" onclick="netStartSession()" style="width:100%;margin-top:4px;">Start \u2192</button>'+
+    '</div>';
+
+  NET._practiceChecked=false;
+  NET._boardChecked=false;
+}
+
+function netToggleMode(mode){
+  if(mode==="practice"){
+    NET._practiceChecked=!NET._practiceChecked;
+    var cb=document.getElementById("net-cb-practice");
+    if(cb)cb.className="net-checkbox"+(NET._practiceChecked?" checked":"");
+  }else{
+    NET._boardChecked=!NET._boardChecked;
+    var cb=document.getElementById("net-cb-board");
+    if(cb)cb.className="net-checkbox"+(NET._boardChecked?" checked":"");
+  }
+}
+
+function netStartSession(){
+  if(!NET._practiceChecked&&!NET._boardChecked){
+    setFB("Please select at least one mode to continue.","wrong");
+    return;
+  }
+  if(NET._practiceChecked&&NET._boardChecked) NET.mode="both";
+  else if(NET._practiceChecked) NET.mode="practice";
+  else NET.mode="board";
+
+  NET.practicePhase=true;
+  NET.boardDone=false;
+  NET.currentQ=0;
+
+  // Restore btn-check and btn-next
+  document.getElementById("btn-check").style.display="";
+  document.getElementById("btn-next").style.display="";
+
+  if(NET.mode==="board"||(NET.mode==="both"&&false)){
+    netLoadBoardCase();
+  }else{
+    netStartPracticeCase();
+  }
+}
+
+function netStartPracticeCase(){
+  // Check free limit
+  if(S.plan!=="paid"&&netIsLimitReached()){
+    netShowDone("You've used your "+NET_FREE_DAILY_LIMIT+" free Networking cases for today. Come back tomorrow or upgrade to Pro.",false);
+    return;
+  }
+  if(S.plan!=="paid") netIncrementFreeUsage();
+  NET.caseData=netGenerateCase();
+  NET.questions=netBuildQuestions(NET.caseData);
+  NET.currentQ=0;
+  NET.practicePhase=true;
+  netShowQuestion();
+}
+
+function netLoadBoardCase(){
+  setCardLoading("Loading board question...");
+  netFetchBoard(function(qs){
+    if(!qs.length){
+      if(NET.mode==="both"&&NET.practicePhase){
+        // Both mode, practice done, no board questions
+        netShowDone("No board questions available. Add them via Admin \u2192 Board Questions.",false);
+      }else{
+        setCardLoaded();
+        netShowDone("No board questions yet. Use Practice Mode to generate cases.",false);
+      }
+      return;
+    }
+    // Check free limit for board mode
+    if(S.plan!=="paid"&&netIsLimitReached()){
+      netShowDone("You've used your "+NET_FREE_DAILY_LIMIT+" free Networking cases for today. Come back tomorrow or upgrade to Pro.",false);
+      return;
+    }
+    if(S.plan!=="paid") netIncrementFreeUsage();
+
+    // Pick next board question (cycle through)
+    var q=qs[_netBoardIdx % qs.length];
+    _netBoardIdx++;
+
+    // Convert board question format to case format
+    var c={
+      company:q.case_text?q.case_text[0]:(q.company||"Company"),
+      campus:q.case_text?q.case_text[1]:(q.campus||"Campus"),
+      headOffice:q.case_text?q.case_text[2]:(q.headOffice||"Head Office"),
+      headOfficeDistance:q.marks||1000,
+      blocks:q.lines?q.lines.map(function(l,i){
+        var parts=l.split(":");
+        return {name:parts[0]||("Block "+(i+1)),computers:parseInt(parts[1])||50};
+      }):[],
+      distances:[],
+      isBoard:true,
+      boardQuestions:q.answer?q.answer.split("\n"):[]
+    };
+
+    // For board questions, use stored questions directly
+    NET.caseData=c;
+    NET.questions=netBuildBoardQuestions(q);
+    NET.currentQ=0;
+    NET.practicePhase=false;
+    setCardLoaded();
+    netShowQuestion();
+  });
+}
+
+function netBuildBoardQuestions(boardQ){
+  // Board questions stored as lines[] with answers
+  // Format: each line is a sub-question, answer in answer field (newline separated)
+  var lines=boardQ.lines||[];
+  var answers=(boardQ.answer||"").split("\n");
+  var qs=[];
+  for(var i=0;i<Math.min(5,lines.length);i++){
+    qs.push({
+      qnum:i+1,
+      prompt:lines[i],
+      answer:answers[i]||"",
+      options:[answers[i]||"","Option B","Option C","Option D"],
+      explanation:"",
+      isBoard:true
+    });
+  }
+  // Pad to 5 if needed
+  while(qs.length<5){
+    qs.push({qnum:qs.length+1,prompt:"Sub-question "+(qs.length+1),answer:"",options:["","","",""],explanation:"",isBoard:true});
+  }
+  return qs;
+}
+
+// ── Show current sub-question ──
+function netShowQuestion(){
+  if(NET.currentQ>=NET.questions.length){
+    netShowDone("",true);
+    return;
+  }
+
+  var q=NET.questions[NET.currentQ];
+  NET.checked=false;NET.sel=null;
+
+  // Update qnum and badge
+  document.getElementById("qnum").textContent="Q "+(NET.currentQ+1)+" of 5";
+  document.getElementById("qbadge").textContent="Networking";
+
+  // Progress dots
+  netUpdateProgress();
+
+  // Case box in schema container
+  var sce=document.getElementById("sql-schema-container");
+  if(sce){
+    sce.style.display="";
+    sce.innerHTML=netRenderCaseBox(NET.caseData);
+  }
+
+  // Question in code area
+  renderCode([q.prompt],document.getElementById("gutter"),document.getElementById("code"));
+  document.getElementById("qprompt").textContent="Select the correct answer:";
+
+  // MCQ options
+  var grid=document.getElementById("mcq-grid");
+  grid.innerHTML="";
+  grid.style.display="grid";
+  var ta=document.getElementById("type-area");if(ta)ta.classList.remove("show");
+  var wa=document.getElementById("write-area");if(wa)wa.style.display="none";
+
+  var ltrs=["A","B","C","D"];
+  var opts=q.options||[];
+  opts.forEach(function(opt,i){
+    var btn=document.createElement("button");
+    btn.className="mcq-opt";btn.dataset.value=opt;
+    btn.innerHTML='<span class="opt-ltr">'+ltrs[i]+'</span>'+
+      String(opt).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    btn.addEventListener("click",function(){
+      if(NET.checked)return;
+      NET.sel=opt;
+      document.querySelectorAll(".mcq-opt").forEach(function(b){b.classList.remove("sel");});
+      btn.classList.add("sel");
+    });
+    grid.appendChild(btn);
+  });
+
+  // Hide explanation
+  var explEl=document.getElementById("expl");
+  explEl.className="expl";explEl.innerHTML="";
+
+  setFB("","empty");
+  document.getElementById("btn-check").textContent="Check Answer";
+  document.getElementById("btn-check").disabled=false;
+  document.getElementById("btn-next").disabled=true;
+  document.getElementById("btn-check").style.display="";
+  document.getElementById("btn-next").style.display="";
+}
+
+function netUpdateProgress(){
+  // Show progress dots above question (in qprompt area)
+  var dots='<div class="net-progress">';
+  for(var i=0;i<5;i++){
+    var cls="net-prog-dot"+(i<NET.currentQ?" done":i===NET.currentQ?" active":"");
+    dots+='<div class="'+cls+'"></div>';
+  }
+  dots+='</div>';
+  // Inject before code area
+  var code=document.getElementById("code");
+  if(code&&code.parentNode){
+    var existing=document.getElementById("net-progress-bar");
+    if(!existing){
+      var div=document.createElement("div");
+      div.id="net-progress-bar";
+      code.parentNode.insertBefore(div,code.parentNode.firstChild);
+    }
+    document.getElementById("net-progress-bar").innerHTML=dots;
+  }
+}
+
+// ── Check networking answer ──
+function checkNetworkingAns(){
+  if(NET.checked)return;
+  var q=NET.questions[NET.currentQ];if(!q)return;
+  if(!NET.sel){setFB("\u2190 Select an option first","wrong");return;}
+  var ok=NET.sel===q.answer;
+  NET.checked=true;
+
+  // Update main stats
+  S.total++;
+  if(ok){
+    S.score++;S.streak++;S.best=Math.max(S.best,S.streak);
+    setFB("\u2713  Correct!","correct");
+    if(S.streak>=3)toast(S.streak+" in a row! \u26A1");
+  }else{
+    S.streak=0;S.wrong++;
+    setFB("\u2717  Wrong","wrong");
+  }
+  updHdr();
+
+  // Mark MCQ options
+  document.querySelectorAll(".mcq-opt").forEach(function(btn){
+    btn.disabled=true;
+    if(btn.dataset.value===q.answer)btn.classList.add("correct");
+    else if(btn.classList.contains("sel"))btn.classList.add("wrong");
+  });
+
+  // Show explanation
+  if(q.explanation){
+    var el=document.getElementById("expl");
+    el.className="expl show";
+    el.innerHTML='<div class="net-expl show">'+q.explanation+'</div>';
+  }
+
+  document.getElementById("btn-check").disabled=true;
+  document.getElementById("btn-next").disabled=false;
+}
+
+// ── Next sub-question ──
+function netNextQuestion(){
+  NET.currentQ++;
+  if(NET.currentQ>=5){
+    // Done with this set
+    if(NET.mode==="both"&&NET.practicePhase){
+      // Switch to board phase
+      NET.practicePhase=false;
+      netLoadBoardCase();
+    }else{
+      netShowDone("",true);
+    }
+    return;
+  }
+  netShowQuestion();
+}
+
+function netShowDone(msg,showNewCase){
+  document.getElementById("qnum").textContent="Done!";
+  document.getElementById("qbadge").textContent="Networking";
+  renderCode([],document.getElementById("gutter"),document.getElementById("code"));
+  document.getElementById("mcq-grid").style.display="none";
+  document.getElementById("mcq-grid").innerHTML="";
+  var ta=document.getElementById("type-area");if(ta)ta.classList.remove("show");
+  document.getElementById("btn-check").style.display="none";
+  document.getElementById("btn-next").style.display="none";
+  setFB("","empty");
+
+  var el=document.getElementById("expl");
+  el.className="expl show";
+  if(msg){
+    el.innerHTML='<div style="font-size:13px;color:var(--text2);padding:8px 0">'+msg+'</div>';
+  }else{
+    el.innerHTML=
+      '<div class="net-done-box">'+
+      '<div class="net-done-title">Set Complete!</div>'+
+      '<div class="net-done-sub">All 5 questions answered. Great work!</div>'+
+      '<button class="btn btn-check" onclick="netNewCase()" style="padding:10px 24px;">New Case \u2192</button>'+
+      '</div>';
+  }
+
+  // Remove progress bar
+  var pb=document.getElementById("net-progress-bar");if(pb)pb.remove();
+}
+
+function netNewCase(){
+  NET.currentQ=0;NET.checked=false;NET.sel=null;
+  document.getElementById("btn-check").style.display="";
+  document.getElementById("btn-next").style.display="";
+  // Check free limit
+  if(S.plan!=="paid"&&netIsLimitReached()){
+    setCardLoading("You've used your "+NET_FREE_DAILY_LIMIT+" free Networking cases for today. Come back tomorrow or upgrade to Pro.");
+    return;
+  }
+  // Go back to mode selector for fresh start
+  loadNetworkingQuestions();
+}
+
+// ── isNetworkingDtype ──
+function isNetworkingDtype(dt){return (dt||S.dtype)==="Networking";}
+
+// ─── Assertion & Reason ───
+var _arCache = {};  // by dtype
+function loadAssertionReasonQuestions(){
+  setCardLoading("Loading Assertion & Reason questions...");
+  var dtype = S.dtype;
+  // Fetch from Firestore boardQuestions where qtype=assertion_reason for this topic
+  // Use topic mapping: AssertionReason → show questions across all topics
+  db.collection("boardQuestions")
+    .where("qtype","==","assertion_reason")
+    .get()
+    .then(function(snap){
+      var qs = [];
+      snap.forEach(function(doc){ qs.push(Object.assign({id:doc.id}, doc.data())); });
+      if(!qs.length){
+        setCardLoading("No Assertion & Reason questions yet. Add them via Admin \u2192 Board Questions.");
+        return;
+      }
+      // Shuffle
+      for(var i=qs.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=qs[i];qs[i]=qs[j];qs[j]=t;}
+      S.currentQuestions = qs;
+      S.currentIdx = 0;
+      setCardLoaded();
+      S.checked=false;S.sel=null;S.qcount++;
+      showCurrentQuestion();
+    })
+    .catch(function(e){
+      setCardLoading("Error loading questions. Please refresh.");
+      console.error(e);
+    });
+}
+
+// ── isNetworkingDtype ──
+function isNetworkingDtype(dt){return (dt||S.dtype)==="Networking";}
 </script>
 </body>
 </html>

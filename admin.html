@@ -191,6 +191,22 @@ tr:hover td{background:var(--s3);}
   .stats-grid{grid-template-columns:repeat(2,1fr);}
   .pub-form{grid-template-columns:1fr;}
 }
+
+/* ── BOARD QUESTIONS ── */
+.bq-topic-btn{background:var(--s2);border:1.5px solid var(--bdr2);border-radius:12px;padding:20px 16px;cursor:pointer;transition:all .15s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.bq-topic-btn:hover{border-color:var(--acc);background:var(--accdim);}
+.bq-topic-icon{font-size:20px;font-weight:800;color:var(--gold2);}
+.bq-topic-lbl{font-size:12px;font-weight:700;color:var(--text2);}
+.bq-form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:12px;}
+.bq-topic-form{animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.bq-subq-card{background:var(--s3);border:1px solid var(--bdr2);border-radius:8px;padding:12px 14px;margin-bottom:8px;}
+.bq-subq-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:11px;font-weight:700;color:var(--muted);}
+.bq-opt-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.bq-opt-radio{accent-color:var(--acc);width:14px;height:14px;cursor:pointer;flex-shrink:0;}
+.bq-opt-inp{flex:1;padding:7px 10px;background:var(--s2);border:1.5px solid var(--bdr2);border-radius:6px;color:var(--text);font-family:var(--font);font-size:12px;outline:none;}
+.bq-opt-inp:focus{border-color:var(--acc);}
+.bq-opt-del{background:var(--rddim);border:none;border-radius:4px;color:var(--red);font-size:11px;padding:4px 8px;cursor:pointer;font-weight:700;}
 </style>
 </head>
 <body>
@@ -400,83 +416,319 @@ tr:hover td{background:var(--s3);}
 
       <!-- BOARD QUESTIONS -->
       <div class="page" id="page-boardqs">
-        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
-          <button class="btn-save-settings" onclick="showBoardForm()">+ Add Question</button>
-          <button class="btn-save-settings" onclick="downloadBoardTemplate()" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">&#x2b07; Template</button>
-          <label class="btn-save-settings" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);cursor:pointer;">
-            &#x2b06; Upload Excel
-            <input type="file" id="bq-upload-file" accept=".xlsx,.xls" style="display:none" onchange="uploadBoardExcel(this)">
-          </label>
-          <select class="filter-sel" id="bq-filter-topic" onchange="filterBoardQuestions()">
-            <option value="">All Topics</option><option value="String">String</option><option value="List">List</option>
-            <option value="Tuple">Tuple</option><option value="Dictionary">Dictionary</option><option value="Functions">Functions</option>
-            <option value="Modules">Modules</option><option value="ExceptionHandling">Exception Handling</option>
-            <option value="FileHandling">File Handling</option><option value="SQL">SQL</option>
-          </select>
-          <select class="filter-sel" id="bq-filter-qtype" onchange="filterBoardQuestions()">
-            <option value="">All Types</option><option value="predict_output">Predict Output</option><option value="mcq">MCQ</option>
-            <option value="write_function">Write Function</option><option value="write_query">Write Query</option>
-            <option value="assertion_reason">Assertion &amp; Reason</option><option value="fill_blank">Fill in the Blank</option>
-          </select>
-        </div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:8px;" id="bq-count">Loading...</div>
-        <div class="tbl-wrap"><table>
-          <thead><tr><th>Topic</th><th>Type</th><th>Year</th><th>Preview</th><th>Answer</th><th>Marks</th><th></th></tr></thead>
-          <tbody id="bq-tbody"><tr><td colspan="7" class="tbl-empty"><div class="spinner" style="margin:0 auto"></div></td></tr></tbody>
-        </table></div>
-        <div id="bq-pagination" style="font-size:12px;color:var(--text2);padding:10px 0;"></div>
-        <!-- Form Modal -->
-        <div class="modal hidden" id="bq-form-modal">
-          <div class="modal-box" style="max-width:600px;width:95%;max-height:90vh;overflow-y:auto;">
-            <div class="modal-title" id="bq-form-title">Add Board Question</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-              <div class="form-row"><div class="form-lbl">Topic</div>
-                <select class="form-sel" id="bq-topic">
-                  <option value="String">String</option><option value="List">List</option><option value="Tuple">Tuple</option>
-                  <option value="Dictionary">Dictionary</option><option value="Functions">Functions</option><option value="Modules">Modules</option>
-                  <option value="ExceptionHandling">Exception Handling</option><option value="FileHandling">File Handling</option><option value="SQL">SQL</option>
-                </select></div>
-              <div class="form-row"><div class="form-lbl">Question Type</div>
-                <select class="form-sel" id="bq-qtype" onchange="onBqQtypeChange()">
-                  <option value="predict_output">Predict Output</option><option value="mcq">MCQ</option>
-                  <option value="write_function">Write Function</option><option value="write_query">Write Query</option>
-                  <option value="assertion_reason">Assertion &amp; Reason</option><option value="fill_blank">Fill in the Blank</option>
-                </select></div>
-              <div class="form-row"><div class="form-lbl">Year / Exam</div><input class="form-inp" id="bq-year" placeholder="CBSE Board 2024-25"></div>
-              <div class="form-row"><div class="form-lbl">Marks</div>
-                <select class="form-sel" id="bq-marks"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
-              <div class="form-row" style="grid-column:1/-1;">
-                <div class="form-lbl">Case ID <span style="color:var(--muted);font-size:10px;">(optional)</span></div>
-                <input class="form-inp" id="bq-caseid" placeholder="e.g. case_2024_1">
-              </div>
+
+        <!-- TOPIC SELECTOR (shown by default) -->
+        <div id="bq-topic-selector">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;">Select Topic to Add Questions</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:24px;">
+            <button class="bq-topic-btn" onclick="bqSelectTopic('Functions')">
+              <div class="bq-topic-icon">&#x192;</div>
+              <div class="bq-topic-lbl">Functions</div>
+            </button>
+            <button class="bq-topic-btn" onclick="bqSelectTopic('Modules')">
+              <div class="bq-topic-icon">&#x25A6;</div>
+              <div class="bq-topic-lbl">Modules</div>
+            </button>
+            <button class="bq-topic-btn" onclick="bqSelectTopic('Exception')">
+              <div class="bq-topic-icon">&#x26A0;</div>
+              <div class="bq-topic-lbl">Exception Handling</div>
+            </button>
+            <button class="bq-topic-btn" onclick="bqSelectTopic('AssertionReason')">
+              <div class="bq-topic-icon">A/R</div>
+              <div class="bq-topic-lbl">Assertion &amp; Reason</div>
+            </button>
+            <button class="bq-topic-btn" onclick="bqSelectTopic('SQL')">
+              <div class="bq-topic-icon">SQL</div>
+              <div class="bq-topic-lbl">SQL</div>
+            </button>
+            <button class="bq-topic-btn" onclick="bqSelectTopic('Networking')">
+              <div class="bq-topic-icon">&#x1F310;</div>
+              <div class="bq-topic-lbl">Networking</div>
+            </button>
+          </div>
+
+          <!-- View existing questions -->
+          <div style="border-top:1px solid var(--bdr);padding-top:16px;">
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">View / Manage Questions</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+              <select class="filter-sel" id="bq-filter-topic" onchange="bqLoadExisting()">
+                <option value="">All Topics</option>
+                <option value="Functions">Functions</option>
+                <option value="Modules">Modules</option>
+                <option value="Exception">Exception Handling</option>
+                <option value="AssertionReason">Assertion &amp; Reason</option>
+                <option value="SQL">SQL</option>
+                <option value="Networking">Networking</option>
+              </select>
+              <select class="filter-sel" id="bq-filter-qtype" onchange="bqLoadExisting()">
+                <option value="">All Types</option>
+                <option value="mcq">MCQ</option>
+                <option value="predict_output">Predict Output</option>
+                <option value="write_function">Write Function</option>
+                <option value="rewrite_function">Rewrite Function</option>
+                <option value="assertion_reason">Assertion &amp; Reason</option>
+                <option value="write_query">Write Query</option>
+                <option value="case_based">Case Based</option>
+              </select>
             </div>
-            <div class="form-row" id="bq-casetext-row" style="display:none;">
-              <div class="form-lbl">Case Text <span style="color:var(--muted);font-size:10px;">(one line per row)</span></div>
-              <textarea class="form-ta" id="bq-casetext" rows="4" placeholder="Table: Students&#10;RollNo | Name | Marks"></textarea>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;" id="bq-count"></div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Topic</th><th>Type</th><th>Year</th><th>Preview</th><th>Marks</th><th></th></tr></thead>
+                <tbody id="bq-tbody"><tr><td colspan="6" class="tbl-empty">Select a topic or filter above to view questions.</td></tr></tbody>
+              </table>
             </div>
-            <div class="form-row">
-              <div class="form-lbl">Code / Question Lines <span style="color:var(--muted);font-size:10px;">(one line per row)</span></div>
-              <textarea class="form-ta" id="bq-lines" rows="6" placeholder="x = [1,2,3]&#10;print(x[0])"></textarea>
-            </div>
-            <div id="bq-ar-fields" style="display:none;">
-              <div class="form-row"><div class="form-lbl">Assertion (A)</div><input class="form-inp" id="bq-assertion" placeholder="Python list is mutable"></div>
-              <div class="form-row"><div class="form-lbl">Reason (R)</div><input class="form-inp" id="bq-reason" placeholder="List elements can be changed after creation"></div>
-            </div>
-            <div id="bq-options-fields" style="display:none;">
-              <div class="form-row"><div class="form-lbl">Options (A, B, C, D)</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <input class="form-inp" id="bq-opt-a" placeholder="Option A"><input class="form-inp" id="bq-opt-b" placeholder="Option B">
-                  <input class="form-inp" id="bq-opt-c" placeholder="Option C"><input class="form-inp" id="bq-opt-d" placeholder="Option D">
-                </div></div>
-            </div>
-            <div class="form-row"><div class="form-lbl" id="bq-answer-lbl">Answer / Expected Output</div>
-              <textarea class="form-ta" id="bq-answer" rows="3" placeholder="Expected output or model answer"></textarea></div>
-            <div style="display:flex;gap:10px;margin-top:14px;">
-              <button class="btn-save-settings" id="bq-form-save" onclick="saveBoardQuestion()">Save Question</button>
-              <button class="btn-save-settings" onclick="document.getElementById('bq-form-modal').classList.add('hidden')" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">Cancel</button>
-            </div>
+            <div id="bq-pagination" style="font-size:12px;color:var(--text2);padding:8px 0;"></div>
           </div>
         </div>
+
+        <!-- FORM AREA (hidden until topic selected) -->
+        <div id="bq-form-area" style="display:none;">
+          <!-- Header -->
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <button onclick="bqBackToTopics()" style="padding:6px 12px;background:var(--s3);border:1.5px solid var(--bdr2);border-radius:7px;color:var(--text2);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;">&#x2190; Back</button>
+            <div id="bq-form-heading" style="font-size:15px;font-weight:700;color:var(--gold2);"></div>
+          </div>
+
+          <!-- ── FUNCTIONS FORM ── -->
+          <div id="bq-form-functions" class="bq-topic-form" style="display:none;">
+            <div class="bq-form-grid">
+              <div class="form-row"><div class="form-lbl">Question Type</div>
+                <select class="form-sel" id="fn-qtype" onchange="bqFnQtypeChange()">
+                  <option value="mcq">MCQ</option>
+                  <option value="predict_output">Predict Output</option>
+                  <option value="write_function">Write Function</option>
+                  <option value="rewrite_function">Rewrite Function</option>
+                </select>
+              </div>
+              <div class="form-row"><div class="form-lbl">Year / Exam</div>
+                <input class="form-inp" id="fn-year" placeholder="CBSE Board 2024-25">
+              </div>
+              <div class="form-row"><div class="form-lbl">Marks</div>
+                <select class="form-sel" id="fn-marks">
+                  <option value="1">1 Mark</option><option value="2">2 Marks</option><option value="3">3 Marks</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row"><div class="form-lbl">Description / Question Text</div>
+              <input class="form-inp" id="fn-desc" placeholder="e.g. What will be the output of the following code?">
+            </div>
+            <div class="form-row"><div class="form-lbl">Code Lines <span style="color:var(--muted);font-size:10px;">(one line per row)</span></div>
+              <textarea class="form-ta" id="fn-lines" rows="6" placeholder="def greet(name):&#10;    print('Hello', name)&#10;greet('CBSE')"></textarea>
+            </div>
+            <div id="fn-mcq-fields" style="display:none;">
+              <div class="form-row"><div class="form-lbl">Options — select correct answer</div>
+                <div id="fn-options-wrap"></div>
+                <button onclick="bqAddOption('fn')" style="margin-top:6px;padding:5px 12px;background:var(--s3);border:1.5px solid var(--bdr2);border-radius:6px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;">+ Add Option</button>
+              </div>
+            </div>
+            <div class="form-row" id="fn-answer-row"><div class="form-lbl" id="fn-answer-lbl">Answer / Expected Output</div>
+              <textarea class="form-ta" id="fn-answer" rows="4" placeholder="Expected output or model code"></textarea>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:14px;">
+              <button class="btn-save-settings" onclick="bqSave('Functions')">Save</button>
+              <button class="btn-save-settings" onclick="bqClear('fn')" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">Clear</button>
+              <button class="btn-save-settings" onclick="bqBackToTopics()" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">Close</button>
+            </div>
+          </div>
+
+          <!-- ── MODULES FORM ── -->
+          <div id="bq-form-modules" class="bq-topic-form" style="display:none;">
+            <div class="bq-form-grid">
+              <div class="form-row"><div class="form-lbl">Module</div>
+                <select class="form-sel" id="mod-module">
+                  <option value="math">math</option>
+                  <option value="random">random</option>
+                  <option value="statistics">statistics</option>
+                </select>
+              </div>
+              <div class="form-row"><div class="form-lbl">Question Type</div>
+                <select class="form-sel" id="mod-qtype" onchange="bqModQtypeChange()">
+                  <option value="mcq">MCQ</option>
+                  <option value="predict_output">Predict Output</option>
+                </select>
+              </div>
+              <div class="form-row"><div class="form-lbl">Year / Exam</div>
+                <input class="form-inp" id="mod-year" placeholder="CBSE Board 2024-25">
+              </div>
+              <div class="form-row"><div class="form-lbl">Marks</div>
+                <select class="form-sel" id="mod-marks">
+                  <option value="1">1 Mark</option><option value="2">2 Marks</option><option value="3">3 Marks</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row"><div class="form-lbl">Description / Question Text</div>
+              <input class="form-inp" id="mod-desc" placeholder="e.g. What will be the output of the following code?">
+            </div>
+            <div class="form-row"><div class="form-lbl">Code Lines <span style="color:var(--muted);font-size:10px;">(one line per row)</span></div>
+              <textarea class="form-ta" id="mod-lines" rows="6" placeholder="import math&#10;print(math.sqrt(16))"></textarea>
+            </div>
+            <div id="mod-mcq-fields" style="display:none;">
+              <div class="form-row"><div class="form-lbl">Options — select correct answer</div>
+                <div id="mod-options-wrap"></div>
+                <button onclick="bqAddOption('mod')" style="margin-top:6px;padding:5px 12px;background:var(--s3);border:1.5px solid var(--bdr2);border-radius:6px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;">+ Add Option</button>
+              </div>
+            </div>
+            <div class="form-row" id="mod-answer-row"><div class="form-lbl">Answer / Expected Output</div>
+              <textarea class="form-ta" id="mod-answer" rows="3" placeholder="Expected output"></textarea>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:14px;">
+              <button class="btn-save-settings" onclick="bqSave('Modules')">Save</button>
+              <button class="btn-save-settings" onclick="bqClear('mod')" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">Clear</button>
+              <button class="btn-save-settings" onclick="bqBackToTopics()" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">Close</button>
+            </div>
+          </div>
+
+          <!-- ── EXCEPTION FORM ── -->
+          <div id="bq-form-exception" class="bq-topic-form" style="display:none;">
+            <div class="bq-form-grid">
+              <div class="form-row"><div class="form-lbl">Question Type</div>
+                <select class="form-sel" id="ex-qtype" onchange="bqExQtypeChange()">
+                  <option value="mcq">MCQ</option>
+                  <option value="predict_output">Predict Output</option>
+                </select>
+              </div>
+              <div class="form-row"><div class="form-lbl">Year / Exam</div>
+                <input class="form-inp" id="ex-year" placeholder="CBSE Board 2024-25">
+              </div>
+              <div class="form-row"><div class="form-lbl">Marks</div>
+                <select class="form-sel" id="ex-marks">
+                  <option value="1">1 Mark</option><option value="2">2 Marks</option><option value="3">3 Marks</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row"><div class="form-lbl">Description / Question Text</div>
+              <input class="form-inp" id="ex-desc" placeholder="e.g. What will be the output of the following code?">
+            </div>
+            <div class="form-row"><div class="form-lbl">Code Lines <span style="color:var(--muted);font-size:10px;">(one line per row)</span></div>
+              <textarea class="form-ta" id="ex-lines" rows="6" placeholder="try:&#10;    x = 10 / 0&#10;except ZeroDivisionError:&#10;    print('Zero Error')"></textarea>
+            </div>
+            <div id="ex-mcq-fields" style="display:none;">
+              <div class="form-row"><div class="form-lbl">Options — select correct answer</div>
+                <div id="ex-options-wrap"></div>
+                <button onclick="bqAddOption('ex')" style="margin-top:6px;padding:5px 12px;background:var(--s3);border:1.5px solid var(--bdr2);border-radius:6px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;">+ Add Option</button>
+              </div>
+            </div>
+            <div class="form-row" id="ex-answer-row"><div class="form-lbl">Answer / Expected Output</div>
+              <textarea class="form-ta" id="ex-answer" rows="3" placeholder="Expected output"></textarea>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:14px;">
+              <button class="btn-save-settings" onclick="bqSave('Exception')">Save</button>
+              <button class="btn-save-settings" onclick="bqClear('ex')" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">Clear</button>
+              <button class="btn-save-settings" onclick="bqBackToTopics()" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">Close</button>
+            </div>
+          </div>
+
+          <!-- ── ASSERTION & REASON FORM ── -->
+          <div id="bq-form-ar" class="bq-topic-form" style="display:none;">
+            <div class="bq-form-grid">
+              <div class="form-row"><div class="form-lbl">Year / Exam</div>
+                <input class="form-inp" id="ar-year" placeholder="CBSE Board 2024-25">
+              </div>
+              <div class="form-row"><div class="form-lbl">Marks</div>
+                <select class="form-sel" id="ar-marks">
+                  <option value="1">1 Mark</option><option value="2">2 Marks</option><option value="3">3 Marks</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row"><div class="form-lbl">Assertion (A)</div>
+              <input class="form-inp" id="ar-assertion" placeholder="Python list is mutable">
+            </div>
+            <div class="form-row"><div class="form-lbl">Reason (R)</div>
+              <input class="form-inp" id="ar-reason" placeholder="Elements of a list can be changed after creation">
+            </div>
+            <div class="form-row">
+              <div class="form-lbl">Correct Answer</div>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:12px;color:var(--text2);">
+                  <input type="radio" name="ar-answer" value="a" style="margin-top:2px;accent-color:var(--acc);">
+                  <span><strong style="color:var(--acc)">a)</strong> Both A and R are true and R is the correct explanation of A</span>
+                </label>
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:12px;color:var(--text2);">
+                  <input type="radio" name="ar-answer" value="b" style="margin-top:2px;accent-color:var(--acc);">
+                  <span><strong style="color:var(--acc)">b)</strong> Both A and R are true but R is NOT the correct explanation of A</span>
+                </label>
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:12px;color:var(--text2);">
+                  <input type="radio" name="ar-answer" value="c" style="margin-top:2px;accent-color:var(--acc);">
+                  <span><strong style="color:var(--acc)">c)</strong> A is true but R is false</span>
+                </label>
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:12px;color:var(--text2);">
+                  <input type="radio" name="ar-answer" value="d" style="margin-top:2px;accent-color:var(--acc);">
+                  <span><strong style="color:var(--acc)">d)</strong> A is false but R is true</span>
+                </label>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:14px;">
+              <button class="btn-save-settings" onclick="bqSave('AssertionReason')">Save</button>
+              <button class="btn-save-settings" onclick="bqClear('ar')" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">Clear</button>
+              <button class="btn-save-settings" onclick="bqBackToTopics()" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">Close</button>
+            </div>
+          </div>
+
+          <!-- ── SQL FORM ── -->
+          <div id="bq-form-sql" class="bq-topic-form" style="display:none;">
+            <div class="bq-form-grid">
+              <div class="form-row"><div class="form-lbl">Table Type</div>
+                <select class="form-sel" id="sql-type">
+                  <option value="single">Single Table</option>
+                  <option value="join">Two Tables (JOIN)</option>
+                </select>
+              </div>
+              <div class="form-row"><div class="form-lbl">Year / Exam</div>
+                <input class="form-inp" id="sql-year" placeholder="CBSE Board 2024-25">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-lbl">Table Image <span style="color:var(--muted);font-size:10px;">(upload screenshot of table)</span></div>
+              <div id="sql-img-preview" style="display:none;margin-bottom:8px;">
+                <img id="sql-img-tag" src="" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid var(--bdr2);">
+                <button onclick="bqClearImage('sql')" style="display:block;margin-top:4px;padding:4px 10px;background:var(--rddim);border:none;border-radius:5px;color:var(--red);font-size:11px;cursor:pointer;">Remove Image</button>
+              </div>
+              <label class="btn-save-settings" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);cursor:pointer;display:inline-block;">
+                &#x2B06; Upload Image
+                <input type="file" id="sql-img-input" accept="image/*" style="display:none" onchange="bqPreviewImage('sql',this)">
+              </label>
+            </div>
+            <div class="form-row"><div class="form-lbl">Sub-questions <span style="color:var(--muted);font-size:10px;">(add up to 5)</span></div>
+              <div id="sql-subqs"></div>
+              <button onclick="bqAddSubQ('sql')" id="sql-add-btn" style="margin-top:8px;padding:6px 14px;background:var(--accdim);border:1.5px solid rgba(0,229,160,.3);border-radius:7px;color:var(--acc);font-size:12px;font-weight:700;cursor:pointer;">+ Add Sub-question</button>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:14px;">
+              <button class="btn-save-settings" onclick="bqSave('SQL')">Save</button>
+              <button class="btn-save-settings" onclick="bqClear('sql')" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">Clear</button>
+              <button class="btn-save-settings" onclick="bqBackToTopics()" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">Close</button>
+            </div>
+          </div>
+
+          <!-- ── NETWORKING FORM ── -->
+          <div id="bq-form-networking" class="bq-topic-form" style="display:none;">
+            <div class="bq-form-grid">
+              <div class="form-row"><div class="form-lbl">Year / Exam</div>
+                <input class="form-inp" id="net-year" placeholder="CBSE Board 2024-25">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-lbl">Case Diagram Image <span style="color:var(--muted);font-size:10px;">(upload screenshot of case)</span></div>
+              <div id="net-img-preview" style="display:none;margin-bottom:8px;">
+                <img id="net-img-tag" src="" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid var(--bdr2);">
+                <button onclick="bqClearImage('net')" style="display:block;margin-top:4px;padding:4px 10px;background:var(--rddim);border:none;border-radius:5px;color:var(--red);font-size:11px;cursor:pointer;">Remove Image</button>
+              </div>
+              <label class="btn-save-settings" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);cursor:pointer;display:inline-block;">
+                &#x2B06; Upload Image
+                <input type="file" id="net-img-input" accept="image/*" style="display:none" onchange="bqPreviewImage('net',this)">
+              </label>
+            </div>
+            <div class="form-row"><div class="form-lbl">Sub-questions (5)</div>
+              <div id="net-subqs"></div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:14px;">
+              <button class="btn-save-settings" onclick="bqSave('Networking')">Save</button>
+              <button class="btn-save-settings" onclick="bqClear('net')" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">Clear</button>
+              <button class="btn-save-settings" onclick="bqBackToTopics()" style="background:var(--s3);color:var(--text2);border:1.5px solid var(--bdr2);">Close</button>
+            </div>
+          </div>
+
+        </div><!-- end bq-form-area -->
       </div>
 
       <!-- TEST BUILDER -->
@@ -569,6 +821,7 @@ tr:hover td{background:var(--s3);}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
@@ -1363,471 +1616,452 @@ function activateTest(id){
   .catch(function(e){showToast("Error: "+e.message,"error");});
 }
 
+// ═══ BOARD QUESTIONS — REDESIGNED ═══
+var bqCache = [];
+var BQ_PAGE = 1, BQ_PAGE_SIZE = 20;
+var bqEditing = null;
+var _bqImgFiles = {}; // prefix → File object
 
-
-// ═══ BOARD QUESTIONS ═══
-var BQ_TOPICS   = ["String","List","Tuple","Dictionary","Functions","Modules","ExceptionHandling","FileHandling","SQL"];
-var BQ_QTYPES   = ["predict_output","mcq","write_function","write_query","assertion_reason","fill_blank"];
-var BQ_PAGE     = 1;
-var BQ_PAGE_SIZE= 20;
-var bqCache     = [];   // all loaded board questions
-var bqEditing   = null; // doc id when editing
-
-function filterBoardQuestions(){
-  var topic = (document.getElementById("bq-filter-topic")||{}).value||"";
-  var qtype = (document.getElementById("bq-filter-qtype")||{}).value||"";
+// ── Topic selector ──
+function bqSelectTopic(topic){
+  document.getElementById("bq-topic-selector").style.display="none";
+  document.getElementById("bq-form-area").style.display="";
+  document.querySelectorAll(".bq-topic-form").forEach(function(el){el.style.display="none";});
+  var headings={
+    Functions:"Functions — Add Question",
+    Modules:"Modules — Add Question",
+    Exception:"Exception Handling — Add Question",
+    AssertionReason:"Assertion & Reason — Add Question",
+    SQL:"SQL — Add Question",
+    Networking:"Networking — Add Question"
+  };
+  document.getElementById("bq-form-heading").textContent = headings[topic]||topic;
+  var formMap={
+    Functions:"bq-form-functions", Modules:"bq-form-modules",
+    Exception:"bq-form-exception", AssertionReason:"bq-form-ar",
+    SQL:"bq-form-sql", Networking:"bq-form-networking"
+  };
+  var formId = formMap[topic];
+  if(formId){
+    var el=document.getElementById(formId);
+    if(el) el.style.display="";
+  }
+  // Init networking sub-questions (always 5)
+  if(topic==="Networking") bqInitNetSubQs();
+  // Init SQL sub-questions (start with 1)
+  if(topic==="SQL"){ document.getElementById("sql-subqs").innerHTML=""; bqAddSubQ("sql"); }
 }
-function loadBoardQuestions(){
-  var topic = (document.getElementById("bq-filter-topic")||{}).value||"";
-  var qtype = (document.getElementById("bq-filter-qtype")||{}).value||"";
-  var tbody = document.getElementById("bq-tbody");
-  var cntEl = document.getElementById("bq-count");
-  if(tbody) tbody.innerHTML='<tr><td colspan="7" class="tbl-empty"><div class="spinner" style="margin:0 auto"></div></td></tr>';
 
-  var ref = db.collection("boardQuestions");
+function bqBackToTopics(){
+  document.getElementById("bq-form-area").style.display="none";
+  document.getElementById("bq-topic-selector").style.display="";
+  bqEditing=null;
+  _bqImgFiles={};
+}
+
+// ── QType change handlers ──
+function bqFnQtypeChange(){
+  var qt=document.getElementById("fn-qtype").value;
+  document.getElementById("fn-mcq-fields").style.display=qt==="mcq"?"":"none";
+  if(qt==="mcq" && !document.getElementById("fn-options-wrap").children.length) bqInitOptions("fn");
+  var lbls={mcq:"Correct Answer",predict_output:"Expected Output",write_function:"Model Answer (function code)",rewrite_function:"Correct Version"};
+  document.getElementById("fn-answer-lbl").textContent=lbls[qt]||"Answer";
+  document.getElementById("fn-answer-row").style.display=qt==="mcq"?"none":"";
+}
+function bqModQtypeChange(){
+  var qt=document.getElementById("mod-qtype").value;
+  document.getElementById("mod-mcq-fields").style.display=qt==="mcq"?"":"none";
+  if(qt==="mcq" && !document.getElementById("mod-options-wrap").children.length) bqInitOptions("mod");
+  document.getElementById("mod-answer-row").style.display=qt==="mcq"?"none":"";
+}
+function bqExQtypeChange(){
+  var qt=document.getElementById("ex-qtype").value;
+  document.getElementById("ex-mcq-fields").style.display=qt==="mcq"?"":"none";
+  if(qt==="mcq" && !document.getElementById("ex-options-wrap").children.length) bqInitOptions("ex");
+  document.getElementById("ex-answer-row").style.display=qt==="mcq"?"none":"";
+}
+
+// ── MCQ options management ──
+function bqInitOptions(prefix){
+  var wrap=document.getElementById(prefix+"-options-wrap");
+  wrap.innerHTML="";
+  ["","","",""].forEach(function(_,i){ bqAddOptionRow(prefix,i); });
+}
+function bqAddOption(prefix){
+  var wrap=document.getElementById(prefix+"-options-wrap");
+  if(wrap.children.length>=6) return;
+  bqAddOptionRow(prefix, wrap.children.length);
+}
+function bqAddOptionRow(prefix, idx){
+  var wrap=document.getElementById(prefix+"-options-wrap");
+  var ltrs=["A","B","C","D","E","F"];
+  var div=document.createElement("div"); div.className="bq-opt-row";
+  div.innerHTML=
+    '<input type="radio" class="bq-opt-radio" name="'+prefix+'-correct" value="'+idx+'">'+
+    '<span style="font-size:11px;font-weight:700;color:var(--gold2);width:14px;flex-shrink:0">'+ltrs[idx]+'</span>'+
+    '<input class="bq-opt-inp" placeholder="Option '+ltrs[idx]+'" data-opt-idx="'+idx+'">'+
+    '<button class="bq-opt-del" onclick="bqRemoveOption(this,\''+prefix+'\')">×</button>';
+  wrap.appendChild(div);
+}
+function bqRemoveOption(btn, prefix){
+  var wrap=document.getElementById(prefix+"-options-wrap");
+  if(wrap.children.length<=2) return;
+  btn.closest(".bq-opt-row").remove();
+  // Re-label
+  var ltrs=["A","B","C","D","E","F"];
+  Array.from(wrap.children).forEach(function(row,i){
+    var radio=row.querySelector('input[type="radio"]');
+    var lbl=row.querySelector('span');
+    var inp=row.querySelector('.bq-opt-inp');
+    if(radio){radio.value=i;}
+    if(lbl){lbl.textContent=ltrs[i];}
+    if(inp){inp.placeholder="Option "+ltrs[i];inp.dataset.optIdx=i;}
+  });
+}
+function bqGetOptions(prefix){
+  var wrap=document.getElementById(prefix+"-options-wrap");
+  var opts=[], correctIdx=-1;
+  var radio=wrap.querySelector('input[type="radio"]:checked');
+  if(radio) correctIdx=parseInt(radio.value);
+  Array.from(wrap.querySelectorAll('.bq-opt-inp')).forEach(function(inp,i){
+    opts.push(inp.value.trim());
+  });
+  return {options:opts, correctIdx:correctIdx, answer:opts[correctIdx]||""};
+}
+
+// ── Sub-questions (SQL) ──
+function bqAddSubQ(prefix){
+  var wrap=document.getElementById(prefix+"-subqs");
+  if(wrap.children.length>=5) return;
+  var n=wrap.children.length+1;
+  var div=document.createElement("div"); div.className="bq-subq-card";
+  div.innerHTML=
+    '<div class="bq-subq-hdr"><span>Sub-question '+n+'</span>'+
+    (prefix==="sql"?'<button class="bq-opt-del" onclick="this.closest(\'.bq-subq-card\').remove();bqRenumberSubQs(\''+prefix+'\')">Remove</button>':'')+
+    '</div>'+
+    '<div class="form-row"><div class="form-lbl">Question</div>'+
+    '<input class="form-inp bq-subq-q" placeholder="e.g. Write a query to display all employees..."></div>'+
+    '<div class="form-row"><div class="form-lbl">SQL Query Answer</div>'+
+    '<textarea class="form-ta bq-subq-a" rows="2" placeholder="SELECT * FROM employees;"></textarea></div>';
+  wrap.appendChild(div);
+  // Show/hide add button
+  var btn=document.getElementById(prefix+"-add-btn");
+  if(btn) btn.style.display=wrap.children.length>=5?"none":"";
+}
+function bqRenumberSubQs(prefix){
+  var wrap=document.getElementById(prefix+"-subqs");
+  Array.from(wrap.children).forEach(function(card,i){
+    var hdr=card.querySelector('.bq-subq-hdr span');
+    if(hdr) hdr.textContent="Sub-question "+(i+1);
+  });
+  var btn=document.getElementById(prefix+"-add-btn");
+  if(btn) btn.style.display=wrap.children.length>=5?"none":"";
+}
+
+// ── Networking sub-questions (fixed 5) ──
+var NET_SUBQ_LABELS=[
+  "Q1 — Server Placement",
+  "Q2 — Cable Layout (suggest topology)",
+  "Q3 — Network Type (LAN/MAN/WAN)",
+  "Q4 — Device Placement (Switch/Repeater)",
+  "Q5 — Communication Medium"
+];
+var NET_SUBQ_PLACEHOLDERS=[
+  "e.g. HR Block — has maximum computers (100)",
+  "e.g. Star topology — central switch connects all blocks",
+  "e.g. (a) LAN (b) WAN",
+  "e.g. Switch in every block. Repeater between LAW and HR (105m).",
+  "e.g. Optical Fibre Cable"
+];
+function bqInitNetSubQs(){
+  var wrap=document.getElementById("net-subqs");
+  wrap.innerHTML="";
+  NET_SUBQ_LABELS.forEach(function(lbl,i){
+    var div=document.createElement("div"); div.className="bq-subq-card";
+    div.innerHTML=
+      '<div class="bq-subq-hdr"><span>'+lbl+'</span></div>'+
+      '<div class="form-row"><div class="form-lbl">Answer</div>'+
+      '<input class="form-inp bq-net-ans" placeholder="'+NET_SUBQ_PLACEHOLDERS[i]+'"></div>';
+    wrap.appendChild(div);
+  });
+}
+
+// ── Image preview ──
+function bqPreviewImage(prefix, input){
+  var file=input.files[0]; if(!file) return;
+  _bqImgFiles[prefix]=file;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var tag=document.getElementById(prefix+"-img-tag");
+    var preview=document.getElementById(prefix+"-img-preview");
+    if(tag){tag.src=e.target.result;}
+    if(preview){preview.style.display="";}
+  };
+  reader.readAsDataURL(file);
+}
+function bqClearImage(prefix){
+  _bqImgFiles[prefix]=null;
+  var tag=document.getElementById(prefix+"-img-tag");
+  var preview=document.getElementById(prefix+"-img-preview");
+  var inp=document.getElementById(prefix+"-img-input");
+  if(tag)tag.src="";
+  if(preview)preview.style.display="none";
+  if(inp)inp.value="";
+}
+
+// ── Upload image to Firebase Storage ──
+function bqUploadImage(prefix, docId, onDone){
+  var file=_bqImgFiles[prefix];
+  if(!file){onDone(null);return;}
+  var storageRef=firebase.storage().ref("boardQuestions/"+docId+"/image.jpg");
+  var btn=document.querySelector('#bq-form-'+prefix.replace("fn","functions").replace("mod","modules").replace("ex","exception").replace("ar","ar").replace("sql","sql").replace("net","networking")+' .btn-save-settings');
+  storageRef.put(file).then(function(snapshot){
+    return snapshot.ref.getDownloadURL();
+  }).then(function(url){
+    onDone(url);
+  }).catch(function(e){
+    console.error("Image upload failed:",e);
+    onDone(null);
+  });
+}
+
+// ── Clear forms ──
+function bqClear(prefix){
+  var inputs=document.querySelectorAll('#bq-form-'+
+    (prefix==="fn"?"functions":prefix==="mod"?"modules":prefix==="ex"?"exception":
+     prefix==="ar"?"ar":prefix==="sql"?"sql":"networking")+
+    ' input, #bq-form-'+
+    (prefix==="fn"?"functions":prefix==="mod"?"modules":prefix==="ex"?"exception":
+     prefix==="ar"?"ar":prefix==="sql"?"sql":"networking")+
+    ' textarea, #bq-form-'+
+    (prefix==="fn"?"functions":prefix==="mod"?"modules":prefix==="ex"?"exception":
+     prefix==="ar"?"ar":prefix==="sql"?"sql":"networking")+
+    ' select');
+  inputs.forEach(function(el){
+    if(el.type==="radio"||el.type==="checkbox"){el.checked=false;}
+    else if(el.tagName==="SELECT"){el.selectedIndex=0;}
+    else{el.value="";}
+  });
+  // Clear options
+  if(prefix==="fn"){document.getElementById("fn-options-wrap").innerHTML="";}
+  if(prefix==="mod"){document.getElementById("mod-options-wrap").innerHTML="";}
+  if(prefix==="ex"){document.getElementById("ex-options-wrap").innerHTML="";}
+  // Clear images
+  bqClearImage(prefix==="sql"?"sql":"net");
+  // Reset sub-questions
+  if(prefix==="sql"){document.getElementById("sql-subqs").innerHTML="";bqAddSubQ("sql");}
+  if(prefix==="net"){bqInitNetSubQs();}
+  bqEditing=null;
+}
+
+// ── Save ──
+function bqSave(topic){
+  var data={topic:topic,source:"board",createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+  var valid=true;
+
+  if(topic==="Functions"){
+    var qt=document.getElementById("fn-qtype").value;
+    var year=document.getElementById("fn-year").value.trim();
+    var marks=parseInt(document.getElementById("fn-marks").value)||1;
+    var desc=document.getElementById("fn-desc").value.trim();
+    var lines=document.getElementById("fn-lines").value.split("\n").filter(function(l){return l.trim();});
+    data.qtype=qt; data.year=year; data.marks=marks;
+    data.lines=lines; data.description=desc;
+    if(qt==="mcq"){
+      var r=bqGetOptions("fn");
+      if(!r.answer){showToast("Select the correct option","error");return;}
+      data.options=r.options; data.answer=r.answer;
+    } else {
+      var ans=document.getElementById("fn-answer").value.trim();
+      if(!ans){showToast("Enter the answer","error");return;}
+      data.answer=ans;
+    }
+  }
+
+  else if(topic==="Modules"){
+    var qt=document.getElementById("mod-qtype").value;
+    data.qtype=qt;
+    data.module=document.getElementById("mod-module").value;
+    data.year=document.getElementById("mod-year").value.trim();
+    data.marks=parseInt(document.getElementById("mod-marks").value)||1;
+    data.description=document.getElementById("mod-desc").value.trim();
+    data.lines=document.getElementById("mod-lines").value.split("\n").filter(function(l){return l.trim();});
+    if(qt==="mcq"){
+      var r=bqGetOptions("mod");
+      if(!r.answer){showToast("Select the correct option","error");return;}
+      data.options=r.options; data.answer=r.answer;
+    } else {
+      data.answer=document.getElementById("mod-answer").value.trim();
+      if(!data.answer){showToast("Enter the answer","error");return;}
+    }
+  }
+
+  else if(topic==="Exception"){
+    var qt=document.getElementById("ex-qtype").value;
+    data.qtype=qt;
+    data.year=document.getElementById("ex-year").value.trim();
+    data.marks=parseInt(document.getElementById("ex-marks").value)||1;
+    data.description=document.getElementById("ex-desc").value.trim();
+    data.lines=document.getElementById("ex-lines").value.split("\n").filter(function(l){return l.trim();});
+    if(qt==="mcq"){
+      var r=bqGetOptions("ex");
+      if(!r.answer){showToast("Select the correct option","error");return;}
+      data.options=r.options; data.answer=r.answer;
+    } else {
+      data.answer=document.getElementById("ex-answer").value.trim();
+      if(!data.answer){showToast("Enter the answer","error");return;}
+    }
+  }
+
+  else if(topic==="AssertionReason"){
+    var assertion=document.getElementById("ar-assertion").value.trim();
+    var reason=document.getElementById("ar-reason").value.trim();
+    var radio=document.querySelector('input[name="ar-answer"]:checked');
+    if(!assertion||!reason){showToast("Enter both Assertion and Reason","error");return;}
+    if(!radio){showToast("Select the correct answer option","error");return;}
+    data.qtype="assertion_reason";
+    data.year=document.getElementById("ar-year").value.trim();
+    data.marks=parseInt(document.getElementById("ar-marks").value)||1;
+    data.assertion=assertion; data.reason=reason;
+    data.answer=radio.value;
+    data.lines=["Assertion (A): "+assertion,"Reason (R): "+reason];
+    data.options=[
+      "Both A and R are true and R is the correct explanation of A",
+      "Both A and R are true but R is NOT the correct explanation of A",
+      "A is true but R is false",
+      "A is false but R is true"
+    ];
+  }
+
+  else if(topic==="SQL"){
+    data.qtype="case_based";
+    data.sqlType=document.getElementById("sql-type").value;
+    data.year=document.getElementById("sql-year").value.trim();
+    // Sub-questions
+    var subqs=[];
+    document.querySelectorAll("#sql-subqs .bq-subq-card").forEach(function(card){
+      var q=card.querySelector(".bq-subq-q").value.trim();
+      var a=card.querySelector(".bq-subq-a").value.trim();
+      if(q) subqs.push({question:q,answer:a});
+    });
+    if(!subqs.length){showToast("Add at least one sub-question","error");return;}
+    data.subQuestions=subqs;
+  }
+
+  else if(topic==="Networking"){
+    data.qtype="case_based";
+    data.year=document.getElementById("net-year").value.trim();
+    var answers=[];
+    document.querySelectorAll("#net-subqs .bq-net-ans").forEach(function(inp){
+      answers.push(inp.value.trim());
+    });
+    data.subAnswers=answers;
+    data.subLabels=NET_SUBQ_LABELS;
+  }
+
+  // Save to Firestore (with optional image upload)
+  var saveBtn=event.target;
+  saveBtn.disabled=true; saveBtn.textContent="Saving...";
+
+  var prefix = {Functions:"fn",Modules:"mod",Exception:"ex",AssertionReason:"ar",SQL:"sql",Networking:"net"}[topic];
+  var hasImage = _bqImgFiles[prefix==="fn"||prefix==="mod"||prefix==="ex"||prefix==="ar"?null:prefix];
+
+  // For SQL and Networking — handle image upload
+  if((topic==="SQL"||topic==="Networking") && _bqImgFiles[prefix]){
+    // First save doc to get ID, then upload image
+    db.collection("boardQuestions").add(data).then(function(docRef){
+      var storageRef=firebase.storage().ref("boardQuestions/"+docRef.id+"/image.jpg");
+      return storageRef.put(_bqImgFiles[prefix]).then(function(snap){
+        return snap.ref.getDownloadURL();
+      }).then(function(url){
+        return db.collection("boardQuestions").doc(docRef.id).update({imageUrl:url});
+      });
+    }).then(function(){
+      saveBtn.disabled=false; saveBtn.textContent="Save";
+      showToast("Saved!","success");
+      bqClear(prefix);
+      _bqImgFiles[prefix]=null;
+    }).catch(function(e){
+      saveBtn.disabled=false; saveBtn.textContent="Save";
+      showToast("Error: "+e.message,"error");
+    });
+  } else {
+    db.collection("boardQuestions").add(data).then(function(){
+      saveBtn.disabled=false; saveBtn.textContent="Save";
+      showToast("Saved!","success");
+      bqClear(prefix);
+    }).catch(function(e){
+      saveBtn.disabled=false; saveBtn.textContent="Save";
+      showToast("Error: "+e.message,"error");
+    });
+  }
+}
+
+// ── Load existing questions ──
+function bqLoadExisting(){
+  var topic=(document.getElementById("bq-filter-topic")||{}).value||"";
+  var qtype=(document.getElementById("bq-filter-qtype")||{}).value||"";
+  var tbody=document.getElementById("bq-tbody");
+  var cntEl=document.getElementById("bq-count");
+  if(tbody) tbody.innerHTML='<tr><td colspan="6" class="tbl-empty"><div class="spinner" style="margin:0 auto"></div></td></tr>';
+
+  var ref=db.collection("boardQuestions");
   ref.get().then(function(snap){
-    bqCache = [];
-    snap.forEach(function(doc){ bqCache.push(Object.assign({id:doc.id}, doc.data())); });
-    // client-side filter
-    var filtered = bqCache.filter(function(q){
-      if(topic && q.topic !== topic) return false;
-      if(qtype && q.qtype !== qtype) return false;
+    bqCache=[];
+    snap.forEach(function(doc){bqCache.push(Object.assign({id:doc.id},doc.data()));});
+    var filtered=bqCache.filter(function(q){
+      if(topic&&q.topic!==topic) return false;
+      if(qtype&&q.qtype!==qtype) return false;
       return true;
     });
-    if(cntEl) cntEl.textContent = filtered.length + " questions";
+    if(cntEl) cntEl.textContent=filtered.length+" questions";
     renderBqTable(filtered);
-  }).catch(function(e){ console.error(e); });
+  }).catch(function(e){console.error(e);});
 }
 
 function renderBqTable(rows){
-  var tbody = document.getElementById("bq-tbody");
-  var pg    = document.getElementById("bq-pagination");
+  var tbody=document.getElementById("bq-tbody");
+  var pg=document.getElementById("bq-pagination");
   if(!tbody) return;
   if(!rows.length){
-    tbody.innerHTML='<tr><td colspan="7" class="tbl-empty">No questions found.</td></tr>';
-    if(pg) pg.innerHTML="";
-    return;
+    tbody.innerHTML='<tr><td colspan="6" class="tbl-empty">No questions found.</td></tr>';
+    if(pg)pg.innerHTML=""; return;
   }
-  var start=(BQ_PAGE-1)*BQ_PAGE_SIZE, end=start+BQ_PAGE_SIZE, page=rows.slice(start,end);
-  tbody.innerHTML = page.map(function(q){
-    var preview = (q.lines||[]).slice(0,2).join(" ↵ ");
-    if(preview.length>60) preview=preview.slice(0,57)+"...";
-    var qtLabel = {predict_output:"Predict",mcq:"MCQ",write_function:"Write Fn",
-                   write_query:"Write SQL",assertion_reason:"A&R",fill_blank:"Fill"}[q.qtype]||q.qtype;
+  var start=(BQ_PAGE-1)*BQ_PAGE_SIZE,end=start+BQ_PAGE_SIZE,page=rows.slice(start,end);
+  tbody.innerHTML=page.map(function(q){
+    var preview=(q.lines||[]).slice(0,1).join(" ");
+    if(preview.length>50) preview=preview.slice(0,47)+"...";
+    var qtLabel={mcq:"MCQ",predict_output:"Predict",write_function:"Write Fn",
+      rewrite_function:"Rewrite",assertion_reason:"A&R",write_query:"SQL Query",
+      case_based:"Case"}[q.qtype]||q.qtype||"—";
     return '<tr>'+
       '<td><span class="badge free" style="font-size:9px">'+esc(q.topic||"")+'</span></td>'+
-      '<td style="font-size:11px;color:var(--text2)">'+qtLabel+'</td>'+
+      '<td style="font-size:11px">'+qtLabel+'</td>'+
       '<td style="font-size:11px;color:var(--muted)">'+esc(q.year||"—")+'</td>'+
-      '<td style="font-size:11px;font-family:var(--mono);color:var(--text2)">'+esc(preview||"—")+'</td>'+
-      '<td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis">'+esc((q.answer||"").slice(0,40))+'</td>'+
+      '<td style="font-size:11px;font-family:var(--mono)">'+esc(preview||"—")+'</td>'+
       '<td style="font-family:var(--mono);text-align:center">'+esc(String(q.marks||1))+'</td>'+
       '<td style="display:flex;gap:5px;padding:8px 16px">'+
-        '<button class="tbl-btn upgrade" onclick="editBoardQuestion(\''+q.id+'\')" style="font-size:10px;padding:3px 8px">Edit</button>'+
-        '<button class="tbl-btn ban" onclick="deleteBoardQuestion(\''+q.id+'\')" style="font-size:10px;padding:3px 8px">Delete</button>'+
-      '</td>'+
-    '</tr>';
+        '<button class="tbl-btn ban" onclick="bqDelete(\''+q.id+'\')" style="font-size:10px;padding:3px 8px">Delete</button>'+
+      '</td></tr>';
   }).join("");
-  var tot=rows.length, pgs=Math.ceil(tot/BQ_PAGE_SIZE);
-  if(pg) pg.innerHTML='Showing '+(start+1)+'-'+Math.min(end,tot)+' of '+tot+
+  var tot=rows.length,pgs=Math.ceil(tot/BQ_PAGE_SIZE);
+  if(pg)pg.innerHTML='Showing '+(start+1)+'-'+Math.min(end,tot)+' of '+tot+
     (BQ_PAGE>1?' <button onclick="bqGoPage('+(BQ_PAGE-1)+')" style="padding:4px 10px;border-radius:5px;border:1px solid var(--bdr2);background:var(--s2);color:var(--text2);cursor:pointer;font-size:11px">Prev</button>':'')+
     ' Page '+BQ_PAGE+'/'+pgs+' '+
-    (BQ_PAGE<pgs?'<button onclick="bqGoPage('+(BQ_PAGE+1)+')" style="padding:4px 10px;border-radius:5px;border:1px solid var(--bdr2);background:var(--s2);color:var(--text2);cursor:pointer;font-size:11px">Next</button>':'')+
-    ' <span style="color:var(--muted)">| '+tot+' total</span>';
+    (BQ_PAGE<pgs?'<button onclick="bqGoPage('+(BQ_PAGE+1)+')" style="padding:4px 10px;border-radius:5px;border:1px solid var(--bdr2);background:var(--s2);color:var(--text2);cursor:pointer;font-size:11px">Next</button>':'');
 }
 
-function bqGoPage(n){ BQ_PAGE=n; loadBoardQuestions(); }
+function bqGoPage(n){BQ_PAGE=n;bqLoadExisting();}
 
-function onBqQtypeChange(){
-  var qt = document.getElementById("bq-qtype").value;
-  document.getElementById("bq-options-fields").style.display = (qt==="mcq")?"":"none";
-  document.getElementById("bq-ar-fields").style.display      = (qt==="assertion_reason")?"":"none";
-  var lbl = document.getElementById("bq-answer-lbl");
-  if(qt==="write_function"||qt==="write_query"){
-    lbl.textContent="Model Answer (shown to student after submission)";
-  } else if(qt==="assertion_reason"){
-    lbl.textContent="Correct Option (a/b/c/d)";
-  } else {
-    lbl.textContent="Answer / Expected Output";
-  }
-}
-
-function showBoardForm(data, docId){
-  bqEditing = docId||null;
-  document.getElementById("bq-form-title").textContent = docId?"Edit Question":"Add Board Question";
-  // Reset
-  ["bq-topic","bq-qtype","bq-year","bq-marks","bq-caseid"].forEach(function(id){
-    var el=document.getElementById(id);
-    if(el && data) el.value=data[id.replace("bq-","")]||"";
-    else if(el) el.value=(id==="bq-marks"?"1":"");
-  });
-  document.getElementById("bq-lines").value   = data?(data.lines||[]).join("\n"):"";
-  document.getElementById("bq-answer").value  = data?data.answer||"":"";
-  document.getElementById("bq-casetext").value= data?(data.case_text||[]).join("\n"):"";
-  document.getElementById("bq-assertion").value=data?data.assertion||"":"";
-  document.getElementById("bq-reason").value  = data?data.reason||"":"";
-  if(data && data.options && data.options.length>=4){
-    document.getElementById("bq-opt-a").value=data.options[0]||"";
-    document.getElementById("bq-opt-b").value=data.options[1]||"";
-    document.getElementById("bq-opt-c").value=data.options[2]||"";
-    document.getElementById("bq-opt-d").value=data.options[3]||"";
-  } else {
-    ["bq-opt-a","bq-opt-b","bq-opt-c","bq-opt-d"].forEach(function(id){document.getElementById(id).value="";});
-  }
-  // Show/hide fields
-  onBqQtypeChange();
-  var caseId = document.getElementById("bq-caseid").value.trim();
-  document.getElementById("bq-casetext-row").style.display = caseId?"":"none";
-  document.getElementById("bq-form-modal").classList.remove("hidden");
-}
-
-document.getElementById("bq-caseid").addEventListener("input",function(){
-  document.getElementById("bq-casetext-row").style.display=this.value.trim()?"":"none";
-});
-
-function saveBoardQuestion(){
-  var topic   = document.getElementById("bq-topic").value;
-  var qtype   = document.getElementById("bq-qtype").value;
-  var year    = document.getElementById("bq-year").value.trim();
-  var marks   = parseInt(document.getElementById("bq-marks").value)||1;
-  var linesRaw= document.getElementById("bq-lines").value;
-  var answer  = document.getElementById("bq-answer").value.trim();
-  var caseId  = document.getElementById("bq-caseid").value.trim();
-  var caseText= document.getElementById("bq-casetext").value;
-
-  if(!linesRaw.trim() && qtype!=="assertion_reason"){ showToast("Enter question lines","error"); return; }
-  if(!answer){ showToast("Enter an answer","error"); return; }
-
-  var lines = linesRaw.split("\n").map(function(l){return l;});
-  var data = {
-    topic:topic, qtype:qtype, year:year, marks:marks,
-    lines:lines, answer:answer,
-    source:"board",
-    createdAt:firebase.firestore.FieldValue.serverTimestamp()
-  };
-  if(caseId){ data.case_id=caseId; data.case_text=caseText.split("\n"); }
-  if(qtype==="mcq"){
-    var opts=[
-      document.getElementById("bq-opt-a").value.trim(),
-      document.getElementById("bq-opt-b").value.trim(),
-      document.getElementById("bq-opt-c").value.trim(),
-      document.getElementById("bq-opt-d").value.trim()
-    ].filter(Boolean);
-    if(opts.length<2){ showToast("Enter at least 2 options for MCQ","error"); return; }
-    data.options=opts;
-  }
-  if(qtype==="assertion_reason"){
-    var a=document.getElementById("bq-assertion").value.trim();
-    var r=document.getElementById("bq-reason").value.trim();
-    if(!a||!r){ showToast("Enter both Assertion and Reason","error"); return; }
-    data.assertion=a; data.reason=r;
-    data.options=[
-      "Both A and R are true and R is the correct explanation of A",
-      "Both A and R are true but R is not the correct explanation of A",
-      "A is true but R is false",
-      "A is false but R is true"
-    ];
-    data.lines=["Assertion (A): "+a,"Reason (R): "+r];
-  }
-
-  var btn=document.getElementById("bq-form-save");
-  btn.disabled=true; btn.textContent="Saving...";
-  var ref = bqEditing
-    ? db.collection("boardQuestions").doc(bqEditing).set(data,{merge:true})
-    : db.collection("boardQuestions").add(data);
-  ref.then(function(){
-    btn.disabled=false; btn.textContent="Save Question";
-    document.getElementById("bq-form-modal").classList.add("hidden");
-    showToast(bqEditing?"Question updated":"Question saved","success");
-    bqEditing=null;
-    loadBoardQuestions();
-  }).catch(function(e){
-    btn.disabled=false; btn.textContent="Save Question";
-    showToast("Error: "+e.message,"error");
-  });
-}
-
-function editBoardQuestion(id){
-  var q=bqCache.find(function(d){return d.id===id;});
-  if(!q){ showToast("Question not found","error"); return; }
-  // Map fields for showBoardForm
-  var mapped={
-    topic:q.topic, qtype:q.qtype, year:q.year||"", marks:String(q.marks||1),
-    caseid:q.case_id||"", lines:q.lines, answer:q.answer||"",
-    case_text:q.case_text, options:q.options,
-    assertion:q.assertion||"", reason:q.reason||""
-  };
-  showBoardForm(mapped, id);
-}
-
-function deleteBoardQuestion(id){
-  showModal("Delete Question","Delete this board question? Cannot be undone.","Delete",function(){
+function bqDelete(id){
+  showModal("Delete Question","Delete this question? Cannot be undone.","Delete",function(){
     db.collection("boardQuestions").doc(id).delete()
-    .then(function(){ showToast("Deleted","info"); loadBoardQuestions(); })
-    .catch(function(e){ showToast("Error: "+e.message,"error"); });
+    .then(function(){showToast("Deleted","info");bqLoadExisting();})
+    .catch(function(e){showToast("Error: "+e.message,"error");});
   });
 }
 
-// ── Excel Template Download ──
-function downloadBoardTemplate(){
-  var wb = XLSX.utils.book_new();
-  var headers = ["topic","qtype","year","marks","lines","answer","options","case_id","case_text","assertion","reason"];
-  var example = [
-    "String","predict_output","CBSE Board 2024-25","2",
-    "x = [1,2,3]|print(x[0])","1","","","","",""
-  ];
-  var example2 = [
-    "SQL","mcq","CBSE Board 2023-24","1",
-    "SELECT * FROM Students WHERE Marks>90","Arjun",
-    "Arjun|Priya|Both|None","","","",""
-  ];
-  var example3 = [
-    "Functions","assertion_reason","CBSE Board 2024-25","1",
-    "","b","","","",
-    "A function can return multiple values",
-    "Python supports tuples which allow multiple return values"
-  ];
-  var ws = XLSX.utils.aoa_to_sheet([headers, example, example2, example3]);
-  ws["!cols"] = headers.map(function(){ return {wch:20}; });
-  XLSX.utils.book_append_sheet(wb, ws, "BoardQuestions");
-  XLSX.writeFile(wb, "pyzap_board_questions_template.xlsx");
-  showToast("Template downloaded","success");
-}
-
-// ── Excel Upload ──
-function uploadBoardExcel(input){
-  var file = input.files[0];
-  if(!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e){
-    try{
-      var wb  = XLSX.read(e.target.result, {type:"binary"});
-      var ws  = wb.Sheets[wb.SheetNames[0]];
-      var rows= XLSX.utils.sheet_to_json(ws, {defval:""});
-      if(!rows.length){ showToast("No data found in Excel","error"); return; }
-      showModal(
-        "Upload "+rows.length+" Questions?",
-        "Import "+rows.length+" board questions from Excel?",
-        "Upload",
-        function(){
-          var batch=db.batch();
-          var count=0;
-          rows.forEach(function(row){
-            if(!row.topic||!row.qtype||!row.answer) return;
-            var lines = row.lines ? String(row.lines).split("|") : [];
-            var opts  = row.options ? String(row.options).split("|").filter(Boolean) : [];
-            var caseText = row.case_text ? String(row.case_text).split("|") : [];
-            var data={
-              topic:   String(row.topic).trim(),
-              qtype:   String(row.qtype).trim(),
-              year:    String(row.year||"").trim(),
-              marks:   parseInt(row.marks)||1,
-              lines:   lines,
-              answer:  String(row.answer).trim(),
-              source:  "board",
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            if(opts.length)  data.options=opts;
-            if(row.case_id)  { data.case_id=String(row.case_id).trim(); data.case_text=caseText; }
-            if(row.assertion){ data.assertion=String(row.assertion).trim(); }
-            if(row.reason)   { data.reason=String(row.reason).trim(); }
-            if(data.qtype==="assertion_reason"&&data.assertion&&data.reason){
-              data.options=[
-                "Both A and R are true and R is the correct explanation of A",
-                "Both A and R are true but R is not the correct explanation of A",
-                "A is true but R is false",
-                "A is false but R is true"
-              ];
-              data.lines=["Assertion (A): "+data.assertion,"Reason (R): "+data.reason];
-            }
-            batch.set(db.collection("boardQuestions").doc(), data);
-            count++;
-          });
-          batch.commit().then(function(){
-            showToast(count+" questions uploaded!","success");
-            loadBoardQuestions();
-            input.value="";
-          }).catch(function(e){ showToast("Error: "+e.message,"error"); });
-        }
-      );
-    }catch(e){ showToast("Error reading Excel: "+e.message,"error"); }
-  };
-  reader.readAsBinaryString(file);
-}
-
-document.getElementById("bq-caseid").addEventListener("input",function(){
-  document.getElementById("bq-casetext-row").style.display=this.value.trim()?"":"none";
-});
-
-function saveBoardQuestion(){
-  var topic   = document.getElementById("bq-topic").value;
-  var qtype   = document.getElementById("bq-qtype").value;
-  var year    = document.getElementById("bq-year").value.trim();
-  var marks   = parseInt(document.getElementById("bq-marks").value)||1;
-  var linesRaw= document.getElementById("bq-lines").value;
-  var answer  = document.getElementById("bq-answer").value.trim();
-  var caseId  = document.getElementById("bq-caseid").value.trim();
-  var caseText= document.getElementById("bq-casetext").value;
-
-  if(!linesRaw.trim() && qtype!=="assertion_reason"){ showToast("Enter question lines","error"); return; }
-  if(!answer){ showToast("Enter an answer","error"); return; }
-
-  var lines = linesRaw.split("\n").map(function(l){return l;});
-  var data = {
-    topic:topic, qtype:qtype, year:year, marks:marks,
-    lines:lines, answer:answer,
-    source:"board",
-    createdAt:firebase.firestore.FieldValue.serverTimestamp()
-  };
-  if(caseId){ data.case_id=caseId; data.case_text=caseText.split("\n"); }
-  if(qtype==="mcq"){
-    var opts=[
-      document.getElementById("bq-opt-a").value.trim(),
-      document.getElementById("bq-opt-b").value.trim(),
-      document.getElementById("bq-opt-c").value.trim(),
-      document.getElementById("bq-opt-d").value.trim()
-    ].filter(Boolean);
-    if(opts.length<2){ showToast("Enter at least 2 options for MCQ","error"); return; }
-    data.options=opts;
-  }
-  if(qtype==="assertion_reason"){
-    var a=document.getElementById("bq-assertion").value.trim();
-    var r=document.getElementById("bq-reason").value.trim();
-    if(!a||!r){ showToast("Enter both Assertion and Reason","error"); return; }
-    data.assertion=a; data.reason=r;
-    data.options=[
-      "Both A and R are true and R is the correct explanation of A",
-      "Both A and R are true but R is not the correct explanation of A",
-      "A is true but R is false",
-      "A is false but R is true"
-    ];
-    data.lines=["Assertion (A): "+a,"Reason (R): "+r];
-  }
-
-  var btn=document.getElementById("bq-form-save");
-  btn.disabled=true; btn.textContent="Saving...";
-  var ref = bqEditing
-    ? db.collection("boardQuestions").doc(bqEditing).set(data,{merge:true})
-    : db.collection("boardQuestions").add(data);
-  ref.then(function(){
-    btn.disabled=false; btn.textContent="Save Question";
-    document.getElementById("bq-form-modal").classList.add("hidden");
-    showToast(bqEditing?"Question updated":"Question saved","success");
-    bqEditing=null;
-    loadBoardQuestions();
-  }).catch(function(e){
-    btn.disabled=false; btn.textContent="Save Question";
-    showToast("Error: "+e.message,"error");
-  });
-}
-
-function editBoardQuestion(id){
-  var q=bqCache.find(function(d){return d.id===id;});
-  if(!q){ showToast("Question not found","error"); return; }
-  // Map fields for showBoardForm
-  var mapped={
-    topic:q.topic, qtype:q.qtype, year:q.year||"", marks:String(q.marks||1),
-    caseid:q.case_id||"", lines:q.lines, answer:q.answer||"",
-    case_text:q.case_text, options:q.options,
-    assertion:q.assertion||"", reason:q.reason||""
-  };
-  showBoardForm(mapped, id);
-}
-
-function deleteBoardQuestion(id){
-  showModal("Delete Question","Delete this board question? Cannot be undone.","Delete",function(){
-    db.collection("boardQuestions").doc(id).delete()
-    .then(function(){ showToast("Deleted","info"); loadBoardQuestions(); })
-    .catch(function(e){ showToast("Error: "+e.message,"error"); });
-  });
-}
-
-// ── Excel Template Download ──
-function downloadBoardTemplate(){
-  var wb = XLSX.utils.book_new();
-  var headers = ["topic","qtype","year","marks","lines","answer","options","case_id","case_text","assertion","reason"];
-  var example = [
-    "String","predict_output","CBSE Board 2024-25","2",
-    "x = [1,2,3]|print(x[0])","1","","","","",""
-  ];
-  var example2 = [
-    "SQL","mcq","CBSE Board 2023-24","1",
-    "SELECT * FROM Students WHERE Marks>90","Arjun",
-    "Arjun|Priya|Both|None","","","",""
-  ];
-  var example3 = [
-    "Functions","assertion_reason","CBSE Board 2024-25","1",
-    "","b","","","",
-    "A function can return multiple values",
-    "Python supports tuples which allow multiple return values"
-  ];
-  var ws = XLSX.utils.aoa_to_sheet([headers, example, example2, example3]);
-  ws["!cols"] = headers.map(function(){ return {wch:20}; });
-  XLSX.utils.book_append_sheet(wb, ws, "BoardQuestions");
-  XLSX.writeFile(wb, "pyzap_board_questions_template.xlsx");
-  showToast("Template downloaded","success");
-}
-
-// ── Excel Upload ──
-function uploadBoardExcel(input){
-  var file = input.files[0];
-  if(!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e){
-    try{
-      var wb  = XLSX.read(e.target.result, {type:"binary"});
-      var ws  = wb.Sheets[wb.SheetNames[0]];
-      var rows= XLSX.utils.sheet_to_json(ws, {defval:""});
-      if(!rows.length){ showToast("No data found in Excel","error"); return; }
-      showModal(
-        "Upload "+rows.length+" Questions?",
-        "Import "+rows.length+" board questions from Excel?",
-        "Upload",
-        function(){
-          var batch=db.batch();
-          var count=0;
-          rows.forEach(function(row){
-            if(!row.topic||!row.qtype||!row.answer) return;
-            var lines = row.lines ? String(row.lines).split("|") : [];
-            var opts  = row.options ? String(row.options).split("|").filter(Boolean) : [];
-            var caseText = row.case_text ? String(row.case_text).split("|") : [];
-            var data={
-              topic:   String(row.topic).trim(),
-              qtype:   String(row.qtype).trim(),
-              year:    String(row.year||"").trim(),
-              marks:   parseInt(row.marks)||1,
-              lines:   lines,
-              answer:  String(row.answer).trim(),
-              source:  "board",
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            if(opts.length)  data.options=opts;
-            if(row.case_id)  { data.case_id=String(row.case_id).trim(); data.case_text=caseText; }
-            if(row.assertion){ data.assertion=String(row.assertion).trim(); }
-            if(row.reason)   { data.reason=String(row.reason).trim(); }
-            if(data.qtype==="assertion_reason"&&data.assertion&&data.reason){
-              data.options=[
-                "Both A and R are true and R is the correct explanation of A",
-                "Both A and R are true but R is not the correct explanation of A",
-                "A is true but R is false",
-                "A is false but R is true"
-              ];
-              data.lines=["Assertion (A): "+data.assertion,"Reason (R): "+data.reason];
-            }
-            batch.set(db.collection("boardQuestions").doc(), data);
-            count++;
-          });
-          batch.commit().then(function(){
-            showToast(count+" questions uploaded!","success");
-            loadBoardQuestions();
-            input.value="";
-          }).catch(function(e){ showToast("Error: "+e.message,"error"); });
-        }
-      );
-    }catch(e){ showToast("Error reading Excel: "+e.message,"error"); }
-  };
-  reader.readAsBinaryString(file);
-}
-
+function loadBoardQuestions(){ bqLoadExisting(); }
 </script>
 </body>
 </html>
