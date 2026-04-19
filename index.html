@@ -26,18 +26,18 @@ body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit'
 #app{display:flex;flex-direction:row;min-height:100dvh;}
 
 /* ─── SIDEBAR ─── */
-.app-sidebar{width:220px;flex-shrink:0;background:var(--surf);border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:100;}
-.app-sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--bdr);}
-.app-sb-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-1px;line-height:1.15;padding-bottom:2px;}
-.app-sb-email{font-size:11px;color:var(--muted);margin-top:2px;word-break:break-all;}
-.app-sb-plan{margin-top:6px;}
-.app-sb-nav{padding:10px 8px;flex:1;}
-.app-sb-section{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:8px 10px 4px;}
-.app-nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .12s;margin-bottom:2px;border:1px solid transparent;}
+.app-sidebar{width:178px;flex-shrink:0;background:var(--surf);border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:100;}
+.app-sb-logo{padding:14px 14px 12px;border-bottom:1px solid var(--bdr);}
+.app-sb-name{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-1px;line-height:1.15;padding-bottom:2px;}
+.app-sb-email{font-size:10px;color:var(--muted);margin-top:2px;word-break:break-all;}
+.app-sb-plan{margin-top:5px;}
+.app-sb-nav{padding:8px 6px;flex:1;}
+.app-sb-section{font-size:9px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);padding:6px 8px 3px;}
+.app-nav-item{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:7px;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .12s;margin-bottom:2px;border:1px solid transparent;}
 .app-nav-item:hover{background:var(--card);color:var(--text);}
 .app-nav-item.active{background:var(--gdim);color:var(--gold);border-color:rgba(245,166,35,.15);}
-.app-nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
-.app-sb-footer{padding:12px;border-top:1px solid var(--bdr);}
+.app-nav-icon{font-size:14px;width:16px;text-align:center;flex-shrink:0;}
+.app-sb-footer{padding:10px;border-top:1px solid var(--bdr);}
 .app-sb-stats{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;}
 .app-sb-stat{background:var(--card);border:1px solid var(--bdr);border-radius:7px;padding:5px 7px;text-align:center;flex:1;min-width:40px;}
 .app-sb-stat-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text2);}
@@ -45,7 +45,7 @@ body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit'
 .app-sb-stat.sc .app-sb-stat-val{color:var(--green);}
 .app-sb-stat.sw .app-sb-stat-val{color:var(--red);}
 .app-sb-stat.ss .app-sb-stat-val{color:var(--gold);}
-.btn-sb-logout{width:100%;padding:8px;background:transparent;border:1px solid var(--bdr);border-radius:7px;color:var(--muted);font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .12s;}
+.btn-sb-logout{width:auto;display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:transparent;border:1px solid var(--bdr);border-radius:6px;color:var(--muted);font-family:'Outfit',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .12s;}
 .btn-sb-logout:hover{border-color:var(--red);color:var(--red);}
 
 /* ─── MAIN CONTENT ─── */
@@ -464,22 +464,38 @@ body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit'
 
 /* ─── 3-COLUMN CONTROL BOX ─── */
 .ctrl-box{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:10px;flex-shrink:0;display:flex;align-items:stretch;}
-.ctrl-col{flex:1;padding:8px 10px;border-right:1px solid var(--bdr);display:flex;flex-direction:column;}
+.ctrl-col{padding:10px 14px;border-right:1px solid var(--bdr);display:flex;flex-direction:column;min-width:0;}
 .ctrl-col:last-child{border-right:none;}
-.ctrl-col-title{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2);margin-bottom:6px;}
-/* Mode col */
-.mode-toggle-v{display:flex;gap:6px;flex-wrap:wrap;}
-.mode-btn-v{padding:6px 14px;border-radius:7px;background:var(--card);border:1.5px solid var(--bdr2);color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .12s;white-space:nowrap;}
+.ctrl-col-title{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2);margin-bottom:8px;}
+/* Column sizing: Limit 1.6fr (only if free), Mode auto, Progress 2.4fr (flex-grow dominant) */
+#ctrl-limit-col{flex:1.6 1 0;}
+.ctrl-col-mode{flex:0 0 auto;}
+.ctrl-col-progress{flex:2.4 1 0;}
+/* Mode col — small & compact */
+.mode-toggle-v{display:flex;gap:6px;flex-wrap:nowrap;}
+.mode-btn-v{padding:6px 12px;border-radius:7px;background:var(--card);border:1.5px solid var(--bdr2);color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .12s;white-space:nowrap;}
 .mode-btn-v.active{background:var(--gdim);border-color:var(--gold);color:var(--gold);font-weight:700;}
 .mode-btn-v:hover:not(.active){border-color:var(--gold);color:var(--gold);}
-/* Progress col - 2x2 grid */
-.prog-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.prog-cell{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:5px 7px;text-align:center;}
-.prog-cell-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text2);line-height:1;}
-.prog-cell-lbl{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+/* Progress col — horizontal 1x4 strip */
+.prog-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.prog-cell{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;}
+.prog-cell-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;color:var(--text2);line-height:1;}
+.prog-cell-lbl{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-top:3px;}
 .prog-cell.sc .prog-cell-val{color:var(--green);}
 .prog-cell.sw .prog-cell-val{color:var(--red);}
 .prog-cell.ss .prog-cell-val{color:var(--gold);}
+
+/* ─── SQL / Networking qtype checkboxes ─── */
+.sql-qt-cb,.net-qt-cb{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:var(--card);border:1.5px solid var(--bdr2);border-radius:8px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:var(--text2);transition:all .12s;user-select:none;margin-right:6px;margin-bottom:6px;}
+.sql-qt-cb:hover:not(.locked),.net-qt-cb:hover{border-color:var(--acc);color:var(--text);}
+.sql-qt-cb.checked,.net-qt-cb.checked{background:var(--accdim);border-color:var(--acc);color:var(--acc);font-weight:700;}
+.sql-qt-cb.locked{opacity:.55;cursor:not-allowed;}
+.sql-qt-cb-box,.net-qt-cb-box{width:15px;height:15px;border:1.5px solid var(--bdr2);border-radius:3px;background:var(--s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;}
+.sql-qt-cb.checked .sql-qt-cb-box,.net-qt-cb.checked .net-qt-cb-box{background:var(--acc);border-color:var(--acc);}
+.sql-qt-cb.checked .sql-qt-cb-box::after,.net-qt-cb.checked .net-qt-cb-box::after{content:'\2713';color:#000;font-size:11px;font-weight:900;line-height:1;}
+.sql-qt-cb-lbl,.net-qt-cb-lbl{letter-spacing:.2px;}
+.net-qt-cb-desc{font-size:10px;color:var(--muted);font-weight:500;margin-left:4px;}
+.net-qt-cb.checked .net-qt-cb-desc{color:var(--text2);}
 /* Free limit col */
 .limit-concept-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
 .limit-concept-name{font-size:12px;font-weight:700;color:var(--text2);min-width:38px;}
@@ -490,9 +506,15 @@ body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit'
 .limit-footer{font-size:10px;color:var(--muted);margin-top:auto;padding-top:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;}
 .limit-upgrade-btn{background:none;border:none;color:var(--gold);font-size:10px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;padding:0;}
 @media(max-width:767px){
-  .ctrl-col{padding:10px 10px;}
+  .ctrl-box{flex-direction:column;}
+  .ctrl-col{border-right:none;border-bottom:1px solid var(--bdr);padding:10px 12px;}
+  .ctrl-col:last-child{border-bottom:none;}
+  #ctrl-limit-col,.ctrl-col-mode,.ctrl-col-progress{flex:1 1 auto;}
   .ctrl-col-title{font-size:9px;margin-bottom:8px;}
+  .prog-grid{grid-template-columns:repeat(4,1fr);gap:6px;}
+  .prog-cell{padding:6px 4px;}
   .prog-cell-val{font-size:15px;}
+  .prog-cell-lbl{font-size:8px;}
   .limit-concept-name{font-size:11px;}
   .limit-concept-count{font-size:11px;}
 }
@@ -723,7 +745,7 @@ body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit'
         </div>
       </div>
       <!-- Col 2: Mode -->
-      <div class="ctrl-col">
+      <div class="ctrl-col ctrl-col-mode">
         <div class="ctrl-col-title">Mode</div>
         <div class="mode-toggle-v">
           <button class="mode-btn mode-btn-v active" data-mode="mcq">&#x229E; MCQ</button>
@@ -731,7 +753,7 @@ body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit'
         </div>
       </div>
       <!-- Col 3: My Progress -->
-      <div class="ctrl-col">
+      <div class="ctrl-col ctrl-col-progress">
         <div class="ctrl-col-title">My Progress</div>
         <div class="prog-grid">
           <div class="prog-cell"><div class="prog-cell-val" id="hs-done">0</div><div class="prog-cell-lbl">Done</div></div>
@@ -1304,87 +1326,142 @@ function isPythonDtype(dt){
 function applyQtypeLocks(){
   var pyDtype = isPythonDtype();
   var sqlDtype = isSQLDtype();
+  var netDtype = isNetworkingDtype();
+  var qg = document.getElementById('qtype-group');
+  var qtypeSection = document.getElementById('qtype-sbar');
+  var sce = document.getElementById('sql-schema-container');
+  var cb = document.getElementById('case-text-block');
 
-  if(isNetworkingDtype()){
-    var qtypeSection=document.getElementById("qtype-sbar");
-    if(qtypeSection)qtypeSection.style.display="none";
-    document.querySelectorAll(".mode-btn,.mode-btn-v").forEach(function(b){b.style.display="none";});
-    var sce=document.getElementById("sql-schema-container");if(sce)sce.style.display="none";
-    return;
-  }
-  if(sqlDtype){
-    var qtypeSection=document.getElementById('qtype-sbar');
-    if(qtypeSection)qtypeSection.style.display='';
-    var qg=document.getElementById('qtype-group');
-    if(qg&&!qg.dataset.sqlMode){
-      qg.dataset.sqlMode='1';
-      qg.dataset.origHTML=qg.innerHTML;
-      var allQt=['DDL','DML','JOIN','Aggregate','Schema','Board','Mixed'];
-      qg.innerHTML=allQt.map(function(qt){
-        var lbl=SQL_QTYPE_LABELS[qt]||qt;
-        var locked=S.plan!=='paid'&&SQL_FREE_QTYPES.indexOf(qt)===-1;
-        if(locked)lbl+='🔒';
-        var active=S.qtype===qt;
-        return '<button class="tog sql-qt'+(active?' active':'')+(locked?' locked':'')+' " data-qtype="'+qt+'"'+(active?' style="background:var(--accdim);border-color:var(--acc);color:var(--acc)"':'')+'>'+lbl+'</button>';
-      }).join('');
-      qg.querySelectorAll('.sql-qt').forEach(function(btn){
+  // Restore original qtype buttons when leaving SQL or Networking mode
+  function restoreOrigQtypes(){
+    if(qg && qg.dataset.customMode){
+      delete qg.dataset.customMode;
+      if(qg.dataset.origHTML) qg.innerHTML = qg.dataset.origHTML;
+      qg.querySelectorAll('.tog').forEach(function(btn){
         btn.addEventListener('click',function(){
-          var qt=btn.dataset.qtype;
           if(btn.classList.contains('locked')){
-            showUpgrade(SQL_QTYPE_LABELS[qt]+' is available for Pro students only.');return;
+            showToast("You've completed all '"+btn.dataset.qtype+"' questions!",'info');return;
           }
-          qg.querySelectorAll('.sql-qt').forEach(function(b){
-            b.classList.remove('active');b.style.background='';b.style.borderColor='';b.style.color='';
-          });
-          btn.classList.add('active');
-          btn.style.background='var(--accdim)';btn.style.borderColor='var(--acc)';btn.style.color='var(--acc)';
-          loadSQLQuestions(qt);
+          loadQtypeQuestions(S.dtype, btn.dataset.qtype);
         });
       });
     }
+  }
+
+  // ── NETWORKING mode ──
+  if(netDtype){
+    if(qtypeSection) qtypeSection.style.display = '';
+    if(sce){ sce.style.display='none'; sce.innerHTML=''; }
+    if(cb){ cb.style.display='none'; cb.innerHTML=''; }
     document.querySelectorAll('.mode-btn,.mode-btn-v').forEach(function(b){b.style.display='none';});
-    var cb=document.getElementById('case-text-block');if(cb)cb.style.display='none';
+    // Inject networking qtype as checkboxes (Practice / Board) in place of qtype pills
+    if(qg && qg.dataset.customMode !== 'net'){
+      if(!qg.dataset.origHTML) qg.dataset.origHTML = qg.innerHTML;
+      qg.dataset.customMode = 'net';
+      var netPr = NET && NET._practiceChecked;
+      var netBo = NET && NET._boardChecked;
+      qg.innerHTML =
+        '<label class="net-qt-cb'+(netPr?' checked':'')+'" data-netmode="practice">'+
+          '<span class="net-qt-cb-box"></span>'+
+          '<span class="net-qt-cb-lbl">Practice Mode</span>'+
+          '<span class="net-qt-cb-desc">Random generated cases</span>'+
+        '</label>'+
+        '<label class="net-qt-cb'+(netBo?' checked':'')+'" data-netmode="board">'+
+          '<span class="net-qt-cb-box"></span>'+
+          '<span class="net-qt-cb-lbl">Board Questions</span>'+
+          '<span class="net-qt-cb-desc">CBSE exam-style</span>'+
+        '</label>';
+      qg.querySelectorAll('.net-qt-cb').forEach(function(lbl){
+        lbl.addEventListener('click', function(e){
+          e.preventDefault();
+          var mode = lbl.dataset.netmode;
+          if(!window.NET) return;
+          if(mode==='practice') NET._practiceChecked = !NET._practiceChecked;
+          else NET._boardChecked = !NET._boardChecked;
+          lbl.classList.toggle('checked');
+          // Sync the in-page mode-card checkboxes too (if visible)
+          var syncCb = document.getElementById('net-cb-'+mode);
+          if(syncCb) syncCb.className = 'net-checkbox' + ((mode==='practice'?NET._practiceChecked:NET._boardChecked)?' checked':'');
+        });
+      });
+    }
     return;
   }
 
-  // Restore original qtype buttons when leaving SQL
-  var qg2=document.getElementById('qtype-group');
-  if(qg2&&qg2.dataset.sqlMode){
-    delete qg2.dataset.sqlMode;
-    if(qg2.dataset.origHTML)qg2.innerHTML=qg2.dataset.origHTML;
-    qg2.querySelectorAll('.tog').forEach(function(btn){
-      btn.addEventListener('click',function(){
-        if(btn.classList.contains('locked')){showToast("You've completed all '"+btn.dataset.qtype+"' questions!",'info');return;}
-        loadQtypeQuestions(S.dtype,btn.dataset.qtype);
-      });
-    });
-    document.querySelectorAll('.mode-btn,.mode-btn-v').forEach(function(b){b.style.display='';});
-  }
-  var sce=document.getElementById('sql-schema-container');if(sce)sce.style.display='none';
+  // ── SQL mode ──
+  if(sqlDtype){
+    if(qtypeSection) qtypeSection.style.display = '';
+    if(cb){ cb.style.display='none'; cb.innerHTML=''; }
+    document.querySelectorAll('.mode-btn,.mode-btn-v').forEach(function(b){b.style.display='none';});
 
-  var qtypeSection=document.getElementById('qtype-sbar');
-  if(qtypeSection)qtypeSection.style.display=pyDtype?'none':'';
-  var modeSection=document.querySelector('.mode-toggle');
+    if(qg && qg.dataset.customMode !== 'sql'){
+      if(!qg.dataset.origHTML) qg.dataset.origHTML = qg.innerHTML;
+      qg.dataset.customMode = 'sql';
+      // SQL qtype order: DDL, DML, JOIN, Aggregate, Schema, Board, Mixed — as checkboxes
+      var sqlQts = ['DDL','DML','JOIN','Aggregate','Schema','Board','Mixed'];
+      if(!S._sqlChecked) S._sqlChecked = {};
+      // Default: the currently-active qtype is checked
+      if(S.qtype && sqlQts.indexOf(S.qtype)>=0 && !Object.keys(S._sqlChecked).length){
+        S._sqlChecked[S.qtype] = true;
+      }
+      qg.innerHTML = sqlQts.map(function(qt){
+        var lbl = SQL_QTYPE_LABELS[qt] || qt;
+        var locked = S.plan!=='paid' && SQL_FREE_QTYPES.indexOf(qt)===-1;
+        var checked = !!S._sqlChecked[qt];
+        return '<label class="sql-qt-cb'+(checked?' checked':'')+(locked?' locked':'')+'" data-qtype="'+qt+'">'+
+          '<span class="sql-qt-cb-box"></span>'+
+          '<span class="sql-qt-cb-lbl">'+lbl+(locked?' 🔒':'')+'</span>'+
+        '</label>';
+      }).join('');
+      qg.querySelectorAll('.sql-qt-cb').forEach(function(lbl){
+        lbl.addEventListener('click', function(e){
+          e.preventDefault();
+          if(lbl.classList.contains('locked')){
+            showUpgrade((SQL_QTYPE_LABELS[lbl.dataset.qtype]||lbl.dataset.qtype)+' is available for Pro students only.');
+            return;
+          }
+          // Single-select behavior: uncheck siblings
+          qg.querySelectorAll('.sql-qt-cb').forEach(function(o){o.classList.remove('checked');});
+          S._sqlChecked = {};
+          lbl.classList.add('checked');
+          S._sqlChecked[lbl.dataset.qtype] = true;
+          loadSQLQuestions(lbl.dataset.qtype);
+        });
+      });
+    }
+    return;
+  }
+
+  // ── Not SQL, not Networking: clear any custom qtype and schema/case blocks ──
+  restoreOrigQtypes();
+  if(sce){ sce.style.display='none'; sce.innerHTML=''; }
+  if(cb){ cb.style.display='none'; cb.innerHTML=''; }
+
+  if(qtypeSection) qtypeSection.style.display = pyDtype ? 'none' : '';
+  var modeSection = document.querySelector('.mode-toggle-v') || document.querySelector('.mode-toggle');
   if(modeSection){
     if(pyDtype){
-      document.querySelectorAll('.mode-btn').forEach(function(b){
-        if(b.dataset.mode==='mcq'){b.classList.add('active');}
+      document.querySelectorAll('.mode-btn,.mode-btn-v').forEach(function(b){
+        if(b.dataset.mode==='mcq'){b.classList.add('active');b.style.display='';}
         else{b.classList.remove('active');b.style.display='none';}
       });
       S.mode='mcq';
     }else{
-      document.querySelectorAll('.mode-btn').forEach(function(b){b.style.display='';});
+      document.querySelectorAll('.mode-btn,.mode-btn-v').forEach(function(b){b.style.display='';});
     }
   }
-  if(pyDtype)return;
+  if(pyDtype) return;
+
   document.querySelectorAll('#qtype-group .tog').forEach(function(btn){
     btn.style.display='';
-    if(!btn.dataset.orig)btn.dataset.orig=btn.textContent;
-    var qorig=btn.dataset.orig;
-    if(S.plan==='paid'){btn.classList.remove('locked');btn.textContent=qorig;return;}
-    if(isQtypeDone(S.dtype,btn.dataset.qtype)){
-      btn.classList.add('locked');btn.textContent=qorig+'🔒';
-    }else{btn.classList.remove('locked');btn.textContent=qorig;}
+    if(!btn.dataset.orig) btn.dataset.orig = btn.textContent;
+    var qorig = btn.dataset.orig;
+    if(S.plan==='paid'){ btn.classList.remove('locked'); btn.textContent = qorig; return; }
+    if(isQtypeDone(S.dtype, btn.dataset.qtype)){
+      btn.classList.add('locked'); btn.textContent = qorig + ' 🔒';
+    }else{
+      btn.classList.remove('locked'); btn.textContent = qorig;
+    }
   });
 }
 
@@ -1926,51 +2003,7 @@ function fetchConceptFromServer(topic, onDone){
   }).catch(function(e){console.error(e);setCardLoading("Error loading. Please refresh.");});
 }
 
-// ─── applyDtypeLocks ───
-function applyDtypeLocks(){
-  document.querySelectorAll("#dtype-group .tog").forEach(function(btn){
-    var dt = btn.dataset.dtype;
-    if(PYTHON_DTYPES.indexOf(dt)>=0){
-      btn.classList.toggle("locked", S.plan!=="paid");
-      return;
-    }
-    if(S.plan==="paid"){btn.classList.remove("locked");return;}
-    // Free: only todaysConcepts are available
-    if(S.todaysConcepts.indexOf(dt)<0){
-      btn.classList.add("locked"); return;
-    }
-    // Lock if all qtypes done
-    btn.classList.toggle("locked", isConceptDone(dt));
-  });
-  applyQtypeLocks();
-}
-
-// ─── applyQtypeLocks ───
-function applyQtypeLocks(){
-  var pyDtype = isPythonDtype();
-  var qtypeSection = document.getElementById("qtype-sbar");
-  if(qtypeSection) qtypeSection.style.display = pyDtype ? "none" : "";
-  var modeSection = document.querySelector(".mode-toggle-v");
-  if(!modeSection) modeSection = document.querySelector(".mode-toggle");
-  if(modeSection){
-    if(pyDtype){
-      document.querySelectorAll(".mode-btn,.mode-btn-v").forEach(function(b){
-        if(b.dataset.mode==="mcq") b.classList.add("active");
-        else { b.classList.remove("active"); b.style.display="none"; }
-      });
-      S.mode="mcq";
-    } else {
-      document.querySelectorAll(".mode-btn,.mode-btn-v").forEach(function(b){b.style.display="";});
-    }
-  }
-  if(pyDtype) return;
-  // Lock/unlock qtype buttons
-  document.querySelectorAll("#qtype-group .tog").forEach(function(btn){
-    btn.style.display="";
-    if(S.plan==="paid"){btn.classList.remove("locked");return;}
-    btn.classList.toggle("locked", isQtypeDone(S.dtype, btn.dataset.qtype));
-  });
-}
+// (duplicate applyDtypeLocks/applyQtypeLocks removed — the earlier comprehensive version is the single source of truth)
 
 // ─── updateFreeBanner ───
 function updateFreeBanner(){
@@ -2235,17 +2268,25 @@ document.querySelectorAll(".mode-btn,.mode-btn-v").forEach(function(btn){
 
 document.querySelectorAll("#dtype-group .tog").forEach(function(btn){
   btn.addEventListener("click",function(){
+    var dt = btn.dataset.dtype;
+    // Hard gate: if the button is marked locked, NEVER open it
     if(btn.classList.contains("locked")){
-      if(S.plan!=="paid"&&S.todaysConcepts.indexOf(btn.dataset.dtype)<0){
-        showUpgrade("'"+btn.dataset.dtype+"' is not available on the free plan today.");
-      } else if(S.plan!=="paid"&&isConceptDone(btn.dataset.dtype)){
-        showToast("You've completed all '"+btn.dataset.dtype+"' questions today!","info");
+      if(S.plan!=="paid" && PAID_ONLY_DTYPES.indexOf(dt) >= 0){
+        showUpgrade("'"+dt+"' is for Pro students only. Upgrade to unlock.");
+      } else if(S.plan!=="paid" && dt==="SQL"){
+        showToast("You've used all free SQL questions for today.","info");
+      } else if(S.plan!=="paid" && dt==="Networking"){
+        showToast("You've used all free Networking cases for today.","info");
+      } else if(S.plan!=="paid" && S.todaysConcepts.indexOf(dt)<0){
+        showUpgrade("'"+dt+"' is not available on the free plan today.");
+      } else if(S.plan!=="paid" && isConceptDone(dt)){
+        showToast("You've completed all '"+dt+"' questions today!","info");
       } else {
-        showUpgrade("'"+btn.dataset.dtype+"' is for Pro students.");
+        showUpgrade("'"+dt+"' is for Pro students.");
       }
       return;
     }
-    loadConceptQuestions(btn.dataset.dtype);
+    loadConceptQuestions(dt);
   });
 });
 
@@ -3459,7 +3500,8 @@ function sqlRenderTable(schema){
   h += '<div class="sql-table-name">'+schema.name.toUpperCase()+'</div>';
   h += '<div class="sql-table-wrap"><table class="sql-tbl"><thead><tr>';
   schema.columns.forEach(function(col){
-    h += '<th>'+col.n+(col.pk?' <span class="sql-pk">PK</span>':'')+'</th>';
+    // Hide PK/FK labels — student must identify these themselves
+    h += '<th>'+col.n+'</th>';
   });
   h += '</tr></thead><tbody>';
   schema.rows.forEach(function(row){
@@ -3738,6 +3780,31 @@ function sqlFetchBoard(onDone){
 }
 
 // ══════════════════════════════════════════════════════
+//  CBSE-STYLE INTRO BUILDERS
+// ══════════════════════════════════════════════════════
+function sqlBuildSingleTableIntro(schema){
+  return '<div class="sql-intro">Consider the table <span class="sql-intro-strong">'+schema.name.toUpperCase()+
+    '</span> as given below and answer the question that follows.</div>';
+}
+function sqlBuildJoinIntro(jd){
+  // Pick random learner name + scenario tied to the table domain
+  var scenarios=[
+    {name:"Pranav",pronoun:"him",role:"managing a Travel Database",action:"extract the required information"},
+    {name:"Aanya",pronoun:"her",role:"maintaining a Library Management System",action:"retrieve the required details"},
+    {name:"Rohan",pronoun:"him",role:"handling a Sales Records Database",action:"pull out the required information"},
+    {name:"Priya",pronoun:"her",role:"working on a School Administration Database",action:"fetch the required details"},
+    {name:"Kabir",pronoun:"him",role:"managing an E-commerce Database",action:"extract the requested details"},
+    {name:"Meera",pronoun:"her",role:"maintaining a Hospital Records Database",action:"retrieve the required data"}
+  ];
+  var sc=scenarios[Math.floor(Math.random()*scenarios.length)];
+  var t1=jd.child.name.toUpperCase(), t2=jd.parent.name.toUpperCase();
+  return '<div class="sql-intro">'+sc.name+' is '+sc.role+' and needs to access certain information from the '+
+    '<span class="sql-intro-strong">'+t1+'</span> and <span class="sql-intro-strong">'+t2+'</span> tables. '+
+    'Help '+sc.pronoun+' '+sc.action+
+    ' by writing the appropriate SQL query as per the task mentioned below.</div>';
+}
+
+// ══════════════════════════════════════════════════════
 //  MAIN QUESTION GENERATOR — one question per call
 // ══════════════════════════════════════════════════════
 function sqlGenerateOne(qtype,onDone){
@@ -3758,20 +3825,23 @@ function sqlGenerateOne(qtype,onDone){
     var pool=S.plan==="paid"?allCats:freeCats;
     qtype=sqlPick(pool);
   }
-  var qa,schemaHTML,q;
+  var qa,schemaHTML,q,intro;
   if(qtype==="JOIN"){
     var jd=sqlGenJoinSchemas();
-    schemaHTML=sqlRenderTable(jd.child)+sqlRenderTable(jd.parent);
+    intro=sqlBuildJoinIntro(jd);
+    schemaHTML=intro+sqlRenderTable(jd.child)+sqlRenderTable(jd.parent);
     qa=sqlGenJOIN(jd);
     q={lines:[qa.prompt],answer:qa.answer,qtype:"write_query",source:"sql_gen",schemaHTML:schemaHTML};
   }else if(qtype==="Schema"){
     var s=sqlGenSingleSchema();
-    schemaHTML=sqlRenderTable(s);
+    intro=sqlBuildSingleTableIntro(s);
+    schemaHTML=intro+sqlRenderTable(s);
     qa=sqlGenSchemaTheory(s);
     q={lines:[qa.prompt],answer:qa.answer,options:qa.options,qtype:"mcq",source:"sql_gen",schemaHTML:schemaHTML,isSQLMCQ:true};
   }else{
     var s=sqlGenSingleSchema();
-    schemaHTML=sqlRenderTable(s);
+    intro=sqlBuildSingleTableIntro(s);
+    schemaHTML=intro+sqlRenderTable(s);
     if(qtype==="DDL") qa=sqlGenDDL(s);
     else if(qtype==="DML") qa=sqlGenDML(s);
     else qa=sqlGenAggregate(s);
@@ -3796,16 +3866,17 @@ function sqlInjectCSS(){
   _sqlCSSInjected=true;
   var s=document.createElement("style");
   s.textContent=
-    ".sql-schema-container{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;flex-shrink:0;}"+
-    ".sql-schema-block{flex:1;min-width:0;}"+
-    ".sql-table-name{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2);margin-bottom:4px;}"+
-    ".sql-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--bdr2);}"+
-    ".sql-tbl{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--mono);}"+
-    ".sql-tbl th{background:var(--s3);padding:6px 10px;text-align:left;font-size:9px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);white-space:nowrap;border-bottom:1px solid var(--bdr2);}"+
-    ".sql-tbl td{padding:5px 10px;color:var(--text2);white-space:nowrap;border-bottom:1px solid var(--bdr);}"+
+    ".sql-schema-container{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:10px;flex-shrink:0;align-items:flex-start;}"+
+    ".sql-schema-block{flex:0 0 auto;max-width:100%;min-width:0;}"+
+    ".sql-intro{width:100%;font-size:13px;color:var(--text);line-height:1.55;margin-bottom:4px;padding:10px 12px;background:var(--s2);border:1px solid var(--bdr2);border-radius:8px;}"+
+    ".sql-intro-strong{color:var(--gold2);font-weight:700;}"+
+    ".sql-table-name{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold2);margin-bottom:5px;}"+
+    ".sql-table-wrap{display:inline-block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--bdr2);}"+
+    ".sql-tbl{width:auto;border-collapse:collapse;font-size:12px;font-family:var(--mono);}"+
+    ".sql-tbl th{background:var(--s3);padding:6px 12px;text-align:left;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);white-space:nowrap;border-bottom:1px solid var(--bdr2);}"+
+    ".sql-tbl td{padding:5px 12px;color:var(--text2);white-space:nowrap;border-bottom:1px solid var(--bdr);}"+
     ".sql-tbl tr:last-child td{border-bottom:none;}"+
     ".sql-tbl tr:hover td{background:var(--s3);}"+
-    ".sql-pk{font-size:8px;background:rgba(245,166,35,.2);color:var(--gold);padding:1px 4px;border-radius:3px;}"+
     "@media(max-width:600px){.sql-schema-container{flex-direction:column;}}"+
     ".sql-free-counter{font-size:10px;color:var(--muted);text-align:right;margin-bottom:4px;}";
   document.head.appendChild(s);
@@ -3997,24 +4068,47 @@ function netShuffle(arr){
 }
 
 // ── Word banks ──
-var NET_COMPANIES=["Deccan Tech","Nova Systems","Apex Corp","Stellar Infotech",
-  "Kiran Industries","Bluewave Solutions","Horizon IT","Zenith Networks",
-  "Pinnacle Systems","Falcon Technologies","Orbit Infotech","Crest Solutions",
-  "Dynamo Tech","Vertex Systems","Pulse Networks","Summit IT Services"];
+// ── CBSE-style organization catalog ──
+// Each entry: {name, type, field, blocks[]}
+// Types: NGO, Institute, Hospital, University, Corp, School, ResearchCentre
+var NET_ORGS = [
+  {name:"Swabhaav", type:"NGO", field:"Psychological Treatment and Counselling",
+    blocks:["Admin","Psychiatry","Psychology","ICU"]},
+  {name:"Gyaan Vidya", type:"Institute", field:"Higher Education and Research",
+    blocks:["Admin","Academic","Library","Hostel"]},
+  {name:"Arogya Kendra", type:"Hospital", field:"Medical Treatment and Healthcare",
+    blocks:["Reception","OPD","Wards","Pharmacy"]},
+  {name:"Vidyaniketan", type:"School", field:"School Education",
+    blocks:["Admin","Primary","Secondary","Staff"]},
+  {name:"Kalpana Research", type:"ResearchCentre", field:"Scientific Research and Development",
+    blocks:["Research","Development","Testing","Admin"]},
+  {name:"Deccan Tech", type:"Corp", field:"Software Development",
+    blocks:["HR","IT","Finance","Operations"]},
+  {name:"Seva Samiti", type:"NGO", field:"Rural Development and Women Empowerment",
+    blocks:["Admin","Training","Outreach","Accounts"]},
+  {name:"Medicare Plus", type:"Hospital", field:"Multi-speciality Healthcare",
+    blocks:["Admin","Emergency","Surgery","Pathology"]},
+  {name:"Bharat Vidyalaya", type:"School", field:"K–12 Education",
+    blocks:["Admin","Junior","Senior","Library"]},
+  {name:"Vaidya Niketan", type:"Hospital", field:"Cardiac Care and Rehabilitation",
+    blocks:["Reception","OPD","ICU","Recovery"]},
+  {name:"Nav Prakash", type:"NGO", field:"Child Welfare and Education",
+    blocks:["Admin","Shelter","Learning","Kitchen"]},
+  {name:"Shiksha Bharati", type:"Institute", field:"Teacher Training and Education",
+    blocks:["Admin","Classrooms","Lab","Hostel"]},
+  {name:"Prerna Kendra", type:"NGO", field:"Mental Health Awareness",
+    blocks:["Admin","Counselling","Therapy","Research"]},
+  {name:"Tech Horizon", type:"Corp", field:"Information Technology Services",
+    blocks:["HR","Development","Testing","Support"]},
+  {name:"Navachar Institute", type:"Institute", field:"Management and Business Studies",
+    blocks:["Admin","Academic","Library","Auditorium"]},
+  {name:"Apex University", type:"University", field:"Higher Education",
+    blocks:["Admin","Academic","Library","Hostel"]}
+];
 
 var NET_CITIES=["Chennai","Pune","Hyderabad","Delhi","Bengaluru","Mumbai",
-  "Ahmedabad","Kolkata","Jaipur","Lucknow","Chandigarh","Nagpur","Surat","Indore"];
-
-var NET_BLOCK_GROUPS=[
-  ["HR","IT","Finance","Logistics"],
-  ["Admin","Sales","Service","Insurance"],
-  ["Research","Development","Testing","Management"],
-  ["Library","Lab","Admin Block","Principal Office"],
-  ["Production","Quality","Dispatch","Accounts"],
-  ["Marketing","Operations","Security","Reception"],
-  ["Design","Engineering","Support","Training"],
-  ["Legal","Purchase","Stores","Maintenance"]
-];
+  "Ahmedabad","Kolkata","Jaipur","Lucknow","Chandigarh","Nagpur","Surat","Indore",
+  "Vijayawada","Bhopal","Coimbatore","Kochi","Visakhapatnam","Mysuru"];
 
 // ── Q5 variant queue (shuffled, no repeat until all 4 done) ──
 var _netQ5Queue=[];
@@ -4032,24 +4126,53 @@ function netGetQ5Variant(){
 
 // ── Generate random case ──
 function netGenerateCase(){
-  var company=netPick(NET_COMPANIES);
-  var campus=netPick(NET_CITIES);
-  var headOfficeCities=NET_CITIES.filter(function(c){return c!==campus;});
-  var headOffice=netPick(headOfficeCities);
-  var blocks=netPick(NET_BLOCK_GROUPS).map(function(name){
-    return {name:name, computers:netRandInt(10,120)};
+  var org = netPick(NET_ORGS);
+  var headOfficeCities = NET_CITIES.filter(function(c){return true;});
+  var campus = netPick(NET_CITIES);
+  var headOffice = netPick(NET_CITIES.filter(function(c){return c!==campus;}));
+  var blocks = org.blocks.map(function(name){
+    return {name:name, computers:netRandInt(15,120)};
   });
   // Generate distances between all pairs
   var distances=[];
   for(var i=0;i<blocks.length;i++){
     for(var j=i+1;j<blocks.length;j++){
-      distances.push({from:blocks[i].name,to:blocks[j].name,metres:netRandInt(20,150)});
+      distances.push({from:blocks[i].name,to:blocks[j].name,metres:netRandInt(30,150)});
     }
   }
-  var headOfficeDistance=netRandInt(500,2000);
-  return {company:company,campus:campus,headOffice:headOffice,
-    blocks:blocks,distances:distances,headOfficeDistance:headOfficeDistance,
-    isBoard:false};
+  var headOfficeDistance=netRandInt(300,2000);
+  var totalComputers = blocks.reduce(function(s,b){return s+b.computers;},0);
+  // Article for the org type (a/an)
+  var typeLabels = {
+    NGO: "NGO",
+    Institute: "institute",
+    Hospital: "hospital",
+    University: "university",
+    Corp: "organization",
+    School: "school",
+    ResearchCentre: "research centre"
+  };
+  var typeLabel = typeLabels[org.type] || "organization";
+  var article = /^[aeiou]/i.test(typeLabel) ? "an" : "a";
+  // Centre naming varies by type
+  var centreNoun = (org.type==="School"||org.type==="Institute"||org.type==="University") ? "Campus"
+                 : (org.type==="Hospital") ? "Centre"
+                 : "Centre";
+  return {
+    company: org.name,
+    orgType: org.type,
+    orgTypeLabel: typeLabel,
+    orgArticle: article,
+    orgField: org.field,
+    centreNoun: centreNoun,
+    campus: campus,
+    headOffice: headOffice,
+    blocks: blocks,
+    distances: distances,
+    headOfficeDistance: headOfficeDistance,
+    totalComputers: totalComputers,
+    isBoard: false
+  };
 }
 
 // ── Minimum Spanning Tree (Prim's algorithm) ──
@@ -4271,18 +4394,20 @@ function netInjectCSS(){
     ".net-checkbox.checked::after{content:'\\2713';color:#000;font-size:11px;font-weight:800;}"+
     ".net-checkbox-lbl{font-size:13px;color:var(--text2);font-weight:600;}"+
     ".net-checkbox-desc{font-size:11px;color:var(--muted);margin-left:28px;margin-top:-6px;}"+
-    ".net-case-box{background:var(--s2);border:1px solid var(--bdr2);border-radius:10px;padding:14px 16px;margin-bottom:8px;flex-shrink:0;}"+
-    ".net-case-title{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2);margin-bottom:10px;}"+
-    ".net-company{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}"+
-    ".net-campus{font-size:11px;color:var(--text2);margin-bottom:10px;}"+
-    ".net-blocks-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px;}"+
-    ".net-block-card{background:var(--s3);border:1px solid var(--bdr);border-radius:7px;padding:8px 10px;}"+
-    ".net-block-name{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--acc);}"+
-    ".net-block-comp{font-size:12px;font-weight:700;color:var(--text);font-family:var(--mono);}"+
-    ".net-dist-table{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--mono);}"+
-    ".net-dist-table th{background:var(--s3);padding:5px 8px;text-align:left;font-size:9px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);white-space:nowrap;}"+
-    ".net-dist-table td{padding:4px 8px;color:var(--text2);border-top:1px solid var(--bdr);}"+
-    ".net-dist-wrap{overflow-x:auto;border:1px solid var(--bdr2);border-radius:7px;}"+
+    ".net-case-box{background:var(--s2);border:1px solid var(--bdr2);border-radius:12px;padding:18px 22px;margin-bottom:10px;flex-shrink:0;width:100%;box-sizing:border-box;}"+
+    ".net-case-title{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2);margin-bottom:10px;display:flex;align-items:center;gap:8px;}"+
+    ".net-case-title::before{content:'';width:3px;height:14px;background:var(--gold);border-radius:2px;}"+
+    ".net-case-intro{font-size:13.5px;color:var(--text);line-height:1.7;margin-bottom:16px;text-align:justify;}"+
+    ".net-case-intro b{color:var(--gold2);font-weight:700;}"+
+    ".net-case-section{margin-bottom:14px;}"+
+    ".net-case-section-title{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:7px;}"+
+    ".net-ho-line{font-size:13px;color:var(--text);margin-bottom:14px;padding:8px 12px;background:var(--s3);border-left:3px solid var(--gold);border-radius:4px;}"+
+    ".net-ho-line b{color:var(--gold2);font-weight:700;}"+
+    ".net-comp-tbl-wrap,.net-dist-wrap{display:inline-block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--bdr2);border-radius:7px;}"+
+    ".net-comp-tbl,.net-dist-table{width:auto;border-collapse:collapse;font-size:12.5px;font-family:var(--mono);}"+
+    ".net-comp-tbl th,.net-dist-table th{background:var(--s3);padding:8px 18px;text-align:left;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);white-space:nowrap;border-bottom:1px solid var(--bdr);}"+
+    ".net-comp-tbl td,.net-dist-table td{padding:6px 18px;color:var(--text2);border-bottom:1px solid var(--bdr);white-space:nowrap;}"+
+    ".net-comp-tbl tr:last-child td,.net-dist-table tr:last-child td{border-bottom:none;}"+
     ".net-progress{display:flex;gap:4px;margin-bottom:10px;flex-shrink:0;}"+
     ".net-prog-dot{flex:1;height:4px;border-radius:2px;background:var(--bdr2);}"+
     ".net-prog-dot.done{background:var(--acc);}"+
@@ -4292,27 +4417,70 @@ function netInjectCSS(){
     ".net-done-box{text-align:center;padding:20px 0;}"+
     ".net-done-title{font-size:16px;font-weight:700;color:var(--acc);margin-bottom:8px;}"+
     ".net-done-sub{font-size:12px;color:var(--text2);margin-bottom:16px;}"+
-    "@media(max-width:600px){.net-blocks-grid{grid-template-columns:1fr 1fr;}}";
+    "@media(max-width:700px){.net-case-box{padding:14px 14px;}.net-case-intro{font-size:12.5px;}.net-comp-tbl,.net-dist-table{font-size:11.5px;}.net-comp-tbl th,.net-dist-table th,.net-comp-tbl td,.net-dist-table td{padding:6px 12px;}}";
   document.head.appendChild(s);
 }
 
 // ── Render case info box (always visible during questions) ──
 function netRenderCaseBox(c){
   var h='<div class="net-case-box">';
-  h+='<div class="net-case-title">Case Details</div>';
-  h+='<div class="net-company">'+c.company+'</div>';
-  h+='<div class="net-campus">Campus: '+c.campus+' &nbsp;|&nbsp; Head Office: '+c.headOffice+' &nbsp;|&nbsp; Distance: '+c.headOfficeDistance+'km</div>';
-  h+='<div class="net-blocks-grid">';
-  c.blocks.forEach(function(b){
-    h+='<div class="net-block-card"><div class="net-block-name">'+b.name+'</div><div class="net-block-comp">'+b.computers+' computers</div></div>';
-  });
-  h+='</div>';
-  // Distances table
+  h+='<div class="net-case-title">Case Study</div>';
+
+  // Descriptive intro paragraph — EXACT CBSE Swabhaav-style tone
+  var intro = c.introText;
+  if(!intro){
+    var blockNames = (c.blocks||[]).map(function(b){return b.name.toUpperCase();});
+    var blocksList = blockNames.length
+      ? blockNames.slice(0,-1).join(', ') + (blockNames.length>1?' and ':'') + blockNames[blockNames.length-1]
+      : '';
+    var nBlocks = c.blocks ? c.blocks.length : 0;
+    var nBlocksWord = ['zero','one','two','three','four','five','six','seven','eight'][nBlocks] || String(nBlocks);
+    var article = c.orgArticle || 'an';
+    var typeLabel = c.orgTypeLabel || 'organization';
+    var field = c.orgField || 'its operations';
+    var centreNoun = c.centreNoun || 'Centre';
+
+    intro = "'<b>"+esc(c.company||'The Organization')+"</b>' is "+article+" "+typeLabel+
+      " working in the field of "+esc(field)+
+      ", having its Head Office in <b>"+esc(c.headOffice||'its head office')+"</b>. "+
+      "It is planning to set up "+article+" "+centreNoun.toLowerCase()+" in <b>"+esc(c.campus||'the new location')+
+      "</b>. The "+esc(c.campus||'new')+" "+centreNoun+" will have "+nBlocksWord+" blocks – "+blocksList+
+      ". You, as a Network Expert, need to suggest the best network-related solutions for them to resolve the "+
+      "issues/problems mentioned in questions (i) to (v), keeping the following parameters in mind :";
+  }
+  h+='<div class="net-case-intro">'+intro+'</div>';
+
+  // Section: Block to Block distances
+  h+='<div class="net-case-section">';
+  h+='<div class="net-case-section-title">Block to Block distances (in metres) :</div>';
   h+='<div class="net-dist-wrap"><table class="net-dist-table"><thead><tr><th>From</th><th>To</th><th>Distance</th></tr></thead><tbody>';
-  c.distances.forEach(function(d){
-    h+='<tr><td>'+d.from+'</td><td>'+d.to+'</td><td>'+d.metres+'m</td></tr>';
+  if(c.distances && c.distances.length){
+    c.distances.forEach(function(d){
+      h+='<tr><td>'+esc(String(d.from).toUpperCase())+'</td><td>'+esc(String(d.to).toUpperCase())+'</td><td>'+d.metres+' m</td></tr>';
+    });
+  } else {
+    h+='<tr><td colspan="3" style="text-align:center;color:var(--muted)">As provided in the question</td></tr>';
+  }
+  h+='</tbody></table></div>';
+  h+='</div>';
+
+  // Head office distance line (exact CBSE format)
+  if(c.headOfficeDistance){
+    h+='<div class="net-ho-line">Distance of <b>'+esc(c.headOffice||'Head Office')+
+       '</b> Head Office from '+esc(c.campus||'the Centre')+' '+esc(c.centreNoun||'Centre')+
+       ' = <b>'+c.headOfficeDistance+' km</b></div>';
+  }
+
+  // Section: Number of computers
+  h+='<div class="net-case-section">';
+  h+='<div class="net-case-section-title">Number of Computers in each block is as follows :</div>';
+  h+='<div class="net-comp-tbl-wrap"><table class="net-comp-tbl"><thead><tr><th>Block</th><th>No. of Computers</th></tr></thead><tbody>';
+  (c.blocks||[]).forEach(function(b){
+    h+='<tr><td>'+esc(String(b.name).toUpperCase())+'</td><td style="text-align:center">'+b.computers+'</td></tr>';
   });
   h+='</tbody></table></div>';
+  h+='</div>';
+
   h+='</div>';
   return h;
 }
@@ -4347,8 +4515,7 @@ function netShowModeSelector(){
   var ta=document.getElementById("type-area");if(ta)ta.classList.remove("show");
   var wa=document.getElementById("write-area");if(wa)wa.style.display="none";
   document.getElementById("btn-check").style.display="none";
-  document.getElementById("btn-next").style.display="none";
-  setFB("","empty");
+  document.getElementById("btn-next").style.display="none";  setFB("","empty");
   document.getElementById("expl").className="expl";
 
   // Build selector in expl area (repurpose as content area)
@@ -4390,6 +4557,12 @@ function netToggleMode(mode){
     NET._boardChecked=!NET._boardChecked;
     var cb=document.getElementById("net-cb-board");
     if(cb)cb.className="net-checkbox"+(NET._boardChecked?" checked":"");
+  }
+  // Sync top-row qtype checkboxes
+  var topCb=document.querySelector('.net-qt-cb[data-netmode="'+mode+'"]');
+  if(topCb){
+    var checked = mode==="practice" ? NET._practiceChecked : NET._boardChecked;
+    topCb.classList.toggle("checked", checked);
   }
 }
 
