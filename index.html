@@ -116,6 +116,13 @@ body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit'
 .code-wrap{display:flex;background:#060A14;padding:14px 0;overflow-x:auto;flex-shrink:0;}
 .gutter{padding:0 12px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#3D5070;text-align:right;user-select:none;line-height:1.8;flex-shrink:0;}
 .code-lines{flex:1;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8;padding:0 16px 0 0;white-space:pre;}
+/* Prose mode — used for SQL/Networking/Assertion question prompts that should wrap like prose */
+.code-wrap.prose-mode .gutter{display:none;}
+.code-wrap.prose-mode{padding:10px 14px;}
+.code-wrap.prose-mode .code-lines{font-family:'Outfit',sans-serif;font-size:14px;line-height:1.7;white-space:normal;word-wrap:break-word;overflow-wrap:break-word;padding:0;color:var(--text);}
+.code-wrap.prose-mode .code-lines .code-line{padding:2px 0;}
+.code-wrap.prose-mode .code-lines .code-line + .code-line{margin-top:6px;}
+@media(max-width:600px){.code-wrap.prose-mode .code-lines{font-size:13px;}}
 .code-line{display:block;}
 .kw{color:#C084FC;}.str{color:#86EFAC;}.num{color:#FCA5A5;}.punc{color:#94A3B8;}.cmt{color:#4A6080;font-style:italic;}.plain{color:#FFD080;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -361,7 +368,7 @@ body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit'
   .app-topbar-logo{font-size:16px;}
   .app-topbar-right .topbar-stat{display:none;}
   .app-topbar-right{gap:6px;}
-  .main-panel{padding:10px 12px 24px;}
+  .main-panel{padding:10px 12px 80px;}
   .sbar{padding:10px 12px;}
   .tog{font-size:11px;padding:4px 9px;}
   .mcq-grid{grid-template-columns:1fr 1fr;gap:6px;padding:10px 12px;}
@@ -370,24 +377,48 @@ body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit'
   .gutter{font-size:12px;}
 }
 @media(min-width:768px){
-  .bottom-nav{display:none;}
+  .bottom-nav{display:none!important;}
   .app-topbar{display:none;}
-}
-@media(max-width:767px){
-  .bottom-nav{display:block;}
+  .mobile-hamburger{display:none!important;}
 }
 
-/* ─── BOTTOM NAV ─── */
+/* ─── BOTTOM NAV (mobile) ─── */
 .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surf);border-top:1px solid var(--bdr);z-index:200;padding:5px 0 env(safe-area-inset-bottom,0);}
-.bottom-nav-inner{display:flex;justify-content:space-around;}
-.bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 14px;cursor:pointer;color:var(--muted);font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;transition:color .12s;background:transparent;border:none;font-family:'Outfit',sans-serif;}
-.bottom-nav-item.active{color:var(--gold);}
-.bottom-nav-item .bn-icon{font-size:17px;}
-
-/* app-main padding for bottom nav on mobile */
 @media(max-width:767px){
+  .bottom-nav{display:block!important;}
   .app-main{padding-bottom:60px;}
 }
+.bottom-nav-inner{display:flex;justify-content:space-around;}
+.bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;cursor:pointer;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;transition:color .12s;background:transparent;border:none;font-family:'Outfit',sans-serif;flex:1;min-width:0;}
+.bottom-nav-item.active{color:var(--gold);}
+.bottom-nav-item .bn-icon{font-size:18px;line-height:1;}
+
+/* ─── MOBILE TOPBAR HAMBURGER + DRAWER ─── */
+.mobile-hamburger{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;background:var(--card);border:1px solid var(--bdr);color:var(--text);cursor:pointer;padding:0;font-size:16px;}
+.mobile-hamburger:hover{border-color:var(--gold);color:var(--gold);}
+.mobile-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);}
+.mobile-drawer-overlay.open{display:block;}
+.mobile-drawer{position:fixed;top:0;right:0;height:100vh;width:84vw;max-width:320px;background:var(--surf);border-left:1px solid var(--bdr);z-index:301;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow-y:auto;box-shadow:-12px 0 32px rgba(0,0,0,.5);}
+.mobile-drawer.open{transform:translateX(0);}
+.md-head{padding:20px 18px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.md-user{flex:1;min-width:0;}
+.md-user-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;font-family:'Outfit',sans-serif;font-size:18px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.md-user-name{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:var(--text);line-height:1.2;word-break:break-word;}
+.md-user-email{font-size:11px;color:var(--muted);margin-top:3px;word-break:break-all;line-height:1.4;}
+.md-plan{display:inline-block;margin-top:8px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;}
+.md-plan.free{background:rgba(34,211,160,.12);color:var(--green);border:1px solid rgba(34,211,160,.25);}
+.md-plan.paid{background:var(--gdim);color:var(--gold);border:1px solid rgba(245,166,35,.25);}
+.md-close{width:30px;height:30px;border-radius:7px;background:var(--card);border:1px solid var(--bdr);color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;line-height:1;}
+.md-close:hover{color:var(--red);border-color:var(--red);}
+.md-section{padding:10px 0;}
+.md-section-lbl{font-size:9px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);padding:8px 18px 6px;}
+.md-item{display:flex;align-items:center;gap:12px;padding:11px 18px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;background:transparent;border:none;width:100%;text-align:left;transition:all .12s;border-left:3px solid transparent;}
+.md-item:hover{background:var(--card);color:var(--text);}
+.md-item.active{background:var(--gdim);color:var(--gold);border-left-color:var(--gold);}
+.md-item-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.md-foot{margin-top:auto;padding:14px 18px 24px;border-top:1px solid var(--bdr);}
+.md-signout{width:100%;padding:11px;background:transparent;border:1.5px solid var(--bdr2);border-radius:8px;color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .12s;}
+.md-signout:hover{border-color:var(--red);color:var(--red);}
 
 /* ─── LOADING ─── */
 #loading-screen{position:fixed;inset:0;z-index:9998;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
@@ -722,13 +753,34 @@ body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Outfit'
     <div class="app-topbar">
       <div class="app-topbar-logo">PyZap &#x26A1;</div>
       <div class="app-topbar-right">
-        <div class="topbar-stat"><span class="topbar-stat-icon">&#x1F4DD;</span><span class="topbar-stat-val" id="ms-done">0</span></div>
-        <div class="topbar-stat sc"><span class="topbar-stat-icon">&#x2713;</span><span class="topbar-stat-val" id="ms-correct">0</span></div>
-        <div class="topbar-stat sw"><span class="topbar-stat-icon">&#x2717;</span><span class="topbar-stat-val" id="ms-wrong">0</span></div>
-        <div class="topbar-stat ss"><span class="topbar-stat-icon">&#x1F525;</span><span class="topbar-stat-val" id="ms-streak">0</span></div>
         <span class="topbar-plan-badge free" id="topbar-plan-badge">Free</span>
+        <button class="mobile-hamburger" id="mobile-hamburger" aria-label="Open menu">&#9776;</button>
       </div>
     </div>
+
+    <!-- Mobile drawer -->
+    <div class="mobile-drawer-overlay" id="mobile-drawer-overlay"></div>
+    <aside class="mobile-drawer" id="mobile-drawer" aria-hidden="true">
+      <div class="md-head">
+        <div class="md-user">
+          <div class="md-user-avatar" id="md-avatar">P</div>
+          <div class="md-user-name" id="md-name">Student</div>
+          <div class="md-user-email" id="md-email">&mdash;</div>
+          <span class="md-plan free" id="md-plan">Free</span>
+        </div>
+        <button class="md-close" id="md-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="md-section">
+        <div class="md-section-lbl">Menu</div>
+        <button class="md-item active" data-tab="practice"><span class="md-item-icon">&#x26A1;</span> Practice</button>
+        <button class="md-item" data-tab="tests"><span class="md-item-icon">&#x1F4DD;</span> Tests</button>
+        <button class="md-item" data-tab="history"><span class="md-item-icon">&#x1F4CA;</span> History</button>
+        <button class="md-item" data-tab="profile"><span class="md-item-icon">&#x1F464;</span> Profile</button>
+      </div>
+      <div class="md-foot">
+        <button class="md-signout" id="md-signout">Sign Out</button>
+      </div>
+    </aside>
   <!-- ═══ PRACTICE PANEL ═══ -->
   <div class="main-panel active" id="panel-practice">
 
@@ -1257,6 +1309,8 @@ function applyPlanUI(){
   if(badge){badge.textContent=S.plan==="paid"?"Pro":"Free";badge.className="plan-badge "+(S.plan==="paid"?"paid":"free");}
   var tbBadge=document.getElementById("topbar-plan-badge");
   if(tbBadge){tbBadge.textContent=S.plan==="paid"?"Pro":"Free";tbBadge.className="topbar-plan-badge "+(S.plan==="paid"?"paid":"free");}
+  var mdBadge=document.getElementById("md-plan");
+  if(mdBadge){mdBadge.textContent=S.plan==="paid"?"Pro":"Free";mdBadge.className="md-plan "+(S.plan==="paid"?"paid":"free");}
   applyDtypeLocks();
   updateFreeBanner();
 }
@@ -1600,7 +1654,7 @@ function renderNetCheckboxes(){
 }
 
 function switchTab(tabName){
-  document.querySelectorAll(".app-nav-item,.bottom-nav-item").forEach(function(n){n.classList.toggle("active",n.dataset.tab===tabName);});
+  document.querySelectorAll(".app-nav-item,.bottom-nav-item,.md-item").forEach(function(n){n.classList.toggle("active",n.dataset.tab===tabName);});
   document.querySelectorAll(".main-panel").forEach(function(p){p.classList.remove("active");});
   var panel=document.getElementById("panel-"+tabName);
   if(panel)panel.classList.add("active");
@@ -1684,10 +1738,18 @@ function launchApp(){
   showScreen("app");
   var sbName=document.getElementById("sb-name");
   var sbEmail=document.getElementById("sb-email");
+  var mdName=document.getElementById("md-name");
+  var mdEmail=document.getElementById("md-email");
+  var mdAvatar=document.getElementById("md-avatar");
+  var name="", email="";
   if(S.userData){
-    if(sbName) sbName.textContent=S.userData.name||"";
-    var authEmail=(firebase.auth().currentUser&&firebase.auth().currentUser.email)||S.userData.email||"";
-    if(sbEmail) sbEmail.textContent=authEmail;
+    name = S.userData.name || "Student";
+    email = (firebase.auth().currentUser && firebase.auth().currentUser.email) || S.userData.email || "";
+    if(sbName) sbName.textContent = name;
+    if(sbEmail) sbEmail.textContent = email;
+    if(mdName) mdName.textContent = name;
+    if(mdEmail) mdEmail.textContent = email || "—";
+    if(mdAvatar) mdAvatar.textContent = (name && name.charAt(0).toUpperCase()) || "P";
   }
   // Load lifetime stats from localStorage
   var st=loadStats();
@@ -1696,6 +1758,52 @@ function launchApp(){
   applyPlanUI();
   fetchBoardQuestions(function(){ fetchAllQuestions(); });
 }
+
+// ─── Mobile drawer + hamburger wiring ───
+(function(){
+  function openDrawer(){
+    var d=document.getElementById("mobile-drawer");
+    var o=document.getElementById("mobile-drawer-overlay");
+    if(d) d.classList.add("open");
+    if(d) d.setAttribute("aria-hidden","false");
+    if(o) o.classList.add("open");
+  }
+  function closeDrawer(){
+    var d=document.getElementById("mobile-drawer");
+    var o=document.getElementById("mobile-drawer-overlay");
+    if(d) d.classList.remove("open");
+    if(d) d.setAttribute("aria-hidden","true");
+    if(o) o.classList.remove("open");
+  }
+  window.openMobileDrawer = openDrawer;
+  window.closeMobileDrawer = closeDrawer;
+  document.addEventListener("DOMContentLoaded", function(){
+    var ham=document.getElementById("mobile-hamburger");
+    var cls=document.getElementById("md-close");
+    var ovr=document.getElementById("mobile-drawer-overlay");
+    var so =document.getElementById("md-signout");
+    if(ham) ham.addEventListener("click", openDrawer);
+    if(cls) cls.addEventListener("click", closeDrawer);
+    if(ovr) ovr.addEventListener("click", closeDrawer);
+    if(so)  so.addEventListener("click", function(){
+      closeDrawer();
+      var mainLogout=document.getElementById("logout-btn");
+      if(mainLogout) mainLogout.click();
+    });
+    // Drawer tab buttons
+    document.querySelectorAll(".md-item").forEach(function(b){
+      b.addEventListener("click", function(){
+        var t=b.dataset.tab;
+        if(t && typeof switchTab==="function") switchTab(t);
+        closeDrawer();
+      });
+    });
+    // Close on Escape
+    document.addEventListener("keydown", function(e){
+      if(e.key==="Escape") closeDrawer();
+    });
+  });
+})();
 
 // ═══════════════════════════════════════════
 //  PRACTICE LOGIC
@@ -2308,9 +2416,52 @@ function hl(line){
 }
 
 function renderCode(lines,gEl,cEl){
+  // Remove prose-mode class if present (code mode is default)
+  var wrap = cEl && cEl.parentElement;
+  if(wrap && wrap.classList.contains('prose-mode')) wrap.classList.remove('prose-mode');
   gEl.innerHTML=lines.map(function(_,i){return'<div>'+(i+1)+'</div>';}).join("");
   var cd=cEl;cd.innerHTML=lines.map(function(l){return'<div class="code-line">'+hl(l)+'</div>';}).join("");
   cd.style.animation="none";void cd.offsetHeight;cd.style.animation="fadeUp .2s ease";
+}
+
+// Prose renderer — for SQL/Networking/Assertion question prompts (word-wrap, no gutter)
+function renderProse(lines, gEl, cEl){
+  var wrap = cEl && cEl.parentElement;
+  if(wrap) wrap.classList.add('prose-mode');
+  if(gEl) gEl.innerHTML = "";
+  if(!cEl) return;
+  cEl.innerHTML = (lines||[]).map(function(l){
+    // Simple HTML escape, keep newlines as soft breaks
+    var txt = String(l==null?"":l).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    return '<div class="code-line">'+txt+'</div>';
+  }).join("");
+  cEl.style.animation="none";void cEl.offsetHeight;cEl.style.animation="fadeUp .2s ease";
+}
+
+// Scan tables in the given root and mark overflowing ones with .has-overflow
+function markOverflowingTables(root){
+  var scope = root || document;
+  var tables = scope.querySelectorAll('.scrollable-tbl');
+  tables.forEach(function(w){
+    var inner = w.querySelector('.scroll-inner');
+    if(!inner) return;
+    function update(){
+      var overflow = inner.scrollWidth > inner.clientWidth + 1;
+      w.classList.toggle('has-overflow', overflow);
+      if(overflow){
+        var atEnd = (inner.scrollLeft + inner.clientWidth) >= (inner.scrollWidth - 2);
+        w.classList.toggle('at-end', atEnd);
+      } else {
+        w.classList.remove('at-end');
+      }
+    }
+    update();
+    if(!inner.dataset.scrollBound){
+      inner.dataset.scrollBound = "1";
+      inner.addEventListener('scroll', update, {passive:true});
+      window.addEventListener('resize', update, {passive:true});
+    }
+  });
 }
 
 function renderPracticeQuestion(q){
@@ -2321,7 +2472,13 @@ function renderPracticeQuestion(q){
     renderCode(q.case_text,document.getElementById("case-gutter"),document.getElementById("case-code"));
   }else if(caseEl){ caseEl.style.display="none"; }
 
-  renderCode(q.lines||[],document.getElementById("gutter"),document.getElementById("code"));
+  // Assertion & Reason is prose; everything else is code
+  var isAR = (q.qtype==="assertion_reason") || S.dtype==="AssertionReason";
+  if(isAR){
+    renderProse(q.lines||[],document.getElementById("gutter"),document.getElementById("code"));
+  } else {
+    renderCode(q.lines||[],document.getElementById("gutter"),document.getElementById("code"));
+  }
 
   if(S.plan!=="paid"){
     document.getElementById("qnum").textContent="Q "+(getQtypeSeen(S.dtype,S.qtype)+1)+"/"+S.freeQuestionsPerQtype;
@@ -2481,14 +2638,19 @@ function checkAns(){
 
 document.getElementById("btn-check").addEventListener("click",checkAns);
 document.getElementById("btn-next").addEventListener("click",function(){
-  if(!S.checked){showToast("Check your answer first!","info");return;}
-  if(isNetworkingDtype(S.dtype)){netNextQuestion();return;}
-  if(isSQLDtype(S.dtype)){startSQLQuestion();return;}
+  // Route the "already checked?" guard to the correct flag based on topic
+  if(isNetworkingDtype(S.dtype)){
+    if(!(window.NET && NET.checked)){ showToast("Check your answer first!","info"); return; }
+    netNextQuestion();
+    return;
+  }
+  if(!S.checked){ showToast("Check your answer first!","info"); return; }
+  if(isSQLDtype(S.dtype)){ startSQLQuestion(); return; }
   if(S.plan!=="paid"&&isQtypeDone(S.dtype,S.qtype)){
-    showQtypeCompleteMsg(S.dtype,S.qtype);return;
+    showQtypeCompleteMsg(S.dtype,S.qtype); return;
   }
   S.currentIdx++;
-  if(S.plan==="paid")S.conceptIdx[S.dtype]=S.currentIdx;
+  if(S.plan==="paid") S.conceptIdx[S.dtype]=S.currentIdx;
   showCurrentQuestion();
 });
 // (btn-reset removed from UI — handler no longer needed)
@@ -3742,7 +3904,7 @@ function sqlGenJoinSchemas(){
 function sqlRenderTable(schema){
   var h = '<div class="sql-schema-block">';
   h += '<div class="sql-table-name">'+schema.name.toUpperCase()+'</div>';
-  h += '<div class="sql-table-wrap"><table class="sql-tbl"><thead><tr>';
+  h += '<div class="scrollable-tbl"><div class="scroll-inner"><table class="sql-tbl"><thead><tr>';
   schema.columns.forEach(function(col){
     // Hide PK/FK labels — student must identify these themselves
     h += '<th>'+col.n+'</th>';
@@ -3753,7 +3915,7 @@ function sqlRenderTable(schema){
     schema.columns.forEach(function(col){ h += '<td>'+row[col.n]+'</td>'; });
     h += '</tr>';
   });
-  h += '</tbody></table></div></div>';
+  h += '</tbody></table></div></div></div>';
   return h;
 }
 
@@ -4112,16 +4274,23 @@ function sqlInjectCSS(){
   s.textContent=
     ".sql-schema-container{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:10px;flex-shrink:0;align-items:flex-start;}"+
     ".sql-schema-block{flex:0 0 auto;max-width:100%;min-width:0;}"+
-    ".sql-intro{width:100%;font-size:13px;color:var(--text);line-height:1.55;margin-bottom:4px;padding:10px 12px;background:var(--s2);border:1px solid var(--bdr2);border-radius:8px;}"+
+    ".sql-intro{width:100%;font-size:13px;color:var(--text);line-height:1.65;margin-bottom:4px;padding:10px 12px;background:var(--s2);border:1px solid var(--bdr2);border-radius:8px;}"+
     ".sql-intro-strong{color:var(--gold2);font-weight:700;}"+
     ".sql-table-name{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold2);margin-bottom:5px;}"+
-    ".sql-table-wrap{display:inline-block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--bdr2);}"+
+    /* Scrollable wrapper — visible scrollbar + right-edge fade when overflowing */
+    ".scrollable-tbl{position:relative;display:inline-block;max-width:100%;vertical-align:top;}"+
+    ".scrollable-tbl .scroll-inner{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--bdr2);scrollbar-width:thin;scrollbar-color:var(--bdr2) transparent;}"+
+    ".scrollable-tbl .scroll-inner::-webkit-scrollbar{height:6px;}"+
+    ".scrollable-tbl .scroll-inner::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px;}"+
+    ".scrollable-tbl .scroll-inner::-webkit-scrollbar-track{background:transparent;}"+
+    ".scrollable-tbl.has-overflow::after{content:'\\203A';position:absolute;top:0;right:0;bottom:0;width:32px;background:linear-gradient(to right,transparent,var(--s2) 60%);pointer-events:none;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:var(--gold);font-size:20px;font-weight:900;border-radius:0 8px 8px 0;}"+
+    ".scrollable-tbl.has-overflow.at-end::after{opacity:0;}"+
     ".sql-tbl{width:auto;border-collapse:collapse;font-size:12px;font-family:var(--mono);}"+
     ".sql-tbl th{background:var(--s3);padding:6px 12px;text-align:left;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);white-space:nowrap;border-bottom:1px solid var(--bdr2);}"+
     ".sql-tbl td{padding:5px 12px;color:var(--text2);white-space:nowrap;border-bottom:1px solid var(--bdr);}"+
     ".sql-tbl tr:last-child td{border-bottom:none;}"+
     ".sql-tbl tr:hover td{background:var(--s3);}"+
-    "@media(max-width:600px){.sql-schema-container{flex-direction:column;}}"+
+    "@media(max-width:600px){.sql-schema-container{flex-direction:column;}.sql-intro{font-size:12px;}.sql-tbl{font-size:11px;}.sql-tbl th,.sql-tbl td{padding:5px 9px;}}"+
     ".sql-free-counter{font-size:10px;color:var(--muted);text-align:right;margin-bottom:4px;}";
   document.head.appendChild(s);
 }
@@ -4171,8 +4340,11 @@ function renderSQLQuestion(q){
   // Hide case block
   var cb=document.getElementById("case-text-block");if(cb)cb.style.display="none";
 
-  // Render question lines in code block
-  renderCode(q.lines||[],document.getElementById("gutter"),document.getElementById("code"));
+  // Render question lines in prose mode (wraps naturally)
+  renderProse(q.lines||[],document.getElementById("gutter"),document.getElementById("code"));
+
+  // Apply scroll-overflow indicators on schema tables
+  if(sce) markOverflowingTables(sce);
 
   // Free counter
   if(S.plan!=="paid"){
@@ -4701,7 +4873,7 @@ function netRenderCaseBox(c){
   // Section: Block to Block distances
   h+='<div class="net-case-section">';
   h+='<div class="net-case-section-title">Block to Block distances (in metres) :</div>';
-  h+='<div class="net-dist-wrap"><table class="net-dist-table"><thead><tr><th>From</th><th>To</th><th>Distance</th></tr></thead><tbody>';
+  h+='<div class="scrollable-tbl"><div class="scroll-inner"><table class="net-dist-table"><thead><tr><th>From</th><th>To</th><th>Distance</th></tr></thead><tbody>';
   if(c.distances && c.distances.length){
     c.distances.forEach(function(d){
       h+='<tr><td>'+esc(String(d.from).toUpperCase())+'</td><td>'+esc(String(d.to).toUpperCase())+'</td><td>'+d.metres+' m</td></tr>';
@@ -4709,7 +4881,7 @@ function netRenderCaseBox(c){
   } else {
     h+='<tr><td colspan="3" style="text-align:center;color:var(--muted)">As provided in the question</td></tr>';
   }
-  h+='</tbody></table></div>';
+  h+='</tbody></table></div></div>';
   h+='</div>';
 
   // Head office distance line (exact CBSE format)
@@ -4722,11 +4894,11 @@ function netRenderCaseBox(c){
   // Section: Number of computers
   h+='<div class="net-case-section">';
   h+='<div class="net-case-section-title">Number of Computers in each block is as follows :</div>';
-  h+='<div class="net-comp-tbl-wrap"><table class="net-comp-tbl"><thead><tr><th>Block</th><th>No. of Computers</th></tr></thead><tbody>';
+  h+='<div class="scrollable-tbl"><div class="scroll-inner"><table class="net-comp-tbl"><thead><tr><th>Block</th><th>No. of Computers</th></tr></thead><tbody>';
   (c.blocks||[]).forEach(function(b){
     h+='<tr><td>'+esc(String(b.name).toUpperCase())+'</td><td style="text-align:center">'+b.computers+'</td></tr>';
   });
-  h+='</tbody></table></div>';
+  h+='</tbody></table></div></div>';
   h+='</div>';
 
   h+='</div>';
@@ -4935,10 +5107,12 @@ function netShowQuestion(){
   if(sce){
     sce.style.display="";
     sce.innerHTML=netRenderCaseBox(NET.caseData);
+    // Mark overflowing tables for scroll affordance
+    markOverflowingTables(sce);
   }
 
-  // Question in code area
-  renderCode([q.prompt],document.getElementById("gutter"),document.getElementById("code"));
+  // Question in prose mode (wraps naturally)
+  renderProse([q.prompt],document.getElementById("gutter"),document.getElementById("code"));
   document.getElementById("qprompt").textContent="Select the correct answer:";
 
   // MCQ options
